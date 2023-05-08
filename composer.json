@@ -1,0 +1,25 @@
+{
+    "name": "stape/module-gtm",
+    "description": "N/A",
+    "type": "magento2-module",
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
+    "version": "1.0.0",
+    "require": {
+        "php": "~7.4.0||~8.1.0",
+        "magento/framework": "*",
+        "magento/module-checkout": "*",
+        "magento/module-quote": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Stape\\Gtm\\": ""
+        }
+    }
+}
+

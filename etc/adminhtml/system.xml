@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="stape" translate="label" sortOrder="500">
+            <label>Stape</label>
+        </tab>
+
+        <section id="stape_gtm" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+            <class>separator-top</class>
+            <label>Server Side GTM</label>
+            <tab>stape</tab>
+            <resource>Stape_Gtm::config</resource>
+            <group id="general" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+                <label>General</label>
+                <field id="active" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
+                    <label>Active</label>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                </field>
+                <field id="container_id" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+                    <label>Web Container Id</label>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="stape_gtm/general/active">1</field>
+                    </depends>
+                    <comment>(ex. GTM-XXXXXXXX)</comment>
+                </field>
+                <field id="custom_domain" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+                    <label>Custom Domain</label>
+                    <comment>Leave empty to use default domain</comment>
+                    <validate>validate-https-url</validate>
+                </field>
+                <field id="custom_loader" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+                    <label>Custom Loader</label>
+                    <comment>Leave empty to use default loader</comment>
+                </field>
+                <field id="cookie_keeper" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
+                    <label>Cookie Keeper</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="default_snippet" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="textarea">
+                    <label>Code Snippet</label>
+                    <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\Disable</frontend_model>
+                    <backend_model>Stape\Gtm\Model\Backend\CodeSnippet\Default</backend_model>
+                    <depends>
+                        <field id="stape_gtm/general/cookie_keeper">0</field>
+                    </depends>
+                </field>
+                <field id="custom_snippet" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="textarea">
+                    <label>Code Snippet</label>
+                    <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\Disable</frontend_model>
+                    <backend_model>Stape\Gtm\Model\Backend\CodeSnippet\Advanced</backend_model>
+                    <depends>
+                        <field id="stape_gtm/general/cookie_keeper">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

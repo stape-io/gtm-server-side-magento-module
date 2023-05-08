@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="head.additional">
+            <block class="Stape\Gtm\Block\Gtm" name="stape.gtm" ifconfig="stape_gtm/general/active" template="Stape_Gtm::html/gtm.phtml">
+                <block class="Stape\Gtm\Block\Gtm" name="stape.gtm.default" template="Stape_Gtm::html/gtm/default.phtml"  />
+                <block class="Stape\Gtm\Block\Gtm" name="stape.gtm.advanced" template="Stape_Gtm::html/gtm/advanced.phtml" />
+            </block>
+        </referenceBlock>
+    </body>
+</page>

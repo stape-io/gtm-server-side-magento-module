@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <virtualType name="Stape\Gtm\Block\Gtm\Default" type="Stape\Gtm\Block\Gtm">
+        <arguments>
+            <argument name="data" xsi:type="array">
+                <item name="template" xsi:type="string">Stape_Gtm::html/gtm/default.phtml</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Stape\Gtm\Block\Gtm\Advanced" type="Stape\Gtm\Block\Gtm">
+        <arguments>
+            <argument name="data" xsi:type="array">
+                <item name="template" xsi:type="string">Stape_Gtm::html/gtm/advanced.phtml</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Stape\Gtm\Model\Backend\CodeSnippet\Default" type="Stape\Gtm\Model\Backend\CodeSnippet">
+        <arguments>
+            <argument name="gtm" xsi:type="object">Stape\Gtm\Block\Gtm\Default</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Stape\Gtm\Model\Backend\CodeSnippet\Advanced" type="Stape\Gtm\Model\Backend\CodeSnippet">
+        <arguments>
+            <argument name="gtm" xsi:type="object">Stape\Gtm\Block\Gtm\Advanced</argument>
+        </arguments>
+    </virtualType>
+</config>
