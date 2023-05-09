@@ -37,7 +37,7 @@ class Gtm extends \Magento\Framework\View\Element\Template
      */
     public function getDomain()
     {
-        return $this->configProvider->getCustomDomain() ?: 'https://www.googletagmanager.com/';
+        return trim($this->configProvider->getCustomDomain() ?: 'https://www.googletagmanager.com', '/');
     }
 
     /**
@@ -47,7 +47,7 @@ class Gtm extends \Magento\Framework\View\Element\Template
      */
     public function getLoader()
     {
-        return $this->configProvider->getCustomLoader() ?: 'gtm';
+        return trim($this->configProvider->getCustomLoader() ?: 'gtm', '/');
     }
 
     /**
@@ -67,7 +67,10 @@ class Gtm extends \Magento\Framework\View\Element\Template
      */
     public function getGtmUrl()
     {
-        return $this->getDomain() . $this->getLoader();
+        return implode('/', [
+            $this->getDomain(),
+            $this->getLoader()
+        ]);
     }
 
     /**

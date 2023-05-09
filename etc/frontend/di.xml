@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <type name="Magento\Framework\App\Response\Http">
+        <plugin name="stape_gtm_server_side_cookie" type="Stape\Gtm\Plugin\HttpPlugin" sortOrder="1"/>
+    </type>
+</config>

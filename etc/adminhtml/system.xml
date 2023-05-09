@@ -38,22 +38,6 @@
                     <label>Cookie Keeper</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="default_snippet" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="textarea">
-                    <label>Code Snippet</label>
-                    <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\Disable</frontend_model>
-                    <backend_model>Stape\Gtm\Model\Backend\CodeSnippet\Default</backend_model>
-                    <depends>
-                        <field id="stape_gtm/general/cookie_keeper">0</field>
-                    </depends>
-                </field>
-                <field id="custom_snippet" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="textarea">
-                    <label>Code Snippet</label>
-                    <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\Disable</frontend_model>
-                    <backend_model>Stape\Gtm\Model\Backend\CodeSnippet\Advanced</backend_model>
-                    <depends>
-                        <field id="stape_gtm/general/cookie_keeper">1</field>
-                    </depends>
-                </field>
             </group>
         </section>
     </system>

@@ -33,11 +33,6 @@ class ConfigProvider
     public const XPATH_GTM_KEEP_COOKIE = 'stape_gtm/general/cookie_keeper';
 
     /**
-     * XPATH for GTM snippet
-     */
-    public const XPATH_GTM_SNIPPET = 'stape_gtm/general/snippet';
-
-    /**
      * @var ScopeConfigInterface $scopeConfig
      */
     private $scopeConfig;
