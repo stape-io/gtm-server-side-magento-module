@@ -15,6 +15,7 @@ jobs:
           script: |
             cd ${{ secrets.SSH_PATH }}
             sudo composer require stape/gtm-server-side-magento-module dev-main
+            sudo php bin/magento setup:upgrade
             sudo php bin/magento setup:di:compile
             sudo php bin/magento setup:static-content:deploy -f
             sudo chown -R www-data:www-data var/
