@@ -3,7 +3,9 @@
  * @var \Stape\Gtm\Block\Gtm $block
  */
 ?>
-<?= $block->getChildHtml('stape.gtm.default'); ?>
+
 <?php if ($block->useCookieKeeper()): ?>
     <?= $block->getChildHtml('stape.gtm.advanced'); ?>
+<?php else: ?>
+    <?= $block->getChildHtml('stape.gtm.default'); ?>
 <?php endif; ?>
