@@ -81,11 +81,10 @@ class Success implements ArgumentInterface
         /** @var \Magento\Sales\Model\Order\Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
             $category = $this->categoryResolver->resolve($item->getProduct());
-            $brandAttribute = $item->getCustomAttribute('brand');
+
             $items[] = [
                 'item_id' => $item->getId(),
                 'item_name' => $item->getName(),
-                'item_brand' => $brandAttribute ? $brandAttribute->getValue() : '',
                 'item_category' => $category ? $category->getName() : null,
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => $item->getQtyOrdered(),

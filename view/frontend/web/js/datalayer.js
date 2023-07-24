@@ -76,7 +76,6 @@ define([
                                 'item_name': itemDetails.product_name,
                                 'item_id': itemDetails.item_id,
                                 'item_sku': itemDetails.product_sku,
-                                'item_brand': '',
                                 'item_category': itemDetails.category,
                                 'price': itemDetails.product_price_value,
                                 'quantity': itemDetails.qty,

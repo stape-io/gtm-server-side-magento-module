@@ -119,7 +119,6 @@ class Product implements ArgumentInterface
             'item_id' => $product->getId(),
             'item_sku' => $product->getSku(),
             'item_category' => $this->getCategoryName($product),
-            'item_brand' => $product->getCustomAttribute('brand'),
             'price' => $product->getFinalPrice(),
         ];
     }
