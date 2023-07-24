@@ -19,7 +19,6 @@
                 </field>
                 <field id="container_id" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
                     <label>Web Container Id</label>
-                    <validate>required-entry</validate>
                     <depends>
                         <field id="stape_gtm/general/active">1</field>
                     </depends>
@@ -37,6 +36,40 @@
                 <field id="cookie_keeper" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
                     <label>Cookie Keeper</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="datalayer" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+                <label>Data Layer</label>
+                <field id="ecom" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
+                    <label>Add ecommerce Data Layer events</label>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                </field>
+                <field id="userdata" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
+                    <label>Add user data to Data Layer events</label>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                </field>
+            </group>
+            <group id="webhooks" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+                <label>Webhooks</label>
+                <field id="active" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
+                    <label>Enable Webhooks</label>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                </field>
+                <field id="gtm_container_url" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+                    <label>GTM server container URL</label>
+                    <validate>validate-url</validate>
+                </field>
+                <field id="purchase" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
+                    <label>Purchase Webhook</label>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                </field>
+                <field id="refund" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
+                    <label>Refund Webhook</label>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                </field>
+                <field id="test" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="button">
+                    <label>Send test webhook</label>
+                    <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\Webhook\Button\Test</frontend_model>
                 </field>
             </group>
         </section>

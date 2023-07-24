@@ -3,4 +3,10 @@
     <type name="Magento\Framework\App\Response\Http">
         <plugin name="stape_gtm_server_side_cookie" type="Stape\Gtm\Plugin\HttpPlugin" sortOrder="1"/>
     </type>
+    <type name="Magento\Customer\CustomerData\Customer">
+        <plugin name="stape_gtm_customer" type="Stape\Gtm\Plugin\CustomerData\CustomerPlugin" />
+    </type>
+    <type name="Magento\Checkout\CustomerData\ItemPoolInterface">
+        <plugin name="stape_gtm_item_data" type="Stape\Gtm\Plugin\CustomerData\ItemPoolPlugin" />
+    </type>
 </config>

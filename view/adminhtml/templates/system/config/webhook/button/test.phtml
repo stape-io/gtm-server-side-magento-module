@@ -1,0 +1,21 @@
+<?php
+/**
+ * @var \Stape\Gtm\Block\Adminhtml\System\Config\Webhook\Button\Test $block
+ */
+
+// phpcs:disable
+?>
+<?php $button = $block->getButton(); ?>
+<?= $button->toHtml(); ?>
+<div id="stape-webhook-message"></div>
+<script type="text/x-magento-init">
+    {
+        "#<?= $button->getId(); ?>": {
+            "Stape_Gtm/js/system/config/webhook/button/test": {
+                "actionUrl": "<?= $block->getActionUrl(); ?>",
+                "messageContainer": "#stape-webhook-message"
+            }
+        }
+    }
+</script>
+

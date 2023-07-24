@@ -1,11 +1,30 @@
 <?php
 /**
  * @var \Stape\Gtm\Block\Gtm $block
+ * @var \Magento\Framework\Escaper $escaper
  */
+// phpcs:disable
 ?>
-
-<?php if ($block->useCookieKeeper()): ?>
-    <?= $block->getChildHtml('stape.gtm.advanced'); ?>
-<?php else: ?>
-    <?= $block->getChildHtml('stape.gtm.default'); ?>
+<?php $dataLayer = $block->getDataLayer(); ?>
+<?php if ($block->isDataLayerEnabled()): ?>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+    </script>
+    <script type="text/x-magento-init">
+        {
+            "*": {
+                "Stape_Gtm/js/datalayer": {
+                    "isUserDataEnabled": <?= $block->isUserDataEnabled() ? 'true' : 'false'; ?>,
+                    "data": <?= $dataLayer ? $dataLayer->getJson() : '{}'; ?>
+                }
+            }
+        }
+    </script>
+<?php endif; ?>
+<?php if (!empty($block->getContainerId())): ?>
+    <?php if ($block->useCookieKeeper()): ?>
+        <?= $block->getChildHtml('stape.gtm.advanced'); ?>
+    <?php else: ?>
+        <?= $block->getChildHtml('stape.gtm.default'); ?>
+    <?php endif; ?>
 <?php endif; ?>

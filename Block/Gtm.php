@@ -82,4 +82,24 @@ class Gtm extends \Magento\Framework\View\Element\Template
     {
         return $this->configProvider->useCookieKeeper();
     }
+
+    /**
+     * Check if datalayer is enabled
+     *
+     * @return bool
+     */
+    public function isDataLayerEnabled()
+    {
+        return $this->configProvider->isActive() && $this->configProvider->ecommerceEventsEnabled();
+    }
+
+    /**
+     * Check if user data tracking is enabled
+     *
+     * @return bool
+     */
+    public function isUserDataEnabled()
+    {
+        return $this->configProvider->canAddUserData();
+    }
 }

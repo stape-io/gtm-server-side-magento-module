@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="2columns-left" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="stape.gtm">
+            <arguments>
+                <argument name="data_layer" xsi:type="object">Stape\Gtm\ViewModel\Product</argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>
