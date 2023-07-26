@@ -49,7 +49,7 @@ define([
         const cartData = customerData.get('cart');
         const lastAddedProduct = ko.observable(null);
         window.dataLayerConfig.userDataEnabled = config.isUserDataEnabled || false;
-        window.dataLayer = window.dataLayer || [];
+        // window.dataLayer = window.dataLayer || [];
 
         if (config.isUserDataEnabled && isLoggedIn()) {
             config.data.user_data = {

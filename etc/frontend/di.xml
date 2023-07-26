@@ -9,4 +9,7 @@
     <type name="Magento\Checkout\CustomerData\ItemPoolInterface">
         <plugin name="stape_gtm_item_data" type="Stape\Gtm\Plugin\CustomerData\ItemPoolPlugin" />
     </type>
+    <type name="Magento\Csp\Observer\Render">
+        <plugin name="stape_gtm_csp" type="Stape\Gtm\Plugin\CspObserverPlugin" />
+    </type>
 </config>
