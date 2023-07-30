@@ -73,11 +73,11 @@ class Checkout implements ArgumentInterface
             $category = $this->categoryResolver->resolve($item->getProduct());
             $items[] = [
                 'item_name' => $item->getName(),
-                'item_id' => $item->getId(),
+                'item_id' => $item->getProductId(),
                 'item_sku' => $item->getSku(),
                 'item_category' => $category ? $category->getName() : null,
-                'price' => $item->getBasePrice(),
-                'quantity' => $item->getQtyOrdered(),
+                'price' => $this->priceCurrency->round($item->getBasePrice()),
+                'quantity' => (int) $item->getQty(),
             ];
         }
         return $items;
@@ -99,8 +99,8 @@ class Checkout implements ArgumentInterface
 
         return $this->json->serialize([
             'event' => 'begin_checkout_stape',
-            'cart_quantity' => $quote->getItemsQty(),
-            'cart_total' => $quote->getBaseGrandTotal(),
+            'cart_quantity' => (int) $quote->getItemsQty(),
+            'cart_total' => $this->priceCurrency->round($quote->getBaseGrandTotal()),
             'ecommerce' => [
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
                 'items' => $this->prepareItems($quote),

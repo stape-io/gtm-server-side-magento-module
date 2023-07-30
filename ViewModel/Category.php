@@ -4,6 +4,7 @@ namespace Stape\Gtm\ViewModel;
 
 use Magento\Catalog\Model\Layer;
 use Magento\Catalog\Model\Layer\Resolver;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -25,21 +26,27 @@ class Category implements ArgumentInterface
      */
     private $layer;
 
+    /** @var PriceCurrencyInterface $priceCurrency */
+    private $priceCurrency;
+
     /**
      * Define class dependencies
      *
      * @param Json $json
      * @param StoreManagerInterface $storeManager
      * @param Resolver $layerResolver
+     * @param PriceCurrencyInterface $priceCurrency
      */
     public function __construct(
         Json $json,
         StoreManagerInterface $storeManager,
-        Resolver $layerResolver
+        Resolver $layerResolver,
+        PriceCurrencyInterface $priceCurrency
     ) {
         $this->json = $json;
         $this->storeManager = $storeManager;
         $this->layer = $layerResolver->get();
+        $this->priceCurrency = $priceCurrency;
     }
 
     /**
@@ -72,7 +79,7 @@ class Category implements ArgumentInterface
                 'item_name' => $product->getName(),
                 'item_id' => $product->getId(),
                 'item_sku' => $product->getSku(),
-                'item_price' => $product->getFinalPrice(),
+                'item_price' => $this->priceCurrency->round($product->getFinalPrice()),
                 'index' => $index++
             ];
         }

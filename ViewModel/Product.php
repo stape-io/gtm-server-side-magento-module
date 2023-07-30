@@ -3,10 +3,12 @@
 namespace Stape\Gtm\ViewModel;
 
 use Magento\Catalog\Helper\Data;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Stape\Gtm\Model\Product\CategoryResolver;
 
 class Product implements ArgumentInterface
 {
@@ -31,9 +33,14 @@ class Product implements ArgumentInterface
     private $catalogHelper;
 
     /**
-     * @var \Stape\Gtm\Model\Product\CategoryResolver $categoryResolver
+     * @var CategoryResolver $categoryResolver
      */
     private $categoryResolver;
+
+    /**
+     * @var PriceCurrencyInterface $priceCurrency
+     */
+    private $priceCurrency;
 
     /**
      * Define class dependencies
@@ -42,20 +49,23 @@ class Product implements ArgumentInterface
      * @param StoreManagerInterface $storeManager
      * @param Registry $registry
      * @param Data $catalogHelper
-     * @param \Stape\Gtm\Model\Product\CategoryResolver $categoryResolver
+     * @param CategoryResolver $categoryResolver
+     * @param PriceCurrencyInterface $priceCurrency
      */
     public function __construct(
         Json $json,
         StoreManagerInterface $storeManager,
         Registry $registry,
         Data $catalogHelper,
-        \Stape\Gtm\Model\Product\CategoryResolver $categoryResolver
+        CategoryResolver $categoryResolver,
+        PriceCurrencyInterface $priceCurrency
     ) {
         $this->json = $json;
         $this->storeManager = $storeManager;
         $this->registry = $registry;
         $this->catalogHelper = $catalogHelper;
         $this->categoryResolver = $categoryResolver;
+        $this->priceCurrency = $priceCurrency;
     }
 
     /**
@@ -119,7 +129,7 @@ class Product implements ArgumentInterface
             'item_id' => $product->getId(),
             'item_sku' => $product->getSku(),
             'item_category' => $this->getCategoryName($product),
-            'price' => $product->getFinalPrice(),
+            'price' => $this->priceCurrency->round($product->getFinalPrice()),
         ];
     }
 

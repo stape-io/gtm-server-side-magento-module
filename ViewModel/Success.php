@@ -83,11 +83,11 @@ class Success implements ArgumentInterface
             $category = $this->categoryResolver->resolve($item->getProduct());
 
             $items[] = [
-                'item_id' => $item->getId(),
+                'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
                 'item_category' => $category ? $category->getName() : null,
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
-                'quantity' => $item->getQtyOrdered(),
+                'quantity' => (int) $item->getQtyOrdered(),
                 'item_sku' => $item->getSku(),
             ];
         }
@@ -107,8 +107,28 @@ class Success implements ArgumentInterface
             return null;
         }
 
+        /** @var \Magento\Sales\Model\Order\Address $address */
+        $address = $order->getBillingAddress();
+        if (!$order->getIsVirtual()) {
+            $address = $order->getShippingAddress();
+        }
+
         return $this->json->serialize([
             'event' => 'purchase_stape',
+            'user_data' => [
+                'first_name' => $address->getFirstname(),
+                'last_name' => $address->getLastname(),
+                'email' => $address->getEmail(),
+                'phone' => $address->getTelephone(),
+                'customer_id' => $address->getCustomerId(),
+                'country' => $address->getCountryId(),
+                'region' => $address->getRegionCode(),
+                'street' => implode(', ', $address->getStreet()),
+                'city' => $address->getCity(),
+                'zip' => $address->getPostcode(),
+                'customer_lifetime_spent' => '',
+                'new_customer' => $order->getCustomerIsGuest()
+            ],
             'ecommerce' => [
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
                 'transaction_id' => $order->getIncrementId(),

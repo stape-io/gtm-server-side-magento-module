@@ -49,15 +49,15 @@ define([
         const cartData = customerData.get('cart');
         const lastAddedProduct = ko.observable(null);
         window.dataLayerConfig.userDataEnabled = config.isUserDataEnabled || false;
-        // window.dataLayer = window.dataLayer || [];
+        window.dataLayer = window.dataLayer || [];
 
         if (config.isUserDataEnabled && isLoggedIn()) {
-            config.data.user_data = {
+            config.data.user_data = Object.assign(config.data.user_data || {}, {
                 email: customer().email,
                 first_name: customer().firstname,
                 last_name: customer().lastname,
                 customer_id: customer().id
-            }
+            });
         }
 
         dataLayer.push({ecommerce: null});
@@ -70,11 +70,11 @@ define([
                 window.dataLayer.push({
                     event: 'add_to_cart_stape',
                     ecommerce: {
-                        currency: '',
+                        currency: config?.data?.ecommerce?.currency,
                         items: [
                             {
                                 'item_name': itemDetails.product_name,
-                                'item_id': itemDetails.item_id,
+                                'item_id': itemDetails.product_id,
                                 'item_sku': itemDetails.product_sku,
                                 'item_category': itemDetails.category,
                                 'price': itemDetails.product_price_value,
@@ -100,10 +100,10 @@ define([
                 window.dataLayer.push({
                     event: 'remove_from_cart_stape',
                     ecommerce: {
-                        currency: 'USD', //three-letter format
+                        currency: config?.data?.ecommerce?.currency,
                         items: [{
                             'item_name': itemDetails.product_name,
-                            'item_id': itemDetails.item_id,
+                            'item_id': itemDetails.product_id,
                             'item_sku': itemDetails.product_sku,
                             'item_category': itemDetails.category,
                             'price': itemDetails.product_price_value,
