@@ -2,34 +2,40 @@
 
 namespace Stape\Gtm\Plugin;
 
+use Magento\Csp\Model\Collector\DynamicCollector;
+use Magento\Csp\Model\Policy\FetchPolicyFactory;
+use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Stape\Gtm\Model\ConfigProvider;
 
 class CspObserverPlugin
 {
     /**
-     * @var \Stape\Gtm\Model\ConfigProvider $configProvider
+     * @var ConfigProvider $configProvider
      */
     private $configProvider;
 
     /**
-     * @var \Magento\Csp\Model\Policy\FetchPolicyFactory $fetchPolicyFactory
+     * @var FetchPolicyFactory $fetchPolicyFactory
      */
     private $fetchPolicyFactory;
 
     /**
-     * @var \Magento\Csp\Model\Collector\DynamicCollector $dynamicCollector
+     * @var DynamicCollector $dynamicCollector
      */
     private $dynamicCollector;
 
     /**
      * Define class dependencies
      *
-     * @param \Stape\Gtm\Model\ConfigProvider $configProvider
+     * @param ConfigProvider $configProvider
+     * @param FetchPolicyFactory $fetchPolicyFactory
+     * @param DynamicCollector $dynamicCollector
      */
     public function __construct(
-        \Stape\Gtm\Model\ConfigProvider $configProvider,
-        \Magento\Csp\Model\Policy\FetchPolicyFactory $fetchPolicyFactory,
-        \Magento\Csp\Model\Collector\DynamicCollector $dynamicCollector
+        ConfigProvider $configProvider,
+        FetchPolicyFactory $fetchPolicyFactory,
+        DynamicCollector $dynamicCollector
     ) {
         $this->configProvider = $configProvider;
         $this->fetchPolicyFactory = $fetchPolicyFactory;
@@ -40,12 +46,15 @@ class CspObserverPlugin
      * Adding custom domain to CSP policy
      *
      * @param ObserverInterface $subject
-     * @param $observer
+     * @param Observer $observer
      * @return array
      */
     public function beforeExecute(ObserverInterface $subject, $observer)
     {
+        // phpcs:disable
         $customDomain = parse_url($this->configProvider->getCustomDomain() ?? '', PHP_URL_HOST);
+        // phpcs:enable
+
         if (!$this->configProvider->isActive() || empty($customDomain)) {
             return [$observer];
         }

@@ -82,7 +82,7 @@ class Success implements ArgumentInterface
         foreach ($order->getAllVisibleItems() as $item) {
             $category = $this->categoryResolver->resolve($item->getProduct());
 
-            $items[] = [
+            $itemCandidate = [
                 'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
                 'item_category' => $category ? $category->getName() : null,
@@ -90,6 +90,12 @@ class Success implements ArgumentInterface
                 'quantity' => (int) $item->getQtyOrdered(),
                 'item_sku' => $item->getSku(),
             ];
+
+            if ($item->getHasChildren()) {
+                $itemCandidate['variation_id'] = current($item->getChildrenItems())->getProductId();
+            }
+
+            $items[] = $itemCandidate;
         }
         return $items;
     }

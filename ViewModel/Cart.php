@@ -78,6 +78,7 @@ class Cart implements ArgumentInterface
                 'item_category' => $category ? $category->getName() : null,
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => (int) $item->getQtyOrdered(),
+                'variation_id' => $item->getHasChildren() ? current($item->getChildren())->getProductId() : null
             ];
         }
         return $items;

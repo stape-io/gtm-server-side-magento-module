@@ -67,6 +67,7 @@ define([
         cartData.subscribe(function() {
             const itemDetails = findItem(lastAddedProduct())
             if (wasAddToCartCalled) {
+
                 window.dataLayer.push({
                     event: 'add_to_cart_stape',
                     ecommerce: {
@@ -79,7 +80,7 @@ define([
                                 'item_category': itemDetails.category,
                                 'price': itemDetails.product_price_value,
                                 'quantity': itemDetails.qty,
-
+                                'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined
                             }
                         ]
                     }
@@ -91,24 +92,28 @@ define([
 
         $(document).on('ajax:addToCart', function(e, data) {
             wasAddToCartCalled = true;
-            lastAddedProduct(data.productInfo[0]);
+            lastAddedProduct(data.productInfo[data.productInfo.length - 1]);
         });
 
         $(document).on('ajax:removeFromCart', function(e, data) {
             const itemDetails = findItem(data.productInfo[0]);
             if (itemDetails) {
+
                 window.dataLayer.push({
                     event: 'remove_from_cart_stape',
                     ecommerce: {
                         currency: config?.data?.ecommerce?.currency,
-                        items: [{
-                            'item_name': itemDetails.product_name,
-                            'item_id': itemDetails.product_id,
-                            'item_sku': itemDetails.product_sku,
-                            'item_category': itemDetails.category,
-                            'price': itemDetails.product_price_value,
-                            'quantity': itemDetails.qty,
-                        }]
+                        items: [
+                            {
+                                'item_name': itemDetails.product_name,
+                                'item_id': itemDetails.product_id,
+                                'item_sku': itemDetails.product_sku,
+                                'item_category': itemDetails.category,
+                                'price': itemDetails.product_price_value,
+                                'quantity': itemDetails.qty,
+                                'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
+                            }
+                        ]
                     }
                 });
             }

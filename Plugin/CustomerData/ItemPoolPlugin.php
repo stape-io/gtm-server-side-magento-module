@@ -51,6 +51,10 @@ class ItemPoolPlugin
             $result['category'] = $category->getName();
         }
 
+        if ($item->getHasChildren()) {
+            $result['child_product_id'] = current($item->getChildren())->getProductId();
+        }
+
         return $result;
     }
 }

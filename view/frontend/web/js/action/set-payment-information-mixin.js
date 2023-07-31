@@ -2,8 +2,9 @@ define([
     'mage/utils/wrapper',
     'underscore',
     'Magento_Checkout/js/model/quote',
-    'Magento_Customer/js/customer-data'
-], function(wrapper, _, quote, customerData) {
+    'Magento_Customer/js/customer-data',
+    'Magento_Catalog/js/price-utils'
+], function(wrapper, _, quote, customerData, priceUtils) {
     'use strict';
 
     /**
@@ -13,6 +14,7 @@ define([
      */
     function prepareItems() {
         const cartData = customerData.get('cart')();
+        const priceFormat = Object.assign(quote.getPriceFormat(), {'pattern': '%s'});
         return quote.getItems().map(function(itemDetails) {
             cartData.items.find
             const cartItem = _.find(cartData.items, function(cartItem) {
@@ -23,8 +25,9 @@ define([
                 'item_id': itemDetails.product_id,
                 'item_sku': itemDetails.sku,
                 'item_category': cartItem.category,
-                'price': itemDetails.base_price,
-                'quantity': itemDetails.qty,
+                'price': priceUtils.formatPrice(itemDetails.base_price, priceFormat, false),
+                'quantity': parseInt(itemDetails?.qty),
+                'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
             }
         });
     }
