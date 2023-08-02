@@ -7,6 +7,7 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Stape\Gtm\Model\Data\Order;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
 class Success implements ArgumentInterface
@@ -37,6 +38,11 @@ class Success implements ArgumentInterface
     private $categoryResolver;
 
     /**
+     * @var Order $orderData
+     */
+    private $orderData;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -44,19 +50,22 @@ class Success implements ArgumentInterface
      * @param Session $checkoutSession
      * @param PriceCurrencyInterface $priceCurrency
      * @param CategoryResolver $categoryResolver
+     * @param Order $orderData
      */
     public function __construct(
         Json $json,
         StoreManagerInterface $storeManager,
         Session $checkoutSession,
         PriceCurrencyInterface $priceCurrency,
-        CategoryResolver $categoryResolver
+        CategoryResolver $categoryResolver,
+        Order $orderData
     ) {
         $this->json = $json;
         $this->storeManager = $storeManager;
         $this->checkoutSession = $checkoutSession;
         $this->priceCurrency = $priceCurrency;
         $this->categoryResolver = $categoryResolver;
+        $this->orderData = $orderData;
     }
 
     /**
@@ -132,8 +141,10 @@ class Success implements ArgumentInterface
                 'street' => implode(', ', $address->getStreet()),
                 'city' => $address->getCity(),
                 'zip' => $address->getPostcode(),
-                'customer_lifetime_spent' => '',
-                'new_customer' => $order->getCustomerIsGuest()
+                'new_customer' => $this->orderData->isNewCustomer($address->getEmail()),
+                'customer_lifetime_spent' => $this->priceCurrency->round(
+                    $this->orderData->getLifetimeSpent($address->getEmail())
+                ),
             ],
             'ecommerce' => [
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),

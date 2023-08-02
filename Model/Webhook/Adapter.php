@@ -3,7 +3,6 @@
 namespace Stape\Gtm\Model\Webhook;
 
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\HTTP\ClientFactory;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Model\Order;
@@ -130,8 +129,40 @@ class Adapter
     public function test()
     {
         $data = [
-            'firstname' => 'Test',
-            'lastname' => 'Test'
+            'user_data' => [
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'email' => 'example@example.com',
+                'phone' => '1 800 444 4444',
+                'customer_id' => 1010,
+                'country' => 'US',
+                'region' => 'VA',
+                'street' => '752 Kildeer Drive',
+                'city' => 'Norfolk',
+                'zip' => '23513',
+                'new_customer' => false
+            ],
+            'ecommerce' => [
+                'currency' => 'USD',
+                'transaction_id' => '10000001',
+                'affiliation' => 'Test Web Hook Store',
+                'value' => 115,
+                'tax' => 10, // tax
+                'shipping' => 5, // shipping price
+                'coupon' => '', // coupon if exists
+                'discount_amount' => 0, //
+                'items' => [
+                    [
+                        'item_id' => 1001,
+                        'item_name' => 'Test Product',
+                        'item_category' => 'Test Product Category',
+                        'price' => 100,
+                        'quantity' => 1,
+                        'item_sku' => 'test-product-sku',
+                        'variation_id' => 1002,
+                    ]
+                ],
+            ]
         ];
 
         return $this->call('test_stape_webhook', $data);

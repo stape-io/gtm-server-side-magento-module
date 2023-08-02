@@ -27,7 +27,7 @@ define([
                 'item_category': cartItem.category,
                 'price': priceUtils.formatPrice(itemDetails.base_price, priceFormat, false),
                 'quantity': parseInt(itemDetails?.qty),
-                'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
+                'variation_id': cartItem.child_product_id ? cartItem.child_product_id : undefined,
             }
         });
     }
@@ -48,7 +48,7 @@ define([
                     user_data: {
                         first_name: address.firstname,
                         last_name: address.lastname,
-                        email: address.email || quote.customer_email,
+                        email: address.email || quote.customer_email || quote.guestEmail,
                         phone: address.telephone,
                         country: address.countryId,
                         region: address.region,

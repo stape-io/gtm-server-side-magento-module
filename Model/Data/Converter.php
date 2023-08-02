@@ -20,17 +20,25 @@ class Converter
     private $priceCurrency;
 
     /**
+     * @var \Stape\Gtm\Model\Data\Order $orderData
+     */
+    private $orderData;
+
+    /**
      * Define class dependencies
      *
      * @param CategoryResolver $categoryResolver
      * @param PriceCurrencyInterface $priceCurrency
+     * @param \Stape\Gtm\Model\Data\Order $orderData
      */
     public function __construct(
         CategoryResolver $categoryResolver,
-        PriceCurrencyInterface $priceCurrency
+        PriceCurrencyInterface $priceCurrency,
+        \Stape\Gtm\Model\Data\Order $orderData
     ) {
         $this->categoryResolver = $categoryResolver;
         $this->priceCurrency = $priceCurrency;
+        $this->orderData = $orderData;
     }
 
     /**
@@ -46,12 +54,14 @@ class Converter
         foreach ($order->getAllVisibleItems() as $item) {
             $category = $this->categoryResolver->resolve($item->getProduct());
             $items[] = [
-                'item_id' => $item->getItemId(),
+                'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
                 'item_sku' => $item->getSku(),
                 'item_category' => $category ? $category->getName() : '',
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => $item->getQtyOrdered(),
+                'variation_id' => $item->getHasChildren()
+                    ? current($item->getChildrenItems() ?? [])->getProductId() : null
             ];
         }
         return $items;
@@ -74,12 +84,14 @@ class Converter
 
             $category = $this->categoryResolver->resolve($orderItem->getProduct());
             $items[] = [
-                'item_id' => $item->getOrderItemId(),
+                'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
                 'item_sku' => $item->getSku(),
                 'item_category' => $category ? $category->getName() : '',
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => $item->getQty(),
+                'variation_id' => $item->getOrderItem()->getHasChildren()
+                    ? current($item->getOrderItem()->getChildrenItems() ?? [])->getProductId() : null
             ];
         }
         return $items;
@@ -107,7 +119,7 @@ class Converter
             'city' => $address->getCity(),
             'zip' => $address->getPostcode(),
             'customer_id' => $order->getCustomerId(),
-            'new_customer' => $order->getCustomerIsGuest(),
+            'new_customer' => $this->orderData->isNewCustomer($order->getCustomerEmail()),
         ];
     }
 
