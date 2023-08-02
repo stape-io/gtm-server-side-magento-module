@@ -39,6 +39,7 @@ define([
         return wrapper.wrap(setPaymentInformation, function(originalAction, messageContainer, paymentData) {
             return originalAction(messageContainer, paymentData).then(function(response) {
                 let address = quote.billingAddress();
+                const customer = customerData.get('customer')();
                 if (!quote.isVirtual()) {
                     address = Object.assign(address, quote.shippingAddress());
                 }
@@ -48,7 +49,7 @@ define([
                     user_data: {
                         first_name: address.firstname,
                         last_name: address.lastname,
-                        email: address.email || customerData.get('customer')?.email || quote.guestEmail,
+                        email: address.email || customer?.email || quote.guestEmail,
                         phone: address.telephone,
                         country: address.countryId,
                         region: address.region,
