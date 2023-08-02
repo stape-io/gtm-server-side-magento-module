@@ -48,7 +48,7 @@ define([
                     user_data: {
                         first_name: address.firstname,
                         last_name: address.lastname,
-                        email: address.email || customerData('customer')?.email || quote.guestEmail,
+                        email: address.email || customerData.get('customer')?.email || quote.guestEmail,
                         phone: address.telephone,
                         country: address.countryId,
                         region: address.region,
