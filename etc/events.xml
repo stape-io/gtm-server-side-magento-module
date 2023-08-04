@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="sales_model_service_quote_submit_success">
+        <observer name="stape_gtm_sales_model_service_quote_submit_success" instance="Stape\Gtm\Observer\QuoteSubmitSuccessObserver" />
+    </event>
+    <event name="sales_order_creditmemo_refund">
+        <observer name="stape_gtm_sales_order_creditmemo_refund" instance="Stape\Gtm\Observer\OrderCreditmemoRefundObserver" />
+    </event>
+    <event name="order_cancel_after">
+        <observer name="stape_gtm_sales_order_cancel_after" instance="Stape\Gtm\Observer\OrderCancelAfterObserver" />
+    </event>
+</config>
