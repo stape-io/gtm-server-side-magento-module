@@ -7,4 +7,7 @@
     <event name="sales_order_creditmemo_refund">
         <observer name="stape_gtm_sales_order_creditmemo_refund" instance="Stape\Gtm\Observer\OrderCreditmemoRefundObserver" />
     </event>
+    <event name="order_cancel_after">
+        <observer name="stape_gtm_sales_order_cancel_after" instance="Stape\Gtm\Observer\OrderCancelAfterObserver" />
+    </event>
 </config>

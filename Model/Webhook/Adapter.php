@@ -48,12 +48,13 @@ class Adapter
      * @param Converter $converter
      */
     public function __construct(
-        Json $json,
-        ClientFactory $clientFactory,
-        ConfigProvider $configProvider,
+        Json            $json,
+        ClientFactory   $clientFactory,
+        ConfigProvider  $configProvider,
         LoggerInterface $logger,
-        Converter $converter
-    ) {
+        Converter       $converter
+    )
+    {
         $this->json = $json;
         $this->clientFactory = $clientFactory;
         $this->configProvider = $configProvider;
@@ -100,9 +101,9 @@ class Adapter
     public function purchase(Order $order, array $additionalInfo = [])
     {
         $data = [
-            'user_data' => $this->converter->orderToUserData($order),
-            'ecommerce' => $this->converter->orderToEcomData($order),
-        ] + $additionalInfo;
+                'user_data' => $this->converter->orderToUserData($order),
+                'ecommerce' => $this->converter->orderToEcomData($order),
+            ] + $additionalInfo;
         $this->call('purchase_stape_webhook', $data, $order->getStoreId());
     }
 
@@ -119,6 +120,21 @@ class Adapter
             'ecommerce' => $this->converter->creditMemoToEcom($creditmemo),
         ];
         $this->call('refund_stape_webhook', $data, $creditmemo->getStoreId());
+    }
+
+    /**
+     * Void
+     *
+     * @param Order $order
+     * @return void
+     */
+    public function void(\Magento\Sales\Model\Order $order)
+    {
+        $data = [
+            'user_data' => $this->converter->orderToUserData($order),
+            'ecommerce' => $this->converter->orderToEcomData($order)
+        ];
+        $this->call('refund_stape_webhook', $data, $order->getStoreId());
     }
 
     /**
@@ -167,4 +183,5 @@ class Adapter
 
         return $this->call('test_stape_webhook', $data);
     }
+
 }
