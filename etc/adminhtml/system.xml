@@ -22,20 +22,23 @@
                     <depends>
                         <field id="stape_gtm/general/active">1</field>
                     </depends>
-                    <comment>(ex. GTM-XXXXXXXX)</comment>
+                    <comment><![CDATA[Insert web GTM script</br>
+                    Enter the WEB Google Tag Manager ID, should be formatted as "GTM-XXXXXX".]]></comment>
                 </field>
                 <field id="custom_domain" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
                     <label>Custom Domain</label>
-                    <comment>Leave empty to use default domain</comment>
+                    <comment><![CDATA[If you use <a href="https://stape.io/gtm-server-hosting" target="blank">stape.io sGTM hosting</a> you can find custom domain of your sGTM container URL following <a href="https://help.stape.io/hc/en-us/articles/6080905799453-Find-server-container-URL-for-sGTM-container" target="blank">this guide</a>. Otherwise you can find sGTM container URL in the <a href="https://developers.google.com/tag-platform/tag-manager/server-side/app-engine-setup#4_add_the_server_url_to_google_tag_manager" target="blank">container settings<a>. <a href="https://stape.io/blog/how-to-add-a-custom-domain-to-the-google-tag-manager-server-container" target="blank">Custom domain</a> is used to set first party cookies. Leave empty if you want to use googletagmanager.com domain.]]></comment>
                     <validate>validate-https-url</validate>
                 </field>
                 <field id="custom_loader" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
                     <label>Custom Loader</label>
-                    <comment>Leave empty to use default loader</comment>
+                    <comment><![CDATA[Add stape container identifier. Follow <a href="https://help.stape.io/hc/en-us/articles/9697466601373-How-to-find-the-Stape-container-identifier" target="blank">this guide</a> to find stape container identifier.
+This feature is available only if you use <a href="https://stape.io/gtm-server-hosting" target="blank">stape.io sGTM hosting</a> and enabled <a href="https://help.stape.io/hc/en-us/articles/6080917962397-Set-up-custom-web-GTM-loader" target="blank">Custom Loader power up.</a> Custom loader allows you to increase the accuracy of tracking. ]]></comment>
                 </field>
                 <field id="cookie_keeper" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
                     <label>Cookie Keeper</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Cookie Keeper is used to <a href="https://stape.io/blog/increase-first-party-cookie-lifetime-set-by-a-third-party-ip" target="blank">prolong cookie lifetime</a> in Safari and other browsers with ITP. This option available only if you use <a href="https://stape.io/gtm-server-hosting" target="blank">stape.io sGTM hosting</a> and set up <a href="https://stape.io/blog/increase-first-party-cookie-lifetime-set-by-a-third-party-ip#how-cookie-keeper-works" target="blank">Cookie Keeper power up.</a>]]></comment>
                 </field>
             </group>
             <group id="datalayer" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
@@ -58,6 +61,7 @@
                 <field id="gtm_container_url" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
                     <label>GTM server container URL</label>
                     <validate>validate-url</validate>
+                    <comment><![CDATA[If you use <a href="https://stape.io/gtm-server-hosting" target="blank">stape.io sGTM hosting</a> you can find sGTM container URL following <a href="https://help.stape.io/hc/en-us/articles/6080905799453-Find-server-container-URL-for-sGTM-container" target="blank">this guide.</a> Otherwise you can find sGTM container URL in the <a href="https://developers.google.com/tag-platform/tag-manager/server-side/app-engine-setup#4_add_the_server_url_to_google_tag_manager" target="blank">container settings.</a>]]></comment>
                 </field>
                 <field id="purchase" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
                     <label>Purchase Webhook</label>
