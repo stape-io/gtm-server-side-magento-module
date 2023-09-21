@@ -7,6 +7,7 @@ use Magento\Catalog\Model\Layer\Resolver;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
+use Magento\Framework\View\Layout;
 use Magento\Store\Model\StoreManagerInterface;
 
 class Category implements ArgumentInterface
@@ -29,6 +30,9 @@ class Category implements ArgumentInterface
     /** @var PriceCurrencyInterface $priceCurrency */
     private $priceCurrency;
 
+    /** @var Layout $layout */
+    private $layout;
+
     /**
      * Define class dependencies
      *
@@ -36,17 +40,20 @@ class Category implements ArgumentInterface
      * @param StoreManagerInterface $storeManager
      * @param Resolver $layerResolver
      * @param PriceCurrencyInterface $priceCurrency
+     * @param Layout $layout
      */
     public function __construct(
         Json $json,
         StoreManagerInterface $storeManager,
         Resolver $layerResolver,
-        PriceCurrencyInterface $priceCurrency
+        PriceCurrencyInterface $priceCurrency,
+        Layout $layout
     ) {
         $this->json = $json;
         $this->storeManager = $storeManager;
         $this->layer = $layerResolver->get();
         $this->priceCurrency = $priceCurrency;
+        $this->layout = $layout;
     }
 
     /**
@@ -70,11 +77,16 @@ class Category implements ArgumentInterface
      */
     private function prepareItems()
     {
+
+        /** @var \Magento\Catalog\Block\Product\ListProduct $productList */
+        $productList = $this->layout->createBlock(\Magento\Catalog\Block\Product\ListProduct::class);
+        $collection = $productList->getLoadedProductCollection();
+        $productList->getToolbarBlock()->setCollection($productList->getLoadedProductCollection());
+
         $items = [];
         $index = 0;
-
         /** @var \Magento\Catalog\Model\Product $product */
-        foreach ($this->layer->getProductCollection() as $product) {
+        foreach ($collection as $product) {
             $items[] = [
                 'item_name' => $product->getName(),
                 'item_id' => $product->getId(),
