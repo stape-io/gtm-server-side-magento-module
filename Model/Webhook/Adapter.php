@@ -53,8 +53,7 @@ class Adapter
         ConfigProvider  $configProvider,
         LoggerInterface $logger,
         Converter       $converter
-    )
-    {
+    ) {
         $this->json = $json;
         $this->clientFactory = $clientFactory;
         $this->configProvider = $configProvider;
@@ -183,5 +182,4 @@ class Adapter
 
         return $this->call('test_stape_webhook', $data);
     }
-
 }
