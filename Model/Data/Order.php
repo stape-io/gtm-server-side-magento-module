@@ -33,6 +33,10 @@ class Order
         $collection = $this->orderCollectionFactory->create()
             ->addFieldToFilter('customer_email', $email);
 
+        $collection->getSelect()->where(
+            $collection->getConnection()->quoteInto('total_paid > 0 OR status = ?', ['complete'])
+        );
+
         return $collection->getSize() <= 1;
     }
 
@@ -47,9 +51,11 @@ class Order
         /** @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection */
         $collection = $this->orderCollectionFactory->create()
             ->addFieldToFilter('customer_email', $email);
+
         $select = $collection->getSelect()
             ->reset(\Magento\Framework\Db\Select::COLUMNS)
             ->columns(new \Zend_Db_Expr('SUM(total_paid) - SUM(total_refunded) as lifetime_spent'));
+
         $result = $select->getConnection()->fetchOne($select);
         return $result ?? 0;
     }
