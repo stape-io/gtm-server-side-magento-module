@@ -1,6 +1,6 @@
 # Stape GTM Server Side Magento Module
 
-If you have your store on Magento, Stape's GTM Server Side extension for Magento 2 can simplify the process and open up the world of server-side tagging. 
+If you have your store on Magento, [Stape's GTM Server Side extension for Magento 2](https://commercemarketplace.adobe.com/stape-gtm-server-side-magento-module.html) can simplify the process and open up the world of server-side tagging. 
 
 ## The list of e-commerce events:
 - Collection view
