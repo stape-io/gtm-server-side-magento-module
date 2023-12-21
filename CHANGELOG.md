@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.9
+- Fixed issue with cookie being re-generated on every page load.
+
 v1.0.2
 - Fixed issue with main snippet not showing when cookie keeper enabled
 
