@@ -115,7 +115,9 @@ class HttpPlugin
             return;
         }
 
+        $cookieValue = $this->cookieManager->getCookie(self::COOKIE_NAME, $this->generateCookieValue());
+
         /** @var \Magento\Framework\App\Request\Http $request */
-        $this->cookieManager->setPublicCookie(self::COOKIE_NAME, $this->generateCookieValue(), $metadata);
+        $this->cookieManager->setPublicCookie(self::COOKIE_NAME, $cookieValue, $metadata);
     }
 }

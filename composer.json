@@ -5,7 +5,7 @@
     "license": [
         "GPL-3.0-only"
     ],
-    "version": "1.0.8",
+    "version": "1.0.9",
     "require": {
         "php": ">=7.4.0"
     },
