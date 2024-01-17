@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.10
+- Fixed item price for purchase_stape event to include tax
+
 v1.0.9
 - Fixed issue with cookie being re-generated on every page load.
 
