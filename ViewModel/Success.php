@@ -95,7 +95,7 @@ class Success implements ArgumentInterface
                 'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
                 'item_category' => $category ? $category->getName() : null,
-                'price' => $this->priceCurrency->round($item->getBasePrice()),
+                'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                 'quantity' => (int) $item->getQtyOrdered(),
                 'item_sku' => $item->getSku(),
             ];
