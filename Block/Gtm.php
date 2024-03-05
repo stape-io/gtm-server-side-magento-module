@@ -57,7 +57,7 @@ class Gtm extends \Magento\Framework\View\Element\Template
      */
     public function getContainerId()
     {
-        return $this->configProvider->getContainerId();
+        return str_ireplace('GTM-', '', $this->configProvider->getContainerId());
     }
 
     /**
