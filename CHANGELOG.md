@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.11
+- Update snippets with new param names and format
+
 v1.0.10
 - Fixed item price for purchase_stape event to include tax
 
