@@ -133,6 +133,7 @@ class Converter
     {
         return [
             'transaction_id' => $order->getIncrementId(),
+            'quote_id' => $order->getQuoteId(),
             'affiliation' => $order->getStoreName(),
             'value' => $this->priceCurrency->round($order->getBaseGrandTotal()),
             'tax' => $this->priceCurrency->round($order->getBaseTaxAmount()),
