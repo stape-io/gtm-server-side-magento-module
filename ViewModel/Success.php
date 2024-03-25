@@ -149,6 +149,7 @@ class Success implements ArgumentInterface
             'ecommerce' => [
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
                 'transaction_id' => $order->getIncrementId(),
+                'quote_id' => $order->getQuoteId(),
                 'affiliation' => $this->storeManager->getStore()->getName(),
                 'value' => $this->priceCurrency->round($order->getBaseGrandTotal()),
                 'tax' => $this->priceCurrency->round($order->getBaseTaxAmount()), // tax

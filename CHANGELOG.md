@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.12
+- added quote_id param to purchase event and webhook.
+
 v1.0.11
 - Update snippets with new param names and format
 
