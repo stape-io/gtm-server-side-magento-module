@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.13
+- fixed broken url generation logic
+
 v1.0.12
 - added quote_id param to purchase event and webhook.
 
