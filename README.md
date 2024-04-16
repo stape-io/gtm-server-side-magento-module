@@ -22,4 +22,3 @@ If you have your store on Magento, [Stape's GTM Server Side extension for Magent
 - https://stape.io/blog/server-side-gtm-extension-for-magento-2
 - https://stape.io/blog/facebook-conversion-api-for-magento
 - https://stape.io/blog/server-side-google-analytics-4-for-magento 
-
