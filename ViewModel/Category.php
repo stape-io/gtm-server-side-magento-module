@@ -75,7 +75,7 @@ class Category implements ArgumentInterface
      *
      * @return array
      */
-    private function prepareItems()
+    public function prepareItems()
     {
 
         /** @var \Magento\Catalog\Block\Product\ListProduct $productList */

@@ -118,7 +118,7 @@ class Product implements ArgumentInterface
      *
      * @return array
      */
-    private function getProductData()
+    public function getProductData()
     {
         if (!$product = $this->getProduct()) {
             return [];
