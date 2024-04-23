@@ -84,7 +84,7 @@ class Success implements ArgumentInterface
      * @param \Magento\Sales\Model\Order $order
      * @return array
      */
-    private function prepareItems(\Magento\Sales\Model\Order $order)
+    public function prepareItems(\Magento\Sales\Model\Order $order)
     {
         $items = [];
         /** @var \Magento\Sales\Model\Order\Item $item */

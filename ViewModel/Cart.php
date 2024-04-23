@@ -65,7 +65,7 @@ class Cart implements ArgumentInterface
      * @param \Magento\Quote\Model\Quote $quote
      * @return array
      */
-    private function prepareItems(\Magento\Quote\Model\Quote $quote)
+    public function prepareItems(\Magento\Quote\Model\Quote $quote)
     {
         $items = [];
         /** @var \Magento\Quote\Model\Quote\Item $item */
