@@ -1,5 +1,9 @@
 # Changelog
 
+v1.0.14
+- fixed xml layouts.
+- changed class methods visibility from private to public.
+
 v1.0.13
 - fixed broken url generation logic
 
