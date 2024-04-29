@@ -57,7 +57,10 @@ class Gtm extends \Magento\Framework\View\Element\Template
      */
     public function getContainerId()
     {
-        return str_ireplace('GTM-', '', $this->configProvider->getContainerId());
+        if ($this->configProvider->getCustomDomain() && $this->configProvider->getCustomLoader()) {
+            return str_ireplace('GTM-', '', $this->configProvider->getContainerId());
+        }
+        return $this->configProvider->getContainerId();
     }
 
     /**
@@ -101,5 +104,15 @@ class Gtm extends \Magento\Framework\View\Element\Template
     public function isUserDataEnabled()
     {
         return $this->configProvider->canAddUserData();
+    }
+
+    /**
+     * Retrieve id param name
+     *
+     * @return string
+     */
+    public function getIdParamName()
+    {
+        return $this->configProvider->getCustomLoader() && $this->configProvider->getCustomDomain() ? 'st' : 'id';
     }
 }

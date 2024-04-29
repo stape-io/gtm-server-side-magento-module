@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.15
+- fixed logic to trim GTM- only when custom loader and custom domain are populated
+
 v1.0.14
 - fixed xml layouts.
 - changed class methods visibility from private to public.
