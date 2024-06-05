@@ -1,0 +1,48 @@
+<?php declare(strict_types=1);
+
+use Stape\Gtm\Block\Gtm;
+
+/** @var Gtm $block */
+?>
+<?php $dataLayer = $block->getDataLayer(); ?>
+<?php if (!empty($block->getContainerId())): ?>
+    <?php if ($block->useCookieKeeper()): ?>
+        <?= $block->getChildHtml('stape.gtm.advanced'); ?>
+    <?php else: ?>
+        <?= $block->getChildHtml('stape.gtm.default'); ?>
+    <?php endif; ?>
+<?php endif; ?>
+
+<?php $dataLayer = $block->getDataLayer(); ?>
+
+<?php if ($dataLayer && $block->isDataLayerEnabled()): ?>
+
+    <script>
+        function pushData(event) {
+
+            let eventData = <?= $dataLayer->getJson();?> || {};
+            const customer = event?.detail?.data?.customer;
+            let customerData;
+            if (customer.customerLoggedIn && typeof eventData.user_data === 'undefined') {
+                customerData = Object.keys(gtmData).filter((key) => {
+                    return key.indexOf('customer') !== 0;
+                }).reduce((cur, key) => { return Object.assign(cur, { [key]: gtmData[key] })}, {});
+
+            }
+
+            if (typeof eventData.customer === 'undefined' && customerData && !eventData.user_data) {
+                eventData.user_data = customerData;
+            }
+
+            window.dataLayer = window.dataLayer || [];
+
+            if (eventData.ecommerce) {
+                window.dataLayer.push({ecommerce: null});
+            }
+
+            window.dataLayer.push(eventData);
+        }
+
+        window.addEventListener('private-content-loaded', pushData);
+    </script>
+<?php endif; ?>

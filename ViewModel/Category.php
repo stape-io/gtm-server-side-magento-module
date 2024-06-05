@@ -10,7 +10,7 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Framework\View\Layout;
 use Magento\Store\Model\StoreManagerInterface;
 
-class Category implements ArgumentInterface
+class Category implements ArgumentInterface, DatalayerInterface
 {
     /**
      * @var Json $json
@@ -77,7 +77,6 @@ class Category implements ArgumentInterface
      */
     public function prepareItems()
     {
-
         /** @var \Magento\Catalog\Block\Product\ListProduct $productList */
         $productList = $this->layout->createBlock(\Magento\Catalog\Block\Product\ListProduct::class);
         $collection = $productList->getLoadedProductCollection();
