@@ -1,4 +1,6 @@
 # Changelog
+v1.0.16
+- Hyva theme compatibility added.
 
 v1.0.15
 - fixed logic to trim GTM- only when custom loader and custom domain are populated
