@@ -9,7 +9,7 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
-class Cart implements ArgumentInterface
+class Cart implements ArgumentInterface, DatalayerInterface
 {
     /**
      * @var Json $json

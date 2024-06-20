@@ -10,7 +10,7 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
-class Product implements ArgumentInterface
+class Product implements ArgumentInterface, DatalayerInterface
 {
     /**
      * @var Json $json
