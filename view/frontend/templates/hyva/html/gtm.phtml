@@ -41,6 +41,17 @@ use Stape\Gtm\Block\Gtm;
             }
 
             window.dataLayer.push(eventData);
+
+            const cartEvents = event?.detail?.data?.cart?.stape_gtm_events;
+            if (cartEvents) {
+                Object.keys(cartEvents).map(function(eventCode) {
+                    window.dataLayer.push({
+                        event: eventCode,
+                        ecommerce: cartEvents[eventCode]
+                    });
+                });
+            }
+            event.detail.data.cart.stape_gtm_events = undefined;
         }
 
         window.addEventListener('private-content-loaded', pushData);
