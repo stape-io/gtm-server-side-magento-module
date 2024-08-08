@@ -18,6 +18,7 @@ use Stape\Gtm\Block\Gtm;
 <?php if ($dataLayer && $block->isDataLayerEnabled()): ?>
 
     <script>
+        const eventRegistry = {};
         function pushData(event) {
 
             let eventData = <?= $dataLayer->getJson();?> || {};
@@ -27,7 +28,6 @@ use Stape\Gtm\Block\Gtm;
                 customerData = Object.keys(gtmData).filter((key) => {
                     return key.indexOf('customer') !== 0;
                 }).reduce((cur, key) => { return Object.assign(cur, { [key]: gtmData[key] })}, {});
-
             }
 
             if (typeof eventData.customer === 'undefined' && customerData && !eventData.user_data) {
@@ -36,19 +36,30 @@ use Stape\Gtm\Block\Gtm;
 
             window.dataLayer = window.dataLayer || [];
 
-            if (eventData.ecommerce) {
+            const isEventAllowed = eventRegistry[eventData.event] !== undefined ? !eventRegistry[eventData.event] : true;
+            if (isEventAllowed && eventData.ecommerce) {
                 window.dataLayer.push({ecommerce: null});
             }
 
-            window.dataLayer.push(eventData);
+            if (isEventAllowed) {
+                window.dataLayer.push(eventData);
+            }
+
+            eventRegistry[eventData.event] = true;
 
             const cartEvents = event?.detail?.data?.cart?.stape_gtm_events;
             if (cartEvents) {
                 Object.keys(cartEvents).map(function(eventCode) {
-                    window.dataLayer.push({
+                    const cartEventData = {
                         event: eventCode,
                         ecommerce: cartEvents[eventCode]
-                    });
+                    };
+
+                    if (eventData.user_data) {
+                        cartEventData.user_data = eventData.user_data;
+                    }
+
+                    window.dataLayer.push(cartEventData);
                 });
             }
             event.detail.data.cart.stape_gtm_events = undefined;

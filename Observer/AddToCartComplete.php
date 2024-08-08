@@ -5,6 +5,7 @@ namespace Stape\Gtm\Observer;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Data\DataProviderInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
@@ -17,6 +18,9 @@ class AddToCartComplete implements ObserverInterface
      */
     private $categoryResolver;
 
+    /**
+     * @var Session $checkoutSession
+     */
     private $checkoutSession;
 
     /**
@@ -30,23 +34,31 @@ class AddToCartComplete implements ObserverInterface
     private $dataProvider;
 
     /**
+     * @var PriceCurrencyInterface $priceCurrency
+     */
+    private $priceCurrency;
+
+    /**
      * Define class dependencies
      *
      * @param CategoryResolver $categoryResolver
      * @param Session $checkoutSession
      * @param ConfigProvider $configProvider
      * @param DataProviderInterface $dataProvider
+     * @param PriceCurrencyInterface $priceCurrency
      */
     public function __construct(
         CategoryResolver $categoryResolver,
         Session $checkoutSession,
         ConfigProvider $configProvider,
-        DataProviderInterface $dataProvider
+        DataProviderInterface $dataProvider,
+        PriceCurrencyInterface $priceCurrency
     ) {
         $this->categoryResolver = $categoryResolver;
         $this->checkoutSession = $checkoutSession;
         $this->configProvider = $configProvider;
         $this->dataProvider = $dataProvider;
+        $this->priceCurrency = $priceCurrency;
     }
 
     /**
@@ -77,7 +89,7 @@ class AddToCartComplete implements ObserverInterface
             'item_id' => $product->getId(),
             'item_sku' => $product->getSku(),
             'item_category' => $category ? $category->getName() : null,
-            'price' => $quoteItem->getBasePrice(),
+            'price' => $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
             'quantity' => $qty,
             'variation_id' => $quoteItem->getHasChildren() ? current($quoteItem->getChildren())->getProductId() : null
         ]);
