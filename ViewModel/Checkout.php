@@ -76,7 +76,7 @@ class Checkout implements ArgumentInterface
                 'item_id' => $item->getProductId(),
                 'item_sku' => $item->getSku(),
                 'item_category' => $category ? $category->getName() : null,
-                'price' => $this->priceCurrency->round($item->getBasePrice()),
+                'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                 'quantity' => (int) $item->getQty(),
                 'variation_id' => (int) $item->getHasChildren() ? current($item->getChildren())->getProductId() : null,
             ];

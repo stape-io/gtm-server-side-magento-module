@@ -85,13 +85,18 @@ class AddToCartComplete implements ObserverInterface
         }
         $category = $this->categoryResolver->resolve($product);
         $this->dataProvider->add('add_to_cart_stape', [
-            'item_name' => $product->getName(),
-            'item_id' => $product->getId(),
-            'item_sku' => $product->getSku(),
-            'item_category' => $category ? $category->getName() : null,
-            'price' => $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
-            'quantity' => $qty,
-            'variation_id' => $quoteItem->getHasChildren() ? current($quoteItem->getChildren())->getProductId() : null
+            'currency' => $this->checkoutSession->getQuote()->getBaseCurrencyCode(),
+            'items' => [
+                [
+                    'item_name' => $product->getName(),
+                    'item_id' => $product->getId(),
+                    'item_sku' => $product->getSku(),
+                    'item_category' => $category ? $category->getName() : null,
+                    'price' => $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
+                    'quantity' => $qty,
+                    'variation_id' => $quoteItem->getHasChildren() ? current($quoteItem->getChildren())->getProductId() : null
+                ]
+            ]
         ]);
     }
 }
