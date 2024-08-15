@@ -77,7 +77,7 @@ class Cart implements ArgumentInterface, DatalayerInterface
                 'item_sku' => $item->getSku(),
                 'item_category' => $category ? $category->getName() : null,
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
-                'quantity' => (int) $item->getQtyOrdered(),
+                'quantity' => (int) $item->getQty(),
                 'variation_id' => $item->getHasChildren() ? current($item->getChildren())->getProductId() : null
             ];
         }
