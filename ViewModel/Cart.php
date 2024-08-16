@@ -9,7 +9,7 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
-class Cart implements ArgumentInterface
+class Cart implements ArgumentInterface, DatalayerInterface
 {
     /**
      * @var Json $json
@@ -77,7 +77,7 @@ class Cart implements ArgumentInterface
                 'item_sku' => $item->getSku(),
                 'item_category' => $category ? $category->getName() : null,
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
-                'quantity' => (int) $item->getQtyOrdered(),
+                'quantity' => (int) $item->getQty(),
                 'variation_id' => $item->getHasChildren() ? current($item->getChildren())->getProductId() : null
             ];
         }
