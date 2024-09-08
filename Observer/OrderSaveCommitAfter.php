@@ -5,6 +5,7 @@ namespace Stape\Gtm\Observer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Stdlib\CookieManagerInterface;
+use \Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Webhook\Adapter;
@@ -27,6 +28,11 @@ class OrderSaveCommitAfter implements ObserverInterface
     private $cookieManager;
 
     /**
+     * @var OrderPaymentRepositoryInterface $orderPaymentRepository
+     */
+    private $orderPaymentRepository;
+
+    /**
      * @var LoggerInterface $logger
      */
     private $logger;
@@ -46,17 +52,20 @@ class OrderSaveCommitAfter implements ObserverInterface
      * @param ConfigProvider $configProvider
      * @param Adapter $adapter
      * @param CookieManagerInterface $cookieManager
+     * @param OrderPaymentRepositoryInterface $orderPaymentRepository
      * @param LoggerInterface $logger
      */
     public function __construct(
         ConfigProvider $configProvider,
         Adapter $adapter,
         CookieManagerInterface $cookieManager,
+        OrderPaymentRepositoryInterface $orderPaymentRepository,
         LoggerInterface $logger
     ) {
         $this->configProvider = $configProvider;
         $this->adapter = $adapter;
         $this->cookieManager = $cookieManager;
+        $this->orderPaymentRepository = $orderPaymentRepository;
         $this->logger = $logger;
     }
 
@@ -98,8 +107,16 @@ class OrderSaveCommitAfter implements ObserverInterface
             return;
         }
 
+        $payment = $order->getPayment();
+
+        if ($payment->getAdditionalInformation('stape_purchase_webhook_processed')) {
+            return;
+        }
+
         try {
             $this->adapter->purchase($order, $this->prepareAdditionalInfo());
+            $payment->setAdditionalInformation('stape_purchase_webhook_processed', true);
+            $this->orderPaymentRepository->save($payment);
         } catch (\Exception $e) {
             $this->logger->notice($e->getMessage());
         }

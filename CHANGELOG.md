@@ -1,4 +1,8 @@
 # Changelog
+
+v1.0.18
+- Fixed potential issue with sending multiple purchase webhook events.
+
 v1.0.17
 - Hyva theme compatibility added.
 
