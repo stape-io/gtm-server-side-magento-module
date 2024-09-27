@@ -144,6 +144,7 @@ class Product implements ArgumentInterface, DatalayerInterface
     {
         return $this->json->serialize([
             'event' => 'view_item_stape',
+            'ecomm_pagetype' => 'product',
             'ecommerce' => [
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
                 'items' => array_filter([

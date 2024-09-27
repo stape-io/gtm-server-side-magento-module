@@ -3,6 +3,7 @@
 namespace Stape\Gtm\Model;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\ScopeInterface;
 
 class ConfigProvider
@@ -18,6 +19,11 @@ class ConfigProvider
     public const XPATH_GTM_CONTAINER_ID = 'stape_gtm/general/container_id';
 
     /*
+     * XPATH for GTM container id params config value
+     */
+    public const XPATH_GTM_CONTAINER_ID_PARAMS = 'stape_gtm/general/container_id_params';
+
+    /*
      * XPATH for GTM domain config value
      */
     public const XPATH_GTM_DOMAIN = 'stape_gtm/general/custom_domain';
@@ -26,6 +32,16 @@ class ConfigProvider
      * XPATH for GTM Loader config value
      */
     public const XPATH_GTM_LOADER = 'stape_gtm/general/custom_loader';
+
+    /*
+     * XPATH for GTM Custom Loader prefix config value
+     */
+    public const XPATH_GTM_LOADER_PREFIX = 'stape_gtm/general/custom_loader_prefix';
+
+    /*
+     * XPATH for Stape analytics
+     */
+    public const XPATH_GTM_STAPE_ANALYTICS_ENABLED = 'stape_gtm/general/stape_analytics_enabled';
 
     /*
      * XPATH for GTM Cookie Keeper config value
@@ -68,13 +84,22 @@ class ConfigProvider
     private $scopeConfig;
 
     /**
+     * @var Json $jsonSerializer
+     */
+    private $jsonSerializer;
+
+    /**
      * Define class dependencies
      *
      * @param ScopeConfigInterface $scopeConfig
+     * @param Json $jsonSerializer
      */
-    public function __construct(ScopeConfigInterface $scopeConfig)
-    {
+    public function __construct(
+        ScopeConfigInterface $scopeConfig,
+        Json $jsonSerializer
+    ) {
         $this->scopeConfig = $scopeConfig;
+        $this->jsonSerializer = $jsonSerializer;
     }
 
     /**
@@ -122,6 +147,48 @@ class ConfigProvider
     }
 
     /**
+     * Retrieve encoded customer loader
+     *
+     * @param string|int $scopeCode
+     * @return string
+     */
+    public function getCustomLoaderPrefix($scopeCode = null)
+    {
+        return $this->scopeConfig->getValue(self::XPATH_GTM_LOADER_PREFIX, ScopeInterface::SCOPE_STORE, $scopeCode);
+    }
+
+    /**
+     * Retrieve container id params
+     *
+     * @param string|int $scopeCode
+     * @return array
+     */
+    public function getContainerIdParams($scopeCode = null)
+    {
+        $value = $this->scopeConfig->getValue(
+            self::XPATH_GTM_CONTAINER_ID_PARAMS,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
+        return $this->jsonSerializer->unserialize($value ?? '');
+    }
+
+    /**
+     * Check if stape analytics is enabled
+     *
+     * @param string|int $scopeCode
+     * @return bool
+     */
+    public function isStapeAnalyticsEnabled($scopeCode = null)
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XPATH_GTM_STAPE_ANALYTICS_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
+    }
+
+    /**
      * Check if cookie keeper should be used
      *
      * @param string|null $scopeCode
@@ -135,7 +202,7 @@ class ConfigProvider
     /**
      * Check if datalayer e-commerce events tracking is enabled
      *
-     * @param string}null $scopeCode
+     * @param string|null $scopeCode
      * @return bool
      */
     public function ecommerceEventsEnabled($scopeCode = null)

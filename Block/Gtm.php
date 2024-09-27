@@ -31,6 +31,23 @@ class Gtm extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Retrieve container id
+     *
+     * @return string
+     */
+    protected function getStapeContainerId()
+    {
+        $containerId = str_ireplace('GTM-', '', $this->configProvider->getContainerId());
+        $params = $this->configProvider->getContainerIdParams();
+        $containerId = http_build_query(array_merge(
+            ['id' => $this->_escaper->escapeJs($containerId)],
+            $this->getAdditionalQueryParams()
+        ));
+
+        return http_build_query(array_merge([$params['prefix'] => base64_encode($containerId)], $params['suffix']));
+    }
+
+    /**
      * Retrieve domain
      *
      * @return string
@@ -47,7 +64,11 @@ class Gtm extends \Magento\Framework\View\Element\Template
      */
     public function getLoader()
     {
-        return trim($this->configProvider->getCustomLoader() ?: 'gtm', '/');
+        if (!$customLoader = $this->configProvider->getCustomLoader()) {
+            return 'gtm';
+        }
+
+        return implode('', [$this->configProvider->getCustomLoaderPrefix(), $customLoader]);
     }
 
     /**
@@ -57,10 +78,11 @@ class Gtm extends \Magento\Framework\View\Element\Template
      */
     public function getContainerId()
     {
-        if ($this->configProvider->getCustomDomain() && $this->configProvider->getCustomLoader()) {
-            return str_ireplace('GTM-', '', $this->configProvider->getContainerId());
+        if ($this->configProvider->getCustomLoader()) {
+            return $this->getStapeContainerId();
         }
-        return $this->configProvider->getContainerId();
+
+        return $this->_escaper->escapeJs($this->configProvider->getContainerId());
     }
 
     /**
@@ -114,5 +136,28 @@ class Gtm extends \Magento\Framework\View\Element\Template
     public function getIdParamName()
     {
         return $this->configProvider->getCustomLoader() && $this->configProvider->getCustomDomain() ? 'st' : 'id';
+    }
+
+    /**
+     * Retrieve analytics param
+     *
+     * @return string
+     */
+    public function getAnalyticsParam()
+    {
+        return $this->configProvider->isStapeAnalyticsEnabled() && !empty($this->configProvider->getCustomLoader())
+            ? 'y' : '';
+    }
+
+    /**
+     * Retrieve additional query params
+     *
+     * @return string[]
+     */
+    public function getAdditionalQueryParams()
+    {
+        return array_filter([
+            'as' => $this->getAnalyticsParam(),
+        ]);
     }
 }

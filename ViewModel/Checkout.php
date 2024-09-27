@@ -100,6 +100,7 @@ class Checkout implements ArgumentInterface
 
         return $this->json->serialize([
             'event' => 'begin_checkout_stape',
+            'ecomm_pagetype' => 'basket',
             'cart_quantity' => (int) $quote->getItemsQty(),
             'cart_total' => $this->priceCurrency->round($quote->getBaseGrandTotal()),
             'ecommerce' => [

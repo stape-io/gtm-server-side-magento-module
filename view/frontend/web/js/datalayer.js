@@ -70,6 +70,7 @@ define([
 
                 window.dataLayer.push({
                     event: 'add_to_cart_stape',
+                    ecomm_pagetype: 'product',
                     ecommerce: {
                         currency: config?.data?.ecommerce?.currency,
                         items: [
@@ -101,6 +102,7 @@ define([
 
                 window.dataLayer.push({
                     event: 'remove_from_cart_stape',
+                    ecomm_pagetype: 'product',
                     ecommerce: {
                         currency: config?.data?.ecommerce?.currency,
                         items: [
