@@ -100,6 +100,7 @@ class Cart implements ArgumentInterface, DatalayerInterface
 
         return $this->json->serialize([
             'event' => 'view_cart_stape',
+            'ecomm_pagetype' => 'basket',
             'cart_quantity' => (int) $quote->getItemsQty(),
             'cart_total' => $this->priceCurrency->round($quote->getBaseGrandTotal()),
             'ecommerce' => [

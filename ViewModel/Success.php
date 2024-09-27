@@ -130,6 +130,7 @@ class Success implements ArgumentInterface
 
         return $this->json->serialize([
             'event' => 'purchase_stape',
+            'ecomm_pagetype' => 'purchase',
             'user_data' => [
                 'first_name' => $address->getFirstname(),
                 'last_name' => $address->getLastname(),

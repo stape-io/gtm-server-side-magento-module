@@ -10,6 +10,6 @@
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
         j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         '<?= $escaper->escapeUrl($block->getGtmUrl());?>.js?<?= $escaper->escapeUrl($block->getIdParamName()); ?>='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','<?= $escaper->escapeHtmlAttr($block->getContainerId()); ?>');</script>
+    })(window,document,'script','dataLayer','<?= $block->getContainerId(); ?>');</script>
 <!-- End Google Tag Manager -->
 <?php //phpcs:enable ?>

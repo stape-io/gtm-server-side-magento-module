@@ -108,6 +108,7 @@ class Category implements ArgumentInterface, DatalayerInterface
     {
         return $this->json->serialize([
             'event' => 'view_collection_stape',
+            'ecomm_pagetype' => 'category',
             'ecommerce' => [
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
                 'item_list_name' => $this->getCategoryName(),

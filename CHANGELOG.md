@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.19
+- Implemented custom GTM loader generation logic with prefix as well as container id
+
 v1.0.18
 - Fixed potential issue with sending multiple purchase webhook events.
 
