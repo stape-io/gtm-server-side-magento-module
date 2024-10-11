@@ -154,7 +154,7 @@ class CustomLoader extends \Magento\Framework\App\Config\Value
                 $this->saveContainerIdParams();
             }
 
-            if (strlen($this->getValue()) < 1) {
+            if (strlen($this->getValue() ?? '') < 1) {
                 $this->resetLinkedOptions();
             }
 

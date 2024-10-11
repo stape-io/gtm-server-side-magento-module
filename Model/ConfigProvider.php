@@ -186,7 +186,7 @@ class ConfigProvider
      */
     public function isStapeAnalyticsEnabled($scopeCode = null)
     {
-        if (strlen($this->getCustomLoader($scopeCode)) < 1) {
+        if (strlen($this->getCustomLoader($scopeCode) ?? '') < 1) {
             return false;
         }
 
@@ -205,7 +205,7 @@ class ConfigProvider
      */
     public function useCookieKeeper($scopeCode = null)
     {
-        if (strlen($this->getCustomLoader($scopeCode)) < 1) {
+        if (strlen($this->getCustomLoader($scopeCode) ?? '') < 1) {
             return false;
         }
         return $this->scopeConfig->isSetFlag(self::XPATH_GTM_KEEP_COOKIE, ScopeInterface::SCOPE_STORE, $scopeCode);
