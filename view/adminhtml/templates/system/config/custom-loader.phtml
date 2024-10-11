@@ -1,0 +1,18 @@
+<?php
+/**
+ * @var \Stape\Gtm\Block\Adminhtml\System\Config\Loader $block
+ */
+
+// phpcs:disable
+?>
+<?= $block->getElementHtml(); ?>
+<script type="text/x-magento-init">
+    {
+        "#stape_gtm_general_custom_loader": {
+            "Stape_Gtm/js/system/config/custom-loader": {
+                "trackOptions": "#stape_gtm_general_stape_analytics_enabled,#stape_gtm_general_cookie_keeper"
+            }
+        }
+    }
+</script>
+

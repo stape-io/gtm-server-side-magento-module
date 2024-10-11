@@ -32,6 +32,7 @@
                 </field>
                 <field id="custom_loader" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="40" translate="label">
                     <label>Custom Loader</label>
+                    <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\CustomLoader</frontend_model>
                     <backend_model>Stape\Gtm\Model\Backend\CustomLoader</backend_model>
                     <comment><![CDATA[Add stape container identifier. Follow <a href="https://help.stape.io/hc/en-us/articles/9697466601373-How-to-find-the-Stape-container-identifier" target="blank">this guide</a> to find stape container identifier.
 This feature is available only if you use <a href="https://stape.io/gtm-server-hosting" target="blank">stape.io sGTM hosting</a> and enabled <a href="https://help.stape.io/hc/en-us/articles/6080917962397-Set-up-custom-web-GTM-loader" target="blank">Custom Loader power up.</a> Custom loader allows you to increase the accuracy of tracking. ]]></comment>

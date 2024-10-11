@@ -81,7 +81,7 @@ class Gtm extends \Magento\Framework\View\Element\Template
             return $this->getStapeContainerId();
         }
 
-        return $this->_escaper->escapeJs($this->configProvider->getContainerId());
+        return sprintf('id=%s', $this->_escaper->escapeJs($this->configProvider->getContainerId()));
     }
 
     /**
