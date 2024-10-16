@@ -78,6 +78,11 @@ class ConfigProvider
      */
     public const XPATH_WEBHOOK_GTM_CONTAINER_URL = 'stape_gtm/webhooks/gtm_container_url';
 
+    /*
+     * XPATH for domain list URL
+     */
+    public const XPATH_DOMAIN_LIST_URL = 'stape_gtm/domain_list/url';
+
     /**
      * @var ScopeConfigInterface $scopeConfig
      */
@@ -181,6 +186,10 @@ class ConfigProvider
      */
     public function isStapeAnalyticsEnabled($scopeCode = null)
     {
+        if (strlen($this->getCustomLoader($scopeCode) ?? '') < 1) {
+            return false;
+        }
+
         return $this->scopeConfig->isSetFlag(
             self::XPATH_GTM_STAPE_ANALYTICS_ENABLED,
             ScopeInterface::SCOPE_STORE,
@@ -196,6 +205,9 @@ class ConfigProvider
      */
     public function useCookieKeeper($scopeCode = null)
     {
+        if (strlen($this->getCustomLoader($scopeCode) ?? '') < 1) {
+            return false;
+        }
         return $this->scopeConfig->isSetFlag(self::XPATH_GTM_KEEP_COOKIE, ScopeInterface::SCOPE_STORE, $scopeCode);
     }
 
@@ -275,5 +287,15 @@ class ConfigProvider
             ScopeInterface::SCOPE_STORE,
             $scopeCode
         );
+    }
+
+    /**
+     * Retrieve list of domains URL
+     *
+     * @return string
+     */
+    public function getDomainListUrl()
+    {
+        return $this->scopeConfig->getValue(self::XPATH_DOMAIN_LIST_URL);
     }
 }

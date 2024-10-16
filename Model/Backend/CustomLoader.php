@@ -105,6 +105,29 @@ class CustomLoader extends \Magento\Framework\App\Config\Value
     }
 
     /**
+     * Reset options that depend on custom loader
+     *
+     * @return void
+     * @throws \Exception
+     */
+    protected function resetLinkedOptions()
+    {
+        $resetParams = [
+            ConfigProvider::XPATH_GTM_STAPE_ANALYTICS_ENABLED,
+            ConfigProvider::XPATH_GTM_KEEP_COOKIE,
+        ];
+
+        foreach ($resetParams as $path) {
+            $config = $this->configFactory->create();
+            $config->setScope($this->getScope());
+            $config->setScopeId($this->getScopeId());
+            $config->setSection('stape_gtm');
+            $config->setDataByPath($path, false);
+            $config->save();
+        }
+    }
+
+    /**
      * Actions after saving
      *
      * @return CustomLoader
@@ -130,6 +153,11 @@ class CustomLoader extends \Magento\Framework\App\Config\Value
             if (!empty($loader) && empty($params)) {
                 $this->saveContainerIdParams();
             }
+
+            if (strlen($this->getValue() ?? '') < 1) {
+                $this->resetLinkedOptions();
+            }
+
         } catch (\Throwable $e) {
 
         }

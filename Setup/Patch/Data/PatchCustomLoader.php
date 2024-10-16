@@ -5,6 +5,7 @@ namespace Stape\Gtm\Setup\Patch\Data;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
+use Magento\Store\Model\ScopeInterface;
 use Stape\Gtm\Model\Backend\CustomLoaderFactory;
 use Stape\Gtm\Model\ConfigProvider;
 use Magento\Store\Model\StoreManagerInterface;
@@ -54,14 +55,28 @@ class PatchCustomLoader implements DataPatchInterface
         $this->storeManager = $storeManager;
     }
 
-    private function updateConfig($scopeCode)
+    /**
+     * Update config
+     *
+     * @param \Magento\Store\Api\Data\StoreInterface $store
+     * @return bool
+     */
+    private function updateConfig($store)
     {
-        if ($customLoader = $this->configProvider->getCustomLoader($scopeCode)) {
+        if ($customLoader = $this->configProvider->getCustomLoader($store->getCode())) {
+
+            $scopeType = $store->getCode() !== 'admin'
+                ? ScopeInterface::SCOPE_STORE : ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
+
             /** @var \Magento\Framework\App\Config\Value $configValue */
             $configValue = $this->customLoaderFactory->create()
                 ->setPath(ConfigProvider::XPATH_GTM_LOADER)
                 ->setValue($customLoader)
-                ->setScope($scopeCode ?? ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+                ->setScope($scopeType);
+
+            if ($scopeType !== ScopeConfigInterface::SCOPE_TYPE_DEFAULT) {
+                $configValue->setScopeId($store->getId());
+            }
 
             $configValue->afterSave();
             return true;
@@ -76,11 +91,11 @@ class PatchCustomLoader implements DataPatchInterface
     {
         $this->moduleDataSetup->startSetup();
 
-
         $stores = $this->storeManager->getStores(true);
 
+        /** @var \Magento\Store\Api\Data\StoreInterface $store */
         foreach ($stores as $store) {
-            if ($this->updateConfig($store->getCode())) {
+            if ($this->updateConfig($store)) {
                 break;
             }
         }
