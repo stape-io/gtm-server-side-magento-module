@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.20
+- removed usage of md5 hash
+
 v1.0.19
 - Implemented custom GTM loader generation logic with prefix as well as container id
 
