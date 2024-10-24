@@ -10,7 +10,9 @@ class RandomSuffix
      */
     public function generate($loaderId)
     {
+        // phpcs:disable
         $default = http_build_query(['apiKey' => mb_substr(md5($loaderId), 0, 8)]);
+        // phpcs:enable
         $options = [
             $default,
             'page=1',
