@@ -37,12 +37,11 @@ class Gtm extends \Magento\Framework\View\Element\Template
      */
     protected function getStapeContainerId()
     {
-        $containerId = str_ireplace('GTM-', '', $this->configProvider->getContainerId());
         $params = $this->configProvider->getContainerIdParams();
-        $containerId = http_build_query(array_merge(
-            ['id' => $this->_escaper->escapeJs($containerId)],
+        $containerId = urldecode(http_build_query(array_merge(
+            ['id' => $this->_escaper->escapeHtml($this->configProvider->getContainerId())],
             $this->getAdditionalQueryParams()
-        ));
+        )));
 
         return http_build_query(array_merge([$params['prefix'] => base64_encode($containerId)], $params['suffix']));
     }
@@ -82,7 +81,7 @@ class Gtm extends \Magento\Framework\View\Element\Template
             return $this->getStapeContainerId();
         }
 
-        return $this->_escaper->escapeJs($this->configProvider->getContainerId());
+        return sprintf('id=%s', $this->_escaper->escapeJs($this->configProvider->getContainerId()));
     }
 
     /**

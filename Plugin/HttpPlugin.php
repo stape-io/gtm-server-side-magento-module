@@ -6,9 +6,12 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
 use Magento\Framework\Stdlib\CookieManagerInterface;
+use Pdp\CannotProcessHost;
 use Stape\Gtm\Model\ConfigProvider;
 use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\App\RequestInterface as HttpRequest;
+use Pdp\Domain;
+use Pdp\Rules;
 
 class HttpPlugin
 {
@@ -93,6 +96,24 @@ class HttpPlugin
     }
 
     /**
+     * Retrieve cookie domain
+     *
+     * @return string
+     * @throws CannotProcessHost
+     */
+    private function getCookieDomain()
+    {
+        try {
+            $publicSuffixList = Rules::fromPath($this->config->getDomainListUrl());
+            $domain = Domain::fromIDNA2008($this->request->getHttpHost());
+            $result = $publicSuffixList->resolve($domain);
+            return $result->registrableDomain()->toString();
+        } catch (\Exception $e) {
+            return $this->request->getHttpHost();
+        }
+    }
+
+    /**
      * Setting _sbp cookie
      *
      * @param HttpResponse $subject
@@ -108,7 +129,7 @@ class HttpPlugin
             ->setSecure(true)
             ->setDuration(self::COOKIE_LIFETIME)
             ->setPath('/')
-            ->setDomain('.' . $this->request->getHttpHost());
+            ->setDomain('.' . $this->getCookieDomain());
 
         if (!$this->config->isActive() || !$this->config->useCookieKeeper()) {
             $this->cookieManager->deleteCookie(self::COOKIE_NAME, $metadata);
