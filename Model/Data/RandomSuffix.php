@@ -5,17 +5,14 @@ namespace Stape\Gtm\Model\Data;
 class RandomSuffix
 {
     /**
-     * @param string $loaderId
+     * @param null|string $loaderId
      * @return string
      */
-    public function generate($loaderId)
+    public function generate($loaderId = null)
     {
-        // phpcs:disable
-        $default = http_build_query(['apiKey' => mb_substr(md5($loaderId), 0, 8)]);
-        // phpcs:enable
+        $default = 'page=1';
         $options = [
             $default,
-            'page=1',
             'page=2',
             'page=3',
             'sort=asc',
