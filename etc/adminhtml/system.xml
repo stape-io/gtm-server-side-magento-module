@@ -37,11 +37,6 @@
                     <comment><![CDATA[Add stape container identifier. Follow <a href="https://help.stape.io/hc/en-us/articles/9697466601373-How-to-find-the-Stape-container-identifier" target="blank">this guide</a> to find stape container identifier.
 This feature is available only if you use <a href="https://stape.io/gtm-server-hosting" target="blank">stape.io sGTM hosting</a> and enabled <a href="https://help.stape.io/hc/en-us/articles/6080917962397-Set-up-custom-web-GTM-loader" target="blank">Custom Loader power up.</a> Custom loader allows you to increase the accuracy of tracking. ]]></comment>
                 </field>
-                <field id="stape_analytics_enabled" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="50" translate="label" type="select">
-                    <label>Stape Analytics Enabled?</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Tick this checkbox if you are using Stape Analytics. Learn more about it <a href="https://stape.io/blog/stape-analytics-measure-the-impact-of-your-server-side-tracking?mtm_campaign=magento_app_settings">here</a>.]]></comment>
-                </field>
                 <field id="cookie_keeper" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="60" translate="label" type="select">
                     <label>Cookie Keeper</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

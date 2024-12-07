@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.21
+- removed Stape analytics option as no longer needed
+
 v1.0.20
 - removed usage of md5 hash
 

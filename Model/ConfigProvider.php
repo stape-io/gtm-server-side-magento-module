@@ -39,11 +39,6 @@ class ConfigProvider
     public const XPATH_GTM_LOADER_PREFIX = 'stape_gtm/general/custom_loader_prefix';
 
     /*
-     * XPATH for Stape analytics
-     */
-    public const XPATH_GTM_STAPE_ANALYTICS_ENABLED = 'stape_gtm/general/stape_analytics_enabled';
-
-    /*
      * XPATH for GTM Cookie Keeper config value
      */
     public const XPATH_GTM_KEEP_COOKIE = 'stape_gtm/general/cookie_keeper';
@@ -176,25 +171,6 @@ class ConfigProvider
             $scopeCode
         );
         return $this->jsonSerializer->unserialize($value ?? '');
-    }
-
-    /**
-     * Check if stape analytics is enabled
-     *
-     * @param string|int $scopeCode
-     * @return bool
-     */
-    public function isStapeAnalyticsEnabled($scopeCode = null)
-    {
-        if (strlen($this->getCustomLoader($scopeCode) ?? '') < 1) {
-            return false;
-        }
-
-        return $this->scopeConfig->isSetFlag(
-            self::XPATH_GTM_STAPE_ANALYTICS_ENABLED,
-            ScopeInterface::SCOPE_STORE,
-            $scopeCode
-        );
     }
 
     /**

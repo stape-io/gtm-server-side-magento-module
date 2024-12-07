@@ -38,10 +38,9 @@ class Gtm extends \Magento\Framework\View\Element\Template
     protected function getStapeContainerId()
     {
         $params = $this->configProvider->getContainerIdParams();
-        $containerId = urldecode(http_build_query(array_merge(
-            ['id' => $this->_escaper->escapeHtml($this->configProvider->getContainerId())],
-            $this->getAdditionalQueryParams()
-        )));
+        $containerId = urldecode(http_build_query([
+            'id' => $this->_escaper->escapeHtml($this->configProvider->getContainerId())
+        ]));
 
         return http_build_query(array_merge([$params['prefix'] => base64_encode($containerId)], $params['suffix']));
     }
@@ -135,28 +134,5 @@ class Gtm extends \Magento\Framework\View\Element\Template
     public function getIdParamName()
     {
         return $this->configProvider->getCustomLoader() && $this->configProvider->getCustomDomain() ? 'st' : 'id';
-    }
-
-    /**
-     * Retrieve analytics param
-     *
-     * @return string
-     */
-    public function getAnalyticsParam()
-    {
-        return $this->configProvider->isStapeAnalyticsEnabled() && !empty($this->configProvider->getCustomLoader())
-            ? 'y' : '';
-    }
-
-    /**
-     * Retrieve additional query params
-     *
-     * @return string[]
-     */
-    public function getAdditionalQueryParams()
-    {
-        return array_filter([
-            'as' => $this->getAnalyticsParam(),
-        ]);
     }
 }
