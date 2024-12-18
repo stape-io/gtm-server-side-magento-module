@@ -36,8 +36,8 @@ define([
      * Customizing logic to push info into datalayer
      */
     return function(setPaymentInformation) {
-        return wrapper.wrap(setPaymentInformation, function(originalAction, messageContainer, paymentData) {
-            return originalAction(messageContainer, paymentData).then(function(response) {
+        return wrapper.wrap(setPaymentInformation, function(originalAction, messageContainer, paymentData, skipBilling) {
+            return originalAction(messageContainer, paymentData, skipBilling).then(function(response) {
                 let address = quote.billingAddress();
                 const customer = customerData.get('customer')();
                 if (!quote.isVirtual()) {
