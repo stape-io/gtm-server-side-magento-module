@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.22
+- fixed duplicate address creation for logged in customer on checkout
+
 v1.0.21
 - removed Stape analytics option as no longer needed
 
