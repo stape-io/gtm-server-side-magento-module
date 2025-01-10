@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.23
+- added logic to fetch add to cart info and send the event if only productIds array is available
+
 v1.0.22
 - fixed duplicate address creation for logged in customer on checkout
 

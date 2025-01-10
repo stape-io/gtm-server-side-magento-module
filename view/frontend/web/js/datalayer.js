@@ -40,7 +40,7 @@ define([
                     && JSON.stringify(values.sort()) === JSON.stringify(productInfo.optionValues.sort());
             }
 
-            return item.product_id = productInfo.id;
+            return item.product_id == productInfo.id;
         });
     }
 
@@ -92,12 +92,48 @@ define([
         });
 
         $(document).on('ajax:addToCart', function(e, data) {
+            const hasProductInfo = data?.productInfo?.length > 0;
+            const hasProductIds = data?.productIds?.length > 0;
+
+            if (!hasProductInfo && !hasProductIds) {
+                console.error('Could not trigger `add_to_cart_stape` datalayer event. Product info is missing.');
+                return;
+            }
+
+            let product = null;
+
+            if (!hasProductInfo && hasProductIds) {
+                product = {id: data?.productIds[data?.productIds?.length - 1]};
+            }
+
+            if (hasProductInfo) {
+                product = data?.productInfo[data?.productInfo?.length - 1];
+            }
+
             wasAddToCartCalled = true;
-            lastAddedProduct(data.productInfo[data.productInfo.length - 1]);
+            lastAddedProduct(product);
         });
 
         $(document).on('ajax:removeFromCart', function(e, data) {
-            const itemDetails = findItem(data.productInfo[0]);
+            const hasProductInfo = data.productInfo?.length > 0;
+            const hasProductIds = data?.productIds?.length > 0;
+
+            if (!hasProductInfo && !hasProductIds) {
+                console.error('Could not trigger `remove_from_cart_stape` datalayer event. Product info is missing.');
+                return;
+            }
+
+            let product = null;
+
+            if (!hasProductInfo && hasProductIds) {
+                product = {id: data?.productIds[0]};
+            }
+
+            if (hasProductInfo) {
+                product = data?.productInfo[0];
+            }
+
+            const itemDetails = findItem(product);
             if (itemDetails) {
 
                 window.dataLayer.push({
