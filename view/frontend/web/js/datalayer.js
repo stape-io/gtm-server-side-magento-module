@@ -64,7 +64,7 @@ define([
         if (config.data && config.data.event) {
             dataLayer.push(config.data);
         }
-        cartData.subscribe(function() {
+        cartData.subscribe(function(data) {
             const itemDetails = findItem(lastAddedProduct())
             if (wasAddToCartCalled) {
 
@@ -87,6 +87,20 @@ define([
                     }
                 });
             }
+
+
+            if (data?.stape_gtm_events?.remove_from_cart_stape) {
+                window.dataLayer.push({
+                    event: 'remove_from_cart_stape',
+                    ecomm_pagetype: 'basket',
+                    ecommerce: {
+                        currency: config?.data?.ecommerce?.currency,
+                        items: data?.stape_gtm_events?.remove_from_cart_stape.items,
+                    }
+                })
+            }
+
+
             wasAddToCartCalled = false;
             lastAddedProduct(null);
         });
