@@ -88,14 +88,14 @@ define([
                 });
             }
 
-
             if (data?.stape_gtm_events?.remove_from_cart_stape) {
+                dataLayer.push({ecommerce: null});
                 window.dataLayer.push({
                     event: 'remove_from_cart_stape',
                     ecomm_pagetype: 'basket',
                     ecommerce: {
                         currency: config?.data?.ecommerce?.currency,
-                        items: data?.stape_gtm_events?.remove_from_cart_stape.items,
+                        items: data?.stape_gtm_events?.remove_from_cart_stape?.items,
                     }
                 })
             }
