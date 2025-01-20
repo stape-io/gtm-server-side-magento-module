@@ -67,7 +67,7 @@ define([
         cartData.subscribe(function(data) {
             const itemDetails = findItem(lastAddedProduct())
             if (wasAddToCartCalled) {
-
+                dataLayer.push({ecommerce: null});
                 window.dataLayer.push({
                     event: 'add_to_cart_stape',
                     ecomm_pagetype: 'product',
@@ -149,7 +149,7 @@ define([
 
             const itemDetails = findItem(product);
             if (itemDetails) {
-
+                dataLayer.push({ecommerce: null});
                 window.dataLayer.push({
                     event: 'remove_from_cart_stape',
                     ecomm_pagetype: 'product',
