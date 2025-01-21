@@ -43,7 +43,7 @@ define([
                 if (!quote.isVirtual()) {
                     address = Object.assign(address, quote.shippingAddress());
                 }
-
+                window.dataLayer.push({ecommerce: null});
                 window.dataLayer.push({
                     event: 'payment_info_stape',
                     ecomm_pagetype: 'basket',

@@ -16,4 +16,7 @@
     <type name="Magento\Checkout\CustomerData\Cart">
         <plugin name="stape_gtm_customer_cart" type="Stape\Gtm\Plugin\CustomerData\CartPlugin" />
     </type>
+    <type name="Magento\Checkout\Controller\Cart\Delete">
+        <plugin name="stape_gtm_cart_delete" type="Stape\Gtm\Plugin\Checkout\Cart\DeletePlugin" />
+    </type>
 </config>
