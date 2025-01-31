@@ -14,7 +14,7 @@ define([
      */
     function prepareItems() {
         const cartData = customerData.get('cart')();
-        const priceFormat = Object.assign(quote.getPriceFormat(), {'pattern': '%s'});
+        const priceFormat = Object.assign({...quote.getPriceFormat()}, {'pattern': '%s'});
         return quote.getItems().map(function(itemDetails) {
             cartData.items.find
             const cartItem = _.find(cartData.items, function(cartItem) {
