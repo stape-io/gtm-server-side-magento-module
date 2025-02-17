@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.24
+- added caching of cookie domain when generating _sbp cookie
+
 v1.0.23
 - added logic to fetch add to cart info and send the event if only productIds array is available
 
