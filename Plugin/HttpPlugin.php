@@ -141,7 +141,7 @@ class HttpPlugin
             }
 
             $publicSuffixList = Rules::fromPath($this->config->getDomainListUrl());
-            $domain = Domain::fromIDNA2008('magento.stape.dev');
+            $domain = Domain::fromIDNA2008($this->request->getHttpHost());
             $result = $publicSuffixList->resolve($domain);
             $cacheValue = $result->registrableDomain()->toString();
             $this->cache->save($cacheValue, $this->getCacheKey());
