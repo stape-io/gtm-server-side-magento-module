@@ -3,6 +3,7 @@
 v1.0.24
 - Added compatibility of add_to_cart_stape event with Swissuplab theme
 - Fixed issue with the overridden price formatter pattern
+- added caching of cookie domain when generating _sbp cookie
 
 v1.0.23
 - added logic to fetch add to cart info and send the event if only productIds array is available

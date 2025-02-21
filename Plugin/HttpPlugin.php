@@ -6,18 +6,22 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
 use Magento\Framework\Stdlib\CookieManagerInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Pdp\CannotProcessHost;
 use Stape\Gtm\Model\ConfigProvider;
 use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\App\RequestInterface as HttpRequest;
+use Magento\Framework\App\CacheInterface;
 use Pdp\Domain;
 use Pdp\Rules;
 
 class HttpPlugin
 {
+    const CACHE_TAG = 'STAPE_COOKIE_DOMAIN';
+
     /*
- * Cookie name
- */
+     * Cookie name
+     */
     public const COOKIE_NAME = '_sbp';
 
     /*
@@ -56,6 +60,16 @@ class HttpPlugin
     private $request;
 
     /**
+     * @var CacheInterface $cache
+     */
+    private $cache;
+
+    /**
+     * @var StoreManagerInterface $storeManager
+     */
+    protected $storeManager;
+
+    /**
      * Define class dependencies
      *
      * @param CookieManagerInterface $cookieManager
@@ -64,6 +78,8 @@ class HttpPlugin
      * @param ConfigProvider $configProvider
      * @param EncryptorInterface $encryptor
      * @param HttpRequest $request
+     * @param CacheInterface $cache
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         CookieManagerInterface $cookieManager,
@@ -71,7 +87,9 @@ class HttpPlugin
         RemoteAddress $remoteAddress,
         ConfigProvider $configProvider,
         EncryptorInterface $encryptor,
-        HttpRequest $request
+        HttpRequest $request,
+        CacheInterface $cache,
+        StoreManagerInterface $storeManager
     ) {
         $this->cookieManager = $cookieManager;
         $this->cookieMetaDataFactory = $cookieMetadataFactory;
@@ -79,6 +97,8 @@ class HttpPlugin
         $this->remoteAddress = $remoteAddress;
         $this->encryptor = $encryptor;
         $this->request = $request;
+        $this->cache = $cache;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -96,6 +116,17 @@ class HttpPlugin
     }
 
     /**
+     * Retrieve cache key
+     *
+     * @return string
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    protected function getCacheKey()
+    {
+        return implode('_', [self::CACHE_TAG, '_STORE_', $this->storeManager->getStore()->getId()]);
+    }
+
+    /**
      * Retrieve cookie domain
      *
      * @return string
@@ -104,10 +135,17 @@ class HttpPlugin
     private function getCookieDomain()
     {
         try {
+
+            if ($cacheValue = $this->cache->load($this->getCacheKey())) {
+                return $cacheValue;
+            }
+
             $publicSuffixList = Rules::fromPath($this->config->getDomainListUrl());
             $domain = Domain::fromIDNA2008($this->request->getHttpHost());
             $result = $publicSuffixList->resolve($domain);
-            return $result->registrableDomain()->toString();
+            $cacheValue = $result->registrableDomain()->toString();
+            $this->cache->save($cacheValue, $this->getCacheKey());
+            return $cacheValue;
         } catch (\Exception $e) {
             return $this->request->getHttpHost();
         }
