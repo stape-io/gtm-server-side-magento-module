@@ -79,9 +79,8 @@ class Category implements ArgumentInterface, DatalayerInterface
     {
         /** @var \Magento\Catalog\Block\Product\ListProduct $productList */
         $productList = $this->layout->createBlock(\Magento\Catalog\Block\Product\ListProduct::class);
+        $productList->getToolbarBlock()->setCollection($this->layer->getProductCollection());
         $collection = $productList->getLoadedProductCollection();
-        $productList->getToolbarBlock()->setCollection($productList->getLoadedProductCollection());
-
         $items = [];
         $index = 0;
         /** @var \Magento\Catalog\Model\Product $product */
