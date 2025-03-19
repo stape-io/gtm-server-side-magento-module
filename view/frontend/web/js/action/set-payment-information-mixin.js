@@ -41,7 +41,7 @@ define([
                 let address = quote.billingAddress();
                 const customer = customerData.get('customer')();
                 if (!quote.isVirtual()) {
-                    address = Object.assign(address, quote.shippingAddress());
+                    address = Object.assign({...address}, quote.shippingAddress());
                 }
                 window.dataLayer.push({ecommerce: null});
                 window.dataLayer.push({
