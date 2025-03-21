@@ -3,6 +3,7 @@
 v1.0.24
 - added caching of cookie domain when generating _sbp cookie
 - Fixed issue with the overridden price formatter pattern
+- Fixed billing address overwritten by shipping address issue
 
 v1.0.23
 - added logic to fetch add to cart info and send the event if only productIds array is available
