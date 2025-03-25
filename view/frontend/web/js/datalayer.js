@@ -40,7 +40,7 @@ define([
                     && JSON.stringify(values.sort()) === JSON.stringify(productInfo.optionValues.sort());
             }
 
-            return item.product_id == productInfo.id;
+            return item.product_id == productInfo.id || productInfo.id == item?.child_product_id;
         });
     }
 
@@ -65,41 +65,44 @@ define([
             dataLayer.push(config.data);
         }
         cartData.subscribe(function(data) {
-            const itemDetails = findItem(lastAddedProduct())
-            if (wasAddToCartCalled) {
-                dataLayer.push({ecommerce: null});
-                window.dataLayer.push({
-                    event: 'add_to_cart_stape',
-                    ecomm_pagetype: 'product',
-                    ecommerce: {
-                        currency: config?.data?.ecommerce?.currency,
-                        items: [
-                            {
-                                'item_name': itemDetails.product_name,
-                                'item_id': itemDetails.product_id,
-                                'item_sku': itemDetails.product_sku,
-                                'item_category': itemDetails.category,
-                                'price': itemDetails.product_price_value,
-                                'quantity': itemDetails.qty,
-                                'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined
-                            }
-                        ]
-                    }
-                });
-            }
+            const itemDetails = findItem(lastAddedProduct());
+            try {
+                if (wasAddToCartCalled && itemDetails) {
+                    dataLayer.push({ecommerce: null});
+                    window.dataLayer.push({
+                        event: 'add_to_cart_stape',
+                        ecomm_pagetype: 'product',
+                        ecommerce: {
+                            currency: config?.data?.ecommerce?.currency,
+                            items: [
+                                {
+                                    'item_name': itemDetails.product_name,
+                                    'item_id': itemDetails.product_id,
+                                    'item_sku': itemDetails.product_sku,
+                                    'item_category': itemDetails.category,
+                                    'price': itemDetails.product_price_value,
+                                    'quantity': itemDetails.qty,
+                                    'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined
+                                }
+                            ]
+                        }
+                    });
+                }
 
-            if (data?.stape_gtm_events?.remove_from_cart_stape) {
-                dataLayer.push({ecommerce: null});
-                window.dataLayer.push({
-                    event: 'remove_from_cart_stape',
-                    ecomm_pagetype: 'basket',
-                    ecommerce: {
-                        currency: config?.data?.ecommerce?.currency,
-                        items: data?.stape_gtm_events?.remove_from_cart_stape?.items,
-                    }
-                })
+                if (data?.stape_gtm_events?.remove_from_cart_stape) {
+                    dataLayer.push({ecommerce: null});
+                    window.dataLayer.push({
+                        event: 'remove_from_cart_stape',
+                        ecomm_pagetype: 'basket',
+                        ecommerce: {
+                            currency: config?.data?.ecommerce?.currency,
+                            items: data?.stape_gtm_events?.remove_from_cart_stape?.items,
+                        }
+                    })
+                }
+            } catch(err) {
+                console.error(err);
             }
-
 
             wasAddToCartCalled = false;
             lastAddedProduct(null);

@@ -1,6 +1,8 @@
 # Changelog
 
 v1.0.24
+- Added compatibility of add_to_cart_stape event with Swissuplab theme
+- Fixed issue with the overridden price formatter pattern
 - added caching of cookie domain when generating _sbp cookie
 - Fixed issue with the overridden price formatter pattern
 - Fixed billing address overwritten by shipping address issue
