@@ -2,6 +2,7 @@
 
 v1.0.26
 - removed unneeded CSP rules
+- added option to configure collection size for datalayer
 
 v1.0.24
 - added caching of cookie domain when generating _sbp cookie

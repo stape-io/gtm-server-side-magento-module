@@ -53,6 +53,10 @@ This feature is available only if you use <a href="https://stape.io/gtm-server-h
                     <label>Add user data to Data Layer events</label>
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 </field>
+                <field id="collection_size" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="20" translate="label">
+                    <label>Product Collection Limit</label>
+                    <validate>validate-integer</validate>
+                </field>
             </group>
             <group id="webhooks" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
                 <label>Webhooks</label>

@@ -6,6 +6,9 @@
             <domain_list>
                 <url><![CDATA[https://publicsuffix.org/list/public_suffix_list.dat]]></url>
             </domain_list>
+            <datalayer>
+                <collection_size>30</collection_size>
+            </datalayer>
         </stape_gtm>
     </default>
 </config>
