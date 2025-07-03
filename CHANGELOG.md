@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.26
+- removed unneeded CSP rules
+
 v1.0.24
 - added caching of cookie domain when generating _sbp cookie
 - Fixed issue with the overridden price formatter pattern
