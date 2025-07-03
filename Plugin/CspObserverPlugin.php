@@ -51,10 +51,7 @@ class CspObserverPlugin
      */
     public function beforeExecute(ObserverInterface $subject, $observer)
     {
-        // phpcs:disable
-        $customDomain = parse_url($this->configProvider->getCustomDomain() ?? '', PHP_URL_HOST);
-        // phpcs:enable
-
+        $customDomain = $this->configProvider->getCustomDomain();
         if (!$this->configProvider->isActive() || empty($customDomain)) {
             return [$observer];
         }
@@ -62,19 +59,13 @@ class CspObserverPlugin
         $scriptPolicy = $this->fetchPolicyFactory->create([
             'id' => 'script-src',
             'hostSources' => [$customDomain],
-            'schemeSources' => ['https'],
             'noneAllowed' => false,
-            'selfAllowed' => true,
-            'inlineAllowed' => true
         ]);
 
         $connectPolicy = $this->fetchPolicyFactory->create([
             'id' => 'connect-src',
             'hostSources' => [$customDomain],
-            'schemeSources' => ['https'],
             'noneAllowed' => false,
-            'selfAllowed' => true,
-            'inlineAllowed' => true
         ]);
 
         $this->dynamicCollector->add($scriptPolicy);
