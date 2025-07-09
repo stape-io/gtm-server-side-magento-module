@@ -4,11 +4,13 @@ namespace Stape\Gtm\ViewModel;
 
 use Magento\Catalog\Model\Layer;
 use Magento\Catalog\Model\Layer\Resolver;
+use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Framework\View\Layout;
 use Magento\Store\Model\StoreManagerInterface;
+use Stape\Gtm\Model\ConfigProvider;
 
 class Category implements ArgumentInterface, DatalayerInterface
 {
@@ -34,6 +36,16 @@ class Category implements ArgumentInterface, DatalayerInterface
     private $layout;
 
     /**
+     * @var ConfigProvider $configProvider
+     */
+    private $configProvider;
+
+    /**
+     * @var ManagerInterface $eventManager
+     */
+    private $eventManager;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -41,19 +53,26 @@ class Category implements ArgumentInterface, DatalayerInterface
      * @param Resolver $layerResolver
      * @param PriceCurrencyInterface $priceCurrency
      * @param Layout $layout
+     * @param ContextInterface $context
+     * @param ConfigProvider $configProvider
+     * @param ManagerInterface $eventManager
      */
     public function __construct(
         Json $json,
         StoreManagerInterface $storeManager,
         Resolver $layerResolver,
         PriceCurrencyInterface $priceCurrency,
-        Layout $layout
+        Layout $layout,
+        ConfigProvider $configProvider,
+        ManagerInterface $eventManager
     ) {
         $this->json = $json;
         $this->storeManager = $storeManager;
         $this->layer = $layerResolver->get();
         $this->priceCurrency = $priceCurrency;
         $this->layout = $layout;
+        $this->configProvider = $configProvider;
+        $this->eventManager = $eventManager;
     }
 
     /**
@@ -71,16 +90,45 @@ class Category implements ArgumentInterface, DatalayerInterface
     }
 
     /**
+     * Retrieve collection
+     *
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
+     */
+    private function prepareCollection()
+    {
+        /** @var \Magento\Catalog\Block\Product\ListProduct $productList */
+        $productList = $this->layout->createBlock(\Magento\Catalog\Block\Product\ListProduct::class);
+        $productCollection = $this->layer->getProductCollection();
+
+        // if collection is loaded there is some third-party/custom code loading it and conflicting the Stape module
+        if ($productCollection->isLoaded()) {
+            return $productCollection;
+        }
+
+        // cloning to avoid interfering with original product listing
+        $collection = clone $productCollection;
+
+        $toolbar = $productList->getToolbarBlock();
+        $toolbar->setCollection($collection);
+        $collection->setPageSize($this->configProvider->getCollectionSize());
+        $collection->setCurPage(1);
+
+        $this->eventManager->dispatch(
+            'catalog_block_product_list_collection',
+            ['collection' => $collection]
+        );
+
+        return $collection;
+    }
+
+    /**
      * Preparing items
      *
      * @return array
      */
     public function prepareItems()
     {
-        /** @var \Magento\Catalog\Block\Product\ListProduct $productList */
-        $productList = $this->layout->createBlock(\Magento\Catalog\Block\Product\ListProduct::class);
-        $productList->getToolbarBlock()->setCollection($this->layer->getProductCollection());
-        $collection = $productList->getLoadedProductCollection();
+        $collection = $this->prepareCollection();
         $items = [];
         $index = 0;
         /** @var \Magento\Catalog\Model\Product $product */

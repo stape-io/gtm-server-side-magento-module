@@ -54,6 +54,11 @@ class ConfigProvider
     public const XPATH_USER_DATA_ENABLED = 'stape_gtm/datalayer/userdata';
 
     /*
+     * XPATH for collection size on category page to be pushed to datalayer
+     */
+    public const XPATH_COLLECTION_SIZE = 'stape_gtm/datalayer/collection_size';
+
+    /*
      * XPATH to check if webhooks are enabled
      */
     public const XPATH_WEBHOOK_ACTIVE = 'stape_gtm/webhooks/active';
@@ -273,5 +278,16 @@ class ConfigProvider
     public function getDomainListUrl()
     {
         return $this->scopeConfig->getValue(self::XPATH_DOMAIN_LIST_URL);
+    }
+
+    /**
+     * Retrieve allowed collection size
+     *
+     * @param string|null $scopeCode
+     * @return int
+     */
+    public function getCollectionSize($scopeCode = null): int
+    {
+        return (int) $this->scopeConfig->getValue(self::XPATH_COLLECTION_SIZE, ScopeInterface::SCOPE_STORE, $scopeCode);
     }
 }
