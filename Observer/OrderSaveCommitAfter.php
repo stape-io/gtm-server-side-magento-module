@@ -8,6 +8,7 @@ use Magento\Framework\Stdlib\CookieManagerInterface;
 use \Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Stape\Gtm\Model\ConfigProvider;
+use Stape\Gtm\Model\Data\Webhook\CookieList as WebhookCookies;
 use Stape\Gtm\Model\Webhook\Adapter;
 
 class OrderSaveCommitAfter implements ObserverInterface
@@ -38,13 +39,7 @@ class OrderSaveCommitAfter implements ObserverInterface
     private $logger;
 
     /** @var string[]  */
-    private $cookies = [
-        '_fbc',
-        '_fbp',
-        'FPGCLAW',
-        '_gcl_aw',
-        'ttclid'
-    ];
+    private $cookies = [];
 
     /**
      * Define class dependencies
@@ -53,6 +48,7 @@ class OrderSaveCommitAfter implements ObserverInterface
      * @param Adapter $adapter
      * @param CookieManagerInterface $cookieManager
      * @param OrderPaymentRepositoryInterface $orderPaymentRepository
+     * @param WebhookCookies $cookieList
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -60,6 +56,7 @@ class OrderSaveCommitAfter implements ObserverInterface
         Adapter $adapter,
         CookieManagerInterface $cookieManager,
         OrderPaymentRepositoryInterface $orderPaymentRepository,
+        WebhookCookies $cookieList,
         LoggerInterface $logger
     ) {
         $this->configProvider = $configProvider;
@@ -67,6 +64,7 @@ class OrderSaveCommitAfter implements ObserverInterface
         $this->cookieManager = $cookieManager;
         $this->orderPaymentRepository = $orderPaymentRepository;
         $this->logger = $logger;
+        $this->cookies = $cookieList->getAll();
     }
 
     /**
