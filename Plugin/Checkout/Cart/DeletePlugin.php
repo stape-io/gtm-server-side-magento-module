@@ -96,7 +96,7 @@ class DeletePlugin
             $result = $proceed();
 
             if ($item->isDeleted()) {
-                $this->dataProvider->add('remove_from_cart_stape', [
+                $this->dataProvider->add('remove_from_cart', [
                     'items' => [
                         [
                             'item_name' => $item->getName(),

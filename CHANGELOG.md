@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.27
+- added option to enable/disable '_stape' suffix in Datalayer events;
+
 v1.0.26
 - removed unneeded CSP rules
 - added option to configure collection size for datalayer

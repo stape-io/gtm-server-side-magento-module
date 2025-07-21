@@ -54,6 +54,11 @@ class ConfigProvider
     public const XPATH_USER_DATA_ENABLED = 'stape_gtm/datalayer/userdata';
 
     /*
+     * XPATH for flag to check if '_stape' suffix has to be added to event names
+     */
+    public const XPATH_DATALAYER_STAPE_SUFFIX_ACTIVE = 'stape_gtm/datalayer/stape_suffix_active';
+
+    /*
      * XPATH for collection size on category page to be pushed to datalayer
      */
     public const XPATH_COLLECTION_SIZE = 'stape_gtm/datalayer/collection_size';
@@ -289,5 +294,20 @@ class ConfigProvider
     public function getCollectionSize($scopeCode = null): int
     {
         return (int) $this->scopeConfig->getValue(self::XPATH_COLLECTION_SIZE, ScopeInterface::SCOPE_STORE, $scopeCode);
+    }
+
+    /**
+     * Check if '_stape' suffix has to be added to event names in datalayer
+     *
+     * @param string|int $scopeCode
+     * @return bool
+     */
+    public function isStapeEventSuffixActive($scopeCode = null)
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XPATH_DATALAYER_STAPE_SUFFIX_ACTIVE,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
     }
 }

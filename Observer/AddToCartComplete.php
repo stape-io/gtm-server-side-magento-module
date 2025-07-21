@@ -84,7 +84,7 @@ class AddToCartComplete implements ObserverInterface
             $qty = 1;
         }
         $category = $this->categoryResolver->resolve($product);
-        $this->dataProvider->add('add_to_cart_stape', [
+        $this->dataProvider->add('add_to_cart', [
             'currency' => $this->checkoutSession->getQuote()->getBaseCurrencyCode(),
             'items' => [
                 [

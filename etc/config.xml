@@ -8,6 +8,7 @@
             </domain_list>
             <datalayer>
                 <collection_size>30</collection_size>
+                <stape_suffix_active>1</stape_suffix_active>
             </datalayer>
         </stape_gtm>
     </default>
