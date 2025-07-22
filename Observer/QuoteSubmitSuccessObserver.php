@@ -6,6 +6,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 use Stape\Gtm\Model\ConfigProvider;
+use Stape\Gtm\Model\Data\Webhook\CookieList as WebhookCookies;
 use Stape\Gtm\Model\Webhook\Adapter;
 
 class QuoteSubmitSuccessObserver implements ObserverInterface
@@ -26,29 +27,26 @@ class QuoteSubmitSuccessObserver implements ObserverInterface
     private $cookieManager;
 
     /** @var string[]  */
-    private $cookies = [
-        '_fbc',
-        '_fbp',
-        'FPGCLAW',
-        '_gcl_aw',
-        'ttclid'
-    ];
+    private $cookies = [];
 
     /**
      * Define class dependencies
      *
      * @param ConfigProvider $configProvider
      * @param Adapter $adapter
+     * @param WebhookCookies $adapter
      * @param CookieManagerInterface $cookieManager
      */
     public function __construct(
         ConfigProvider $configProvider,
         Adapter $adapter,
+        WebhookCookies $cookieList,
         CookieManagerInterface $cookieManager
     ) {
         $this->configProvider = $configProvider;
         $this->adapter = $adapter;
         $this->cookieManager = $cookieManager;
+        $this->cookies = $cookieList->getAll();
     }
 
     /**

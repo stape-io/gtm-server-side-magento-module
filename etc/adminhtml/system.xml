@@ -53,6 +53,10 @@ This feature is available only if you use <a href="https://stape.io/gtm-server-h
                     <label>Add user data to Data Layer events</label>
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 </field>
+                <field id="stape_suffix_active" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="15" translate="label" type="select">
+                    <label>Stape Suffix Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                </field>
                 <field id="collection_size" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="20" translate="label">
                     <label>Product Collection Limit</label>
                     <validate>validate-integer</validate>

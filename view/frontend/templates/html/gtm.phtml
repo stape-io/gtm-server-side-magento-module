@@ -15,7 +15,8 @@
             "*": {
                 "Stape_Gtm/js/datalayer": {
                     "isUserDataEnabled": <?= $block->isUserDataEnabled() ? 'true' : 'false'; ?>,
-                    "data": <?= $dataLayer ? $dataLayer->getJson() : '{}'; ?>
+                    "data": <?= $dataLayer ? $dataLayer->getJson() : '{}'; ?>,
+                    "suffix": "<?= $block->getEventSuffix(); ?>"
                 }
             }
         }

@@ -9,6 +9,7 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Data\Order;
 use Stape\Gtm\Model\Product\CategoryResolver;
+use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 
 class Success implements ArgumentInterface
 {
@@ -43,6 +44,11 @@ class Success implements ArgumentInterface
     private $orderData;
 
     /**
+     * @var EventFormatter $eventFormatter
+     */
+    private $eventFormatter;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -51,6 +57,7 @@ class Success implements ArgumentInterface
      * @param PriceCurrencyInterface $priceCurrency
      * @param CategoryResolver $categoryResolver
      * @param Order $orderData
+     * @param EventFormatter $eventFormatter
      */
     public function __construct(
         Json $json,
@@ -58,7 +65,8 @@ class Success implements ArgumentInterface
         Session $checkoutSession,
         PriceCurrencyInterface $priceCurrency,
         CategoryResolver $categoryResolver,
-        Order $orderData
+        Order $orderData,
+        EventFormatter $eventFormatter
     ) {
         $this->json = $json;
         $this->storeManager = $storeManager;
@@ -66,6 +74,7 @@ class Success implements ArgumentInterface
         $this->priceCurrency = $priceCurrency;
         $this->categoryResolver = $categoryResolver;
         $this->orderData = $orderData;
+        $this->eventFormatter = $eventFormatter;
     }
 
     /**
@@ -129,7 +138,7 @@ class Success implements ArgumentInterface
         }
 
         return $this->json->serialize([
-            'event' => 'purchase_stape',
+            'event' => $this->eventFormatter->formatName('purchase'),
             'ecomm_pagetype' => 'purchase',
             'user_data' => [
                 'first_name' => $address->getFirstname(),

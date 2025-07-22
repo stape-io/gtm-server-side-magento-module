@@ -11,6 +11,7 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Framework\View\Layout;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\ConfigProvider;
+use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 
 class Category implements ArgumentInterface, DatalayerInterface
 {
@@ -46,6 +47,11 @@ class Category implements ArgumentInterface, DatalayerInterface
     private $eventManager;
 
     /**
+     * @var EventFormatter $eventFormatter
+     */
+    private $eventFormatter;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -53,9 +59,9 @@ class Category implements ArgumentInterface, DatalayerInterface
      * @param Resolver $layerResolver
      * @param PriceCurrencyInterface $priceCurrency
      * @param Layout $layout
-     * @param ContextInterface $context
      * @param ConfigProvider $configProvider
      * @param ManagerInterface $eventManager
+     * @param EventFormatter $eventFormatter
      */
     public function __construct(
         Json $json,
@@ -64,7 +70,8 @@ class Category implements ArgumentInterface, DatalayerInterface
         PriceCurrencyInterface $priceCurrency,
         Layout $layout,
         ConfigProvider $configProvider,
-        ManagerInterface $eventManager
+        ManagerInterface $eventManager,
+        EventFormatter $eventFormatter
     ) {
         $this->json = $json;
         $this->storeManager = $storeManager;
@@ -73,6 +80,7 @@ class Category implements ArgumentInterface, DatalayerInterface
         $this->layout = $layout;
         $this->configProvider = $configProvider;
         $this->eventManager = $eventManager;
+        $this->eventFormatter = $eventFormatter;
     }
 
     /**
@@ -154,7 +162,7 @@ class Category implements ArgumentInterface, DatalayerInterface
     public function getJson()
     {
         return $this->json->serialize([
-            'event' => 'view_collection_stape',
+            'event' => $this->eventFormatter->formatName('view_collection'),
             'ecomm_pagetype' => 'category',
             'ecommerce' => [
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),

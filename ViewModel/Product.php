@@ -9,6 +9,7 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
+use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 
 class Product implements ArgumentInterface, DatalayerInterface
 {
@@ -43,6 +44,11 @@ class Product implements ArgumentInterface, DatalayerInterface
     private $priceCurrency;
 
     /**
+     * @var EventFormatter $eventFormatter
+     */
+    private $eventFormatter;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -51,6 +57,7 @@ class Product implements ArgumentInterface, DatalayerInterface
      * @param Data $catalogHelper
      * @param CategoryResolver $categoryResolver
      * @param PriceCurrencyInterface $priceCurrency
+     * @param EventFormatter $eventFormatter
      */
     public function __construct(
         Json $json,
@@ -58,7 +65,8 @@ class Product implements ArgumentInterface, DatalayerInterface
         Registry $registry,
         Data $catalogHelper,
         CategoryResolver $categoryResolver,
-        PriceCurrencyInterface $priceCurrency
+        PriceCurrencyInterface $priceCurrency,
+        EventFormatter $eventFormatter
     ) {
         $this->json = $json;
         $this->storeManager = $storeManager;
@@ -66,6 +74,7 @@ class Product implements ArgumentInterface, DatalayerInterface
         $this->catalogHelper = $catalogHelper;
         $this->categoryResolver = $categoryResolver;
         $this->priceCurrency = $priceCurrency;
+        $this->eventFormatter = $eventFormatter;
     }
 
     /**
@@ -143,7 +152,7 @@ class Product implements ArgumentInterface, DatalayerInterface
     public function getJson()
     {
         return $this->json->serialize([
-            'event' => 'view_item_stape',
+            'event' => $this->eventFormatter->formatName('view_item'),
             'ecomm_pagetype' => 'product',
             'ecommerce' => [
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),

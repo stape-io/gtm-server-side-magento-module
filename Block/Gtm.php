@@ -4,6 +4,7 @@ namespace Stape\Gtm\Block;
 
 use Magento\Framework\View\Element\Template;
 use Stape\Gtm\Model\ConfigProvider;
+use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 
 class Gtm extends \Magento\Framework\View\Element\Template
 {
@@ -15,6 +16,11 @@ class Gtm extends \Magento\Framework\View\Element\Template
     protected $configProvider;
 
     /**
+     * @var EventFormatter $eventFormatter
+     */
+    protected $eventFormatter;
+
+    /**
      * Define class dependencies
      *
      * @param Template\Context $context
@@ -24,10 +30,12 @@ class Gtm extends \Magento\Framework\View\Element\Template
     public function __construct(
         Template\Context $context,
         ConfigProvider $configProvider,
+        EventFormatter $eventFormatter,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->configProvider = $configProvider;
+        $this->eventFormatter = $eventFormatter;
     }
 
     /**
@@ -134,5 +142,15 @@ class Gtm extends \Magento\Framework\View\Element\Template
     public function getIdParamName()
     {
         return $this->configProvider->getCustomLoader() && $this->configProvider->getCustomDomain() ? 'st' : 'id';
+    }
+
+    /**
+     * Retrieve formatted event name
+     *
+     * @return string
+     */
+    public function getEventSuffix()
+    {
+        return $this->configProvider->isStapeEventSuffixActive() ? EventFormatter::STAPE_EVENT_SUFFIX : '';
     }
 }

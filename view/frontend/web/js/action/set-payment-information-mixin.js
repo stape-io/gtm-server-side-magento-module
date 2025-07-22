@@ -45,7 +45,7 @@ define([
                 }
                 window.dataLayer.push({ecommerce: null});
                 window.dataLayer.push({
-                    event: 'payment_info_stape',
+                    event: 'payment_info' + window?.dataLayerConfig?.stapeEventSuffix || '',
                     ecomm_pagetype: 'basket',
                     user_data: {
                         first_name: address.firstname,

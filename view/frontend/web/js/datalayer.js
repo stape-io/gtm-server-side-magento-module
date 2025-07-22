@@ -49,6 +49,7 @@ define([
         const cartData = customerData.get('cart');
         const lastAddedProduct = ko.observable(null);
         window.dataLayerConfig.userDataEnabled = config.isUserDataEnabled || false;
+        window.dataLayerConfig.stapeEventSuffix = config?.suffix;
         window.dataLayer = window.dataLayer || [];
 
         if (config.isUserDataEnabled && isLoggedIn()) {
@@ -69,7 +70,7 @@ define([
             if (wasAddToCartCalled) {
                 dataLayer.push({ecommerce: null});
                 window.dataLayer.push({
-                    event: 'add_to_cart_stape',
+                    event: 'add_to_cart' + config?.suffix,
                     ecomm_pagetype: 'product',
                     ecommerce: {
                         currency: config?.data?.ecommerce?.currency,
@@ -90,12 +91,13 @@ define([
 
             if (data?.stape_gtm_events?.remove_from_cart_stape) {
                 dataLayer.push({ecommerce: null});
+                const eventName = 'remove_from_cart' +  config?.suffix;
                 window.dataLayer.push({
-                    event: 'remove_from_cart_stape',
+                    event: eventName,
                     ecomm_pagetype: 'basket',
                     ecommerce: {
                         currency: config?.data?.ecommerce?.currency,
-                        items: data?.stape_gtm_events?.remove_from_cart_stape?.items,
+                        items: data?.stape_gtm_events[eventName]?.items,
                     }
                 })
             }
@@ -151,7 +153,7 @@ define([
             if (itemDetails) {
                 dataLayer.push({ecommerce: null});
                 window.dataLayer.push({
-                    event: 'remove_from_cart_stape',
+                    event: 'remove_from_cart' + config?.suffix,
                     ecomm_pagetype: 'product',
                     ecommerce: {
                         currency: config?.data?.ecommerce?.currency,

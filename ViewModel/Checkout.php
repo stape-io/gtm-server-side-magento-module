@@ -8,6 +8,7 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
+use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 
 class Checkout implements ArgumentInterface
 {
@@ -37,6 +38,11 @@ class Checkout implements ArgumentInterface
     private $categoryResolver;
 
     /**
+     * @var EventFormatter $eventFormatter
+     */
+    private $eventFormatter;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -44,19 +50,22 @@ class Checkout implements ArgumentInterface
      * @param Session $checkoutSession
      * @param PriceCurrencyInterface $priceCurrency
      * @param CategoryResolver $categoryResolver
+     * @param EventFormatter $eventFormatter
      */
     public function __construct(
         Json $json,
         StoreManagerInterface $storeManager,
         Session $checkoutSession,
         PriceCurrencyInterface $priceCurrency,
-        CategoryResolver $categoryResolver
+        CategoryResolver $categoryResolver,
+        EventFormatter $eventFormatter
     ) {
         $this->json = $json;
         $this->storeManager = $storeManager;
         $this->checkoutSession = $checkoutSession;
         $this->priceCurrency = $priceCurrency;
         $this->categoryResolver = $categoryResolver;
+        $this->eventFormatter = $eventFormatter;
     }
 
     /**
@@ -99,7 +108,7 @@ class Checkout implements ArgumentInterface
         }
 
         return $this->json->serialize([
-            'event' => 'begin_checkout_stape',
+            'event' => $this->eventFormatter->formatName('begin_checkout'),
             'ecomm_pagetype' => 'basket',
             'cart_quantity' => (int) $quote->getItemsQty(),
             'cart_total' => $this->priceCurrency->round($quote->getBaseGrandTotal()),
