@@ -17,7 +17,7 @@ use Pdp\Rules;
 
 class HttpPlugin
 {
-    const CACHE_TAG = 'STAPE_COOKIE_DOMAIN';
+    public const CACHE_TAG = 'STAPE_COOKIE_DOMAIN';
 
     /*
      * Cookie name

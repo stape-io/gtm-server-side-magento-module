@@ -10,11 +10,6 @@ use Stape\Gtm\Model\Backend\CustomLoaderFactory;
 use Stape\Gtm\Model\ConfigProvider;
 use Magento\Store\Model\StoreManagerInterface;
 
-/**
- * Class EnableSegmentation.
- *
- * @package Magento\Catalog\Setup\Patch
- */
 class PatchCustomLoader implements DataPatchInterface
 {
     /**
@@ -42,6 +37,8 @@ class PatchCustomLoader implements DataPatchInterface
      *
      * @param ModuleDataSetupInterface $moduleDataSetup
      * @param ConfigProvider $configProvider
+     * @param CustomLoaderFactory $configValueFactory
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,
@@ -85,7 +82,7 @@ class PatchCustomLoader implements DataPatchInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function apply()
     {
@@ -104,7 +101,7 @@ class PatchCustomLoader implements DataPatchInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public static function getDependencies()
     {
@@ -112,7 +109,7 @@ class PatchCustomLoader implements DataPatchInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getAliases()
     {

@@ -34,7 +34,7 @@ class QuoteSubmitSuccessObserver implements ObserverInterface
      *
      * @param ConfigProvider $configProvider
      * @param Adapter $adapter
-     * @param WebhookCookies $adapter
+     * @param WebhookCookies $cookieList
      * @param CookieManagerInterface $cookieManager
      */
     public function __construct(

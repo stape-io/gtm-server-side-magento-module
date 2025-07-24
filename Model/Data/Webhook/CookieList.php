@@ -4,6 +4,11 @@ namespace Stape\Gtm\Model\Data\Webhook;
 
 class CookieList
 {
+    /**
+     * Retrieve entire list of cookies
+     *
+     * @return string[]
+     */
     public function getAll()
     {
         return [
@@ -48,4 +53,3 @@ class CookieList
         ];
     }
 }
-

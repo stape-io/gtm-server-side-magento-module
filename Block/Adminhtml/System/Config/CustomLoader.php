@@ -38,5 +38,4 @@ class CustomLoader extends \Magento\Config\Block\System\Config\Form\Field
             ->setElementHtml($elementHtml)
             ->toHtml();
     }
-
 }

@@ -22,9 +22,9 @@ class CartPlugin
     /**
      * Add stape_gtm_events data to the cart section data
      *
-     * @param $subject
-     * @param $result
-     * @return mixed
+     * @param \Magento\Checkout\CustomerData\Cart $subject
+     * @param array $result
+     * @return array
      */
     public function afterGetSectionData($subject, $result)
     {

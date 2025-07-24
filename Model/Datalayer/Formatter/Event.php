@@ -9,7 +9,7 @@ class Event
     /*
      * Stape event suffix
      */
-    const STAPE_EVENT_SUFFIX = '_stape';
+    public const STAPE_EVENT_SUFFIX = '_stape';
 
     /**
      * @var ConfigProvider $configProvider
@@ -27,6 +27,8 @@ class Event
     }
 
     /**
+     * Format event name. Add suffix if needed
+     *
      * @param string $eventName
      * @param string|int $scopeCode
      * @return string

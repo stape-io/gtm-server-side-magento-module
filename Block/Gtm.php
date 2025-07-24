@@ -25,6 +25,7 @@ class Gtm extends \Magento\Framework\View\Element\Template
      *
      * @param Template\Context $context
      * @param ConfigProvider $configProvider
+     * @param EventFormatter $eventFormatter
      * @param array $data
      */
     public function __construct(

@@ -105,7 +105,8 @@ class DeletePlugin
                             'item_category' => $category ? $category->getName() : null,
                             'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                             'quantity' => $item->getQty(),
-                            'variation_id' => $item->getHasChildren() ? current($item->getChildren())->getProductId() : null
+                            'variation_id' => $item->getHasChildren()
+                                ? current($item->getChildren())->getProductId() : null
                         ]
                     ]
                 ]);
