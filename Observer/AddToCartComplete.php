@@ -94,7 +94,8 @@ class AddToCartComplete implements ObserverInterface
                     'item_category' => $category ? $category->getName() : null,
                     'price' => $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
                     'quantity' => $qty,
-                    'variation_id' => $quoteItem->getHasChildren() ? current($quoteItem->getChildren())->getProductId() : null
+                    'variation_id' => $quoteItem->getHasChildren()
+                        ? current($quoteItem->getChildren())->getProductId() : null
                 ]
             ]
         ]);

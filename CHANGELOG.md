@@ -1,5 +1,9 @@
 # Changelog
 
+v1.0.28
+- added PHP 8.4 compatibility;
+- fixed code style;
+
 v1.0.27
 - added option to enable/disable '_stape' suffix in Datalayer events;
 

@@ -20,8 +20,9 @@ use Stape\Gtm\Block\Gtm;
     <script>
         const eventRegistry = {};
         function pushData(event) {
-
+            <?php // phpcs:disable ?>
             let eventData = <?= $dataLayer->getJson();?> || {};
+            <?php // phpcs:enable ?>
             const customer = event?.detail?.data?.customer;
             let customerData;
             if (customer.customerLoggedIn && typeof eventData.user_data === 'undefined') {
@@ -36,7 +37,8 @@ use Stape\Gtm\Block\Gtm;
 
             window.dataLayer = window.dataLayer || [];
 
-            const isEventAllowed = eventRegistry[eventData.event] !== undefined ? !eventRegistry[eventData.event] : true;
+            const isEventAllowed = eventRegistry[eventData.event] !== undefined
+                ? !eventRegistry[eventData.event] : true;
             if (isEventAllowed && eventData.ecommerce) {
                 window.dataLayer.push({ecommerce: null});
             }

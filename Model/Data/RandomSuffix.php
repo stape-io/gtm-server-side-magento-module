@@ -5,6 +5,8 @@ namespace Stape\Gtm\Model\Data;
 class RandomSuffix
 {
     /**
+     * Generate random suffix
+     *
      * @param null|string $loaderId
      * @return string
      */

@@ -39,8 +39,8 @@ class CustomLoader extends \Magento\Framework\App\Config\Value
      * @param \Magento\Framework\App\Cache\TypeListInterface $cacheTypeList
      * @param RandomString $randomString
      * @param RandomSuffix $randomSuffix
-     * @param \Magento\Framework\Serialize\Serializer\Json $jsonSerializer
      * @param \Magento\Config\Model\ConfigFactory $configFactory
+     * @param \Magento\Framework\Serialize\Serializer\Json $jsonSerializer
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
@@ -54,8 +54,8 @@ class CustomLoader extends \Magento\Framework\App\Config\Value
         \Stape\Gtm\Model\Data\RandomSuffix $randomSuffix,
         \Magento\Config\Model\ConfigFactory $configFactory,
         \Magento\Framework\Serialize\Serializer\Json $jsonSerializer,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        ?\Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        ?\Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
@@ -90,7 +90,9 @@ class CustomLoader extends \Magento\Framework\App\Config\Value
      */
     protected function saveContainerIdParams()
     {
+        // phpcs:disable
         parse_str($this->randomSuffix->generate($this->getValue()), $suffix);
+        // phpcs:enable
         $value = $this->jsonSerializer->serialize([
             'prefix' => $this->randomString->generate(),
             'suffix' => $suffix,
@@ -138,7 +140,11 @@ class CustomLoader extends \Magento\Framework\App\Config\Value
 
         try {
 
-            $prefix = $this->_config->getValue(ConfigProvider::XPATH_GTM_LOADER_PREFIX, $this->getScope(), $this->getScopeId());
+            $prefix = $this->_config->getValue(
+                ConfigProvider::XPATH_GTM_LOADER_PREFIX,
+                $this->getScope(),
+                $this->getScopeId()
+            );
 
             if (!empty($loader) && empty($prefix)) {
                 $this->saveLoaderPrefix();
@@ -157,11 +163,9 @@ class CustomLoader extends \Magento\Framework\App\Config\Value
             if (strlen($this->getValue() ?? '') < 1) {
                 $this->resetLinkedOptions();
             }
-
+            return parent::afterSave();
         } catch (\Throwable $e) {
-
+            return parent::afterSave();
         }
-
-        return parent::afterSave();
     }
 }
