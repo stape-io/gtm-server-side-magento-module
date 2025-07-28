@@ -21,7 +21,7 @@ use Stape\Gtm\Block\Gtm;
         const eventRegistry = {};
         function pushData(event) {
             <?php // phpcs:disable ?>
-            let eventData = <?= $dataLayer->getJson();?> || {};
+            let eventData = <?= /* @noEscape */ $dataLayer->getJson();?> || {};
             <?php // phpcs:enable ?>
             const customer = event?.detail?.data?.customer;
             let customerData;
