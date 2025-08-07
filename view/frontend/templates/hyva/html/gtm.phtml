@@ -4,7 +4,6 @@ use Stape\Gtm\Block\Gtm;
 
 /** @var Gtm $block */
 ?>
-<?php $dataLayer = $block->getDataLayer(); ?>
 <?php if (!empty($block->getContainerId())): ?>
     <?php if ($block->useCookieKeeper()): ?>
         <?= $block->getChildHtml('stape.gtm.advanced'); ?>
@@ -14,7 +13,6 @@ use Stape\Gtm\Block\Gtm;
 <?php endif; ?>
 
 <?php $dataLayer = $block->getDataLayer(); ?>
-
 <?php if ($dataLayer && $block->isDataLayerEnabled()): ?>
 
     <script>
