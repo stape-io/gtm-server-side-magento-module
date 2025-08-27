@@ -1,4 +1,6 @@
 # Changelog
+v1.0.29
+- img-src CSP rule added;
 
 v1.0.28
 - added PHP 8.4 compatibility;
