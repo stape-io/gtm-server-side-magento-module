@@ -56,6 +56,12 @@ class CspObserverPlugin
             return [$observer];
         }
 
+        $imgPolicy = $this->fetchPolicyFactory->create([
+            'id' => 'img-src',
+            'hostSources' => [$customDomain],
+            'noneAllowed' => false,
+        ]);
+
         $scriptPolicy = $this->fetchPolicyFactory->create([
             'id' => 'script-src',
             'hostSources' => [$customDomain],
@@ -68,6 +74,7 @@ class CspObserverPlugin
             'noneAllowed' => false,
         ]);
 
+        $this->dynamicCollector->add($imgPolicy);
         $this->dynamicCollector->add($scriptPolicy);
         $this->dynamicCollector->add($connectPolicy);
         return [$observer];
