@@ -1,4 +1,7 @@
 # Changelog
+v1.0.30
+- added module version header;
+
 v1.0.29
 - img-src CSP rule added;
 

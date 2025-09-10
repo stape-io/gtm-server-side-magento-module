@@ -13,6 +13,8 @@ use Stape\Gtm\Model\Data\Converter;
 class Adapter
 {
 
+    public const MODULE_VERSION = '1.0.30';
+
     /**
      * @var Json $json
      */
@@ -75,6 +77,7 @@ class Adapter
         $client = $this->clientFactory->create();
         $client->addHeader('Content-Type', 'application/json');
         $client->addHeader('Accept', 'application/json');
+        $client->addHeader('x-stape-app-version', self::MODULE_VERSION);
 
         try {
 
