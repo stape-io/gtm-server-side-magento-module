@@ -111,6 +111,7 @@ class Success implements ArgumentInterface
 
             if ($item->getHasChildren()) {
                 $itemCandidate['variation_id'] = current($item->getChildrenItems())->getProductId();
+                $itemCandidate['item_variant'] = current($item->getChildrenItems())->getSku();
             }
 
             $items[] = $itemCandidate;

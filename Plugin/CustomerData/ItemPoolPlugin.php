@@ -52,7 +52,9 @@ class ItemPoolPlugin
         }
 
         if ($item->getHasChildren()) {
-            $result['child_product_id'] = current($item->getChildren())->getProductId();
+            $childItem = current($item->getChildren());
+            $result['child_product_id'] = $childItem->getProductId();
+            $result['child_product_sku'] = $childItem->getSku();
         }
 
         return $result;

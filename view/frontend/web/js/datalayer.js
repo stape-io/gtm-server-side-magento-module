@@ -82,7 +82,8 @@ define([
                                 'item_category': itemDetails.category,
                                 'price': itemDetails.product_price_value,
                                 'quantity': itemDetails.qty,
-                                'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined
+                                'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
+                                'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : undefined
                             }
                         ]
                     }
@@ -166,6 +167,7 @@ define([
                                 'price': itemDetails.product_price_value,
                                 'quantity': itemDetails.qty,
                                 'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
+                                'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : undefined
                             }
                         ]
                     }

@@ -28,6 +28,7 @@ define([
                 'price': priceUtils.formatPrice(itemDetails.base_price, priceFormat, false),
                 'quantity': parseInt(itemDetails?.qty),
                 'variation_id': cartItem.child_product_id ? cartItem.child_product_id : undefined,
+                'item_variant': cartItem.child_product_sku ? cartItem.child_product_sku : undefined
             }
         });
     }

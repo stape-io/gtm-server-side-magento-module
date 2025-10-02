@@ -88,6 +88,7 @@ class Checkout implements ArgumentInterface
                 'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                 'quantity' => (int) $item->getQty(),
                 'variation_id' => (int) $item->getHasChildren() ? current($item->getChildren())->getProductId() : null,
+                'item_variant' => (int) $item->getHasChildren() ? current($item->getChildren())->getSku() : null,
             ];
         }
         return $items;
