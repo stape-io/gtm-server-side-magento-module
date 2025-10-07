@@ -174,5 +174,41 @@ define([
                 });
             }
         });
+        $(document).on('click', '.product-item-info a', function(e, data) {
+
+            if (config?.extraData === undefined) {
+                console.log('Stape module. Extra data missing');
+                return;
+            }
+
+            const productInfoWrapper = $(e.target.closest('.product-item-info'));
+            if (productInfoWrapper.get(0) === undefined) {
+                console.log('Stape module. Could not find product-item-info wrapper.');
+                return;
+            }
+
+            const allowedTypes = config?.extraData?.lists.map(list => list.item_list_name);
+            const sectionWrapper = $(e.target.closest('.products.wrapper'));
+            const type = allowedTypes.find(sectionType => sectionWrapper.hasClass('products-' + sectionType)) || 'products';
+
+            const productId = productInfoWrapper.find('[data-product-id]').data('product-id');
+            const items = _.find(config.extraData.lists, list => list.item_list_name === type).items || [];
+            const productInfo = items[productId];
+            if (productInfo) {
+                window.dataLayer.push({
+                    event: 'select_item' + config?.suffix,
+                    ecomm_pagetype: config?.pageType,
+                    ecommerce: {
+                        currency: config?.extraData?.currency,
+                        value: productInfo.price,
+                        item_list_name: type,
+                        items: [
+                            productInfo
+                        ]
+                    },
+                    user_data: config?.data?.user_data || {}
+                })
+            }
+        });
     }
 });

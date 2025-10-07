@@ -1,4 +1,10 @@
 # Changelog
+
+v1.0.31
+- renamed module in admin panel;
+- added select_item event;
+- added item_variant param to datalayer;
+
 v1.0.30
 - added module version header;
 

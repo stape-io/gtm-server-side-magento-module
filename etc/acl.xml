@@ -7,7 +7,7 @@
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="Stape_Gtm::config" title="Server Side GTM" />
+                            <resource id="Stape_Gtm::config" title="Stape Conversion Tracking" />
                         </resource>
                     </resource>
                 </resource>

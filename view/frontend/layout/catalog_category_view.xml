@@ -5,7 +5,9 @@
     <body>
         <referenceBlock name="stape.gtm">
             <arguments>
+                <argument name="page_type" xsi:type="string">category</argument>
                 <argument name="data_layer" xsi:type="object">Stape\Gtm\ViewModel\Category</argument>
+                <argument name="extra_data" xsi:type="object">Stape\Gtm\ViewModel\Category\ExtraData</argument>
             </arguments>
         </referenceBlock>
     </body>

@@ -5,7 +5,9 @@
     <body>
         <referenceBlock name="stape.gtm">
             <arguments>
+                <argument name="page_type" xsi:type="string">basket</argument>
                 <argument name="data_layer" xsi:type="object">Stape\Gtm\ViewModel\Cart</argument>
+                <argument name="extra_data" xsi:type="object">Stape\Gtm\ViewModel\Product\LinkedProducts</argument>
             </arguments>
         </referenceBlock>
     </body>
