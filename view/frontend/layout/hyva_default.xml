@@ -3,6 +3,8 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <referenceBlock name="stape.gtm" template="Stape_Gtm::hyva/html/gtm.phtml" />
+        <referenceBlock name="stape.gtm" template="Stape_Gtm::hyva/html/gtm.phtml">
+            <block name="stape.gtm.extradata" class="Stape\Gtm\Block\Hyva\ExtraData" template="Stape_Gtm::hyva/html/extradata.phtml" />
+        </referenceBlock>
     </body>
 </page>

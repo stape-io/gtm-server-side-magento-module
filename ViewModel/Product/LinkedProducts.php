@@ -20,9 +20,9 @@ class LinkedProducts implements ArgumentInterface, DatalayerInterface
      * @var string[]
      */
     private $blockTypes = [
-        'related' => 'catalog.product.related',
-        'upsell' => 'catalog.product.upsell',
-        'crosssell' => 'checkout.cart.crosssell'
+        'catalog.product.related' => 'related',
+        'product.info.upsell' => 'upsell',
+        'checkout.cart.crosssell' => 'crosssell',
     ];
 
     /**
@@ -99,7 +99,7 @@ class LinkedProducts implements ArgumentInterface, DatalayerInterface
         $this->eventManager->dispatch('stape_gtm_linked_product_block_map', ['transport' => $transport]);
 
         if (is_array($transport->getBlockTypes())) {
-            foreach ($transport->getBlockTypes() as $blockType => $blockName) {
+            foreach ($transport->getBlockTypes() as $blockName => $blockType) {
                 if (!$block = $this->layout->getBlock($blockName)) {
                     continue;
                 }

@@ -19,7 +19,8 @@
                     "data": <?= /* @noEscape */ $dataLayer ? $dataLayer->getJson() : '{}'; ?>,
                     "suffix": "<?= /* @noEscape */ $block->getEventSuffix(); ?>",
                     "pageType": "<?= $escaper->escapeHtml($block->getPageType() ?? ''); ?>",
-                    "extraData": <?= /* @noEscape */ $extraData ? $extraData->getJson() : '{}'; ?>
+                    "extraData": <?= /* @noEscape */ $extraData ? $extraData->getJson() : '{}'; ?>,
+                    "productItemSelector": "<?= $escaper->escapeHtml($block->getProductItemSelector()); ?>"
                 }
             }
         }

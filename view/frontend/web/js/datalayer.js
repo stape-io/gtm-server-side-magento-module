@@ -46,6 +46,7 @@ define([
 
     return function(config) {
         let wasAddToCartCalled = false;
+        const productItemselector = config.productItemSelector || '.product-item';
         const cartData = customerData.get('cart');
         const lastAddedProduct = ko.observable(null);
         window.dataLayerConfig.userDataEnabled = config.isUserDataEnabled || false;
@@ -174,14 +175,14 @@ define([
                 });
             }
         });
-        $(document).on('click', '.product-item-info a', function(e, data) {
+        $(document).on('click', productItemselector + ' a', function(e, data) {
 
             if (config?.extraData === undefined) {
                 console.log('Stape module. Extra data missing');
                 return;
             }
 
-            const productInfoWrapper = $(e.target.closest('.product-item-info'));
+            const productInfoWrapper = $(e.target.closest(productItemselector));
             if (productInfoWrapper.get(0) === undefined) {
                 console.log('Stape module. Could not find product-item-info wrapper.');
                 return;
