@@ -8,7 +8,7 @@
 
         <section id="stape_gtm" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
             <class>separator-top</class>
-            <label>Server Side GTM</label>
+            <label>Stape Conversion Tracking</label>
             <tab>stape</tab>
             <resource>Stape_Gtm::config</resource>
             <group id="general" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">

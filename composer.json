@@ -1,11 +1,11 @@
 {
     "name": "stape/gtm-server-side-magento-module",
-    "description": "Stape GTM Server Side Magento Module",
+    "description": "Stape Conversion Tracking Magento Module",
     "type": "magento2-module",
     "license": [
         "GPL-3.0-only"
     ],
-    "version": "1.0.30",
+    "version": "1.0.31",
     "require": {
         "php": ">=7.4.0",
         "jeremykendall/php-domain-parser": "^6.0"

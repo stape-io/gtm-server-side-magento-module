@@ -1,0 +1,32 @@
+<?php
+/**
+ * @var \Stape\Gtm\Block\Hyva\ExtraData $this
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+$extraData = [
+    'currency' => $this->getCurrencyCode(),
+];
+$productListViewModel = $viewModels->require(\Hyva\Theme\ViewModel\ProductList::class);
+if ($product = $this->getProduct()) {
+    foreach (['upsell', 'related'] as $type) {
+        $extraData['lists'][] = [
+            'item_list_name' => $type,
+            'items' => $this->toEventItems($productListViewModel->getLinkedItems($type, $product))
+        ];
+    }
+} else {
+    $items = $productListViewModel->getCrosssellItems(...$viewModels->require(\Hyva\Theme\ViewModel\Cart\Items::class)->getCartItems());
+    if (!empty($items)) {
+        $extraData['lists'][] = [
+            'item_list_name' => 'crosssell',
+            'items' => $this->toEventItems($items),
+        ];
+    }
+}
+
+?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        window.stapeDataLayer.addExtraData(<?= $this->dataToJson($extraData); ?>);
+    })
+</script>

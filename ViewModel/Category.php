@@ -84,20 +84,6 @@ class Category implements ArgumentInterface, DatalayerInterface
     }
 
     /**
-     * Retrieve category name
-     *
-     * @return string
-     */
-    private function getCategoryName()
-    {
-        if ($currentCategory = $this->layer->getCurrentCategory()) {
-            return $currentCategory->getName();
-        }
-
-        return '';
-    }
-
-    /**
      * Retrieve collection
      *
      * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
@@ -130,13 +116,37 @@ class Category implements ArgumentInterface, DatalayerInterface
     }
 
     /**
+     * Retrieve product collection
+     *
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
+     */
+    public function getProductCollection()
+    {
+        return $this->prepareCollection();
+    }
+
+    /**
+     * Retrieve category name
+     *
+     * @return string
+     */
+    public function getCategoryName()
+    {
+        if ($currentCategory = $this->layer->getCurrentCategory()) {
+            return $currentCategory->getName();
+        }
+
+        return '';
+    }
+
+    /**
      * Preparing items
      *
      * @return array
      */
     public function prepareItems()
     {
-        $collection = $this->prepareCollection();
+        $collection = $this->getProductCollection();
         $items = [];
         $index = 0;
         /** @var \Magento\Catalog\Model\Product $product */

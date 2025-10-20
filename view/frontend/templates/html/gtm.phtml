@@ -6,6 +6,7 @@
 // phpcs:disable
 ?>
 <?php $dataLayer = $block->getDataLayer(); ?>
+<?php $extraData = $block->getExtraData(); ?>
 <?php if ($block->isDataLayerEnabled()): ?>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -16,7 +17,10 @@
                 "Stape_Gtm/js/datalayer": {
                     "isUserDataEnabled": <?= $block->isUserDataEnabled() ? 'true' : 'false'; ?>,
                     "data": <?= /* @noEscape */ $dataLayer ? $dataLayer->getJson() : '{}'; ?>,
-                    "suffix": "<?= /* @noEscape */ $block->getEventSuffix(); ?>"
+                    "suffix": "<?= /* @noEscape */ $block->getEventSuffix(); ?>",
+                    "pageType": "<?= $escaper->escapeHtml($block->getPageType() ?? ''); ?>",
+                    "extraData": <?= /* @noEscape */ $extraData ? $extraData->getJson() : '{}'; ?>,
+                    "productItemSelector": "<?= $escaper->escapeHtml($block->getProductItemSelector()); ?>"
                 }
             }
         }

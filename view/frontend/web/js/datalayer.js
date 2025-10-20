@@ -46,6 +46,7 @@ define([
 
     return function(config) {
         let wasAddToCartCalled = false;
+        const productItemselector = config.productItemSelector || '.product-item';
         const cartData = customerData.get('cart');
         const lastAddedProduct = ko.observable(null);
         window.dataLayerConfig.userDataEnabled = config.isUserDataEnabled || false;
@@ -82,7 +83,8 @@ define([
                                 'item_category': itemDetails.category,
                                 'price': itemDetails.product_price_value,
                                 'quantity': itemDetails.qty,
-                                'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined
+                                'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
+                                'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : undefined
                             }
                         ]
                     }
@@ -166,10 +168,47 @@ define([
                                 'price': itemDetails.product_price_value,
                                 'quantity': itemDetails.qty,
                                 'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
+                                'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : undefined
                             }
                         ]
                     }
                 });
+            }
+        });
+        $(document).on('click', productItemselector + ' a', function(e, data) {
+
+            if (config?.extraData === undefined) {
+                console.log('Stape module. Extra data missing');
+                return;
+            }
+
+            const productInfoWrapper = $(e.target.closest(productItemselector));
+            if (productInfoWrapper.get(0) === undefined) {
+                console.log('Stape module. Could not find product-item-info wrapper.');
+                return;
+            }
+
+            const allowedTypes = config?.extraData?.lists.map(list => list.item_list_name);
+            const sectionWrapper = $(e.target.closest('.products.wrapper'));
+            const type = allowedTypes.find(sectionType => sectionWrapper.hasClass('products-' + sectionType)) || 'products';
+
+            const productId = productInfoWrapper.find('[data-product-id]').data('product-id');
+            const items = _.find(config.extraData.lists, list => list.item_list_name === type).items || [];
+            const productInfo = items[productId];
+            if (productInfo) {
+                window.dataLayer.push({
+                    event: 'select_item' + config?.suffix,
+                    ecomm_pagetype: config?.pageType,
+                    ecommerce: {
+                        currency: config?.extraData?.currency,
+                        value: productInfo.price,
+                        item_list_name: type,
+                        items: [
+                            productInfo
+                        ]
+                    },
+                    user_data: config?.data?.user_data || {}
+                })
             }
         });
     }

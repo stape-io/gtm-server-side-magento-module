@@ -5,7 +5,10 @@
     <body>
         <referenceBlock name="stape.gtm">
             <arguments>
+                <argument name="page_type" xsi:type="string">product</argument>
+                <argument name="product_item_selector" xsi:type="string">.product-item</argument>
                 <argument name="data_layer" xsi:type="object">Stape\Gtm\ViewModel\Product</argument>
+                <argument name="extra_data" xsi:type="object">Stape\Gtm\ViewModel\Product\LinkedProducts</argument>
             </arguments>
         </referenceBlock>
     </body>

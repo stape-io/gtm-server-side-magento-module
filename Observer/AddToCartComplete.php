@@ -84,6 +84,7 @@ class AddToCartComplete implements ObserverInterface
             $qty = 1;
         }
         $category = $this->categoryResolver->resolve($product);
+        $childItem = $quoteItem->getHasChildren() ? current($quoteItem->getChildren()) : null;
         $this->dataProvider->add('add_to_cart', [
             'currency' => $this->checkoutSession->getQuote()->getBaseCurrencyCode(),
             'items' => [
@@ -94,8 +95,8 @@ class AddToCartComplete implements ObserverInterface
                     'item_category' => $category ? $category->getName() : null,
                     'price' => $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
                     'quantity' => $qty,
-                    'variation_id' => $quoteItem->getHasChildren()
-                        ? current($quoteItem->getChildren())->getProductId() : null
+                    'variation_id' => $childItem ? $childItem->getProductId() : null,
+                    'item_variant' => $childItem ? $childItem->getSku() : null,
                 ]
             ]
         ]);

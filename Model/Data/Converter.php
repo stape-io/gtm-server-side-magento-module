@@ -53,6 +53,7 @@ class Converter
         /** @var \Magento\Sales\Model\Order\Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
             $category = $this->categoryResolver->resolve($item->getProduct());
+            $childItem = $item->getHasChildren() ? current($item->getChildrenItems() ?? []) : null;
             $items[] = [
                 'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
@@ -60,8 +61,8 @@ class Converter
                 'item_category' => $category ? $category->getName() : '',
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => $item->getQtyOrdered(),
-                'variation_id' => $item->getHasChildren()
-                    ? current($item->getChildrenItems() ?? [])->getProductId() : null
+                'item_variant' => $childItem ? $childItem->getSku() : null,
+                'variation_id' => $childItem ? $childItem->getProductId() : null,
             ];
         }
         return $items;
@@ -83,6 +84,8 @@ class Converter
             }
 
             $category = $this->categoryResolver->resolve($orderItem->getProduct());
+            $childItem = $item->getOrderItem()->getHasChildren()
+                ? current($item->getOrderItem()->getChildrenItems() ?? []) : null;
             $items[] = [
                 'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
@@ -90,8 +93,8 @@ class Converter
                 'item_category' => $category ? $category->getName() : '',
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => $item->getQty(),
-                'variation_id' => $item->getOrderItem()->getHasChildren()
-                    ? current($item->getOrderItem()->getChildrenItems() ?? [])->getProductId() : null
+                'item_variant' => $childItem ? $childItem->getSku() : null,
+                'variation_id' => $childItem ? $childItem->getProductId() : null,
             ];
         }
         return $items;
