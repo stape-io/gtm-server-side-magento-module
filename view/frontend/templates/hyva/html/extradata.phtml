@@ -27,6 +27,6 @@ if ($product = $this->getProduct()) {
 ?>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        window.stapeDataLayer.addExtraData(<?= $this->dataToJson($extraData); ?>);
+        window.stapeDataLayer.addExtraData(<?= /* @noEscape */ $this->dataToJson($extraData); ?>);
     })
 </script>

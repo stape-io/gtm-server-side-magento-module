@@ -22,14 +22,14 @@ use Stape\Gtm\Block\Gtm;
 <?php if ($dataLayer && $block->isDataLayerEnabled()): ?>
     <?php $extraData = $block->getExtraData(); ?>
     <script type="module">
-        import { Datalayer } from '<?= $block->getViewFileUrl("Stape_Gtm::js/hyva/Datalayer.js") ?>';
+        import { Datalayer } from '<?= $escaper->escapeUrl($block->getViewFileUrl("Stape_Gtm::js/hyva/Datalayer.js")) ?>';
         window.stapeDataLayer = new Datalayer({
             productItemSelector: '<?= $escaper->escapeHtml($block->getProductItemSelector()) ?>',
             eventSuffix: '<?= $escaper->escapeHtml($block->getEventSuffix()) ?>',
             <?php // phpcs:disable ?>
             pageType: '<?= /* @noEscape */ $block->getPageType(); ?>',
             defaultEventData: <?= /* @noEscape */ $dataLayer->getJson(); ?> || {},
-            extraData: <?= $extraData ? $extraData->getJson() : '{}'; ?>
+            extraData: <?= /* @noEscape */ $extraData ? $extraData->getJson() : '{}'; ?>
             <?php // phpcs:enable ?>
         });
     </script>
