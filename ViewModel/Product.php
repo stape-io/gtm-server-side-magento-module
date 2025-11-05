@@ -151,10 +151,13 @@ class Product implements ArgumentInterface, DatalayerInterface
      */
     public function getJson()
     {
+        $value = $this->priceCurrency->round($this->getProduct()->getFinalPrice());
+
         return $this->json->serialize([
             'event' => $this->eventFormatter->formatName('view_item'),
             'ecomm_pagetype' => 'product',
             'ecommerce' => [
+                'value' => $value,
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
                 'items' => array_filter([
                     $this->getProductData()

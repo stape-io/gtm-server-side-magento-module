@@ -74,6 +74,7 @@ define([
                     event: 'add_to_cart' + config?.suffix,
                     ecomm_pagetype: 'product',
                     ecommerce: {
+                        value: itemDetails.product_price_value,
                         currency: config?.data?.ecommerce?.currency,
                         items: [
                             {
@@ -98,6 +99,7 @@ define([
                     event: eventName,
                     ecomm_pagetype: 'basket',
                     ecommerce: {
+                        value: data?.stape_gtm_events[eventName].value,
                         currency: config?.data?.ecommerce?.currency,
                         items: data?.stape_gtm_events[eventName]?.items,
                     }
@@ -158,6 +160,7 @@ define([
                     event: 'remove_from_cart' + config?.suffix,
                     ecomm_pagetype: 'product',
                     ecommerce: {
+                        value: itemDetails.product_price_value,
                         currency: config?.data?.ecommerce?.currency,
                         items: [
                             {
