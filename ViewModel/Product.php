@@ -157,7 +157,7 @@ class Product implements ArgumentInterface, DatalayerInterface
             'event' => $this->eventFormatter->formatName('view_item'),
             'ecomm_pagetype' => 'product',
             'ecommerce' => [
-                'value' => $value,
+                'value' => (string) $value,
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
                 'items' => array_filter([
                     $this->getProductData()

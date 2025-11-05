@@ -162,7 +162,7 @@ class Success implements ArgumentInterface
                 'transaction_id' => $order->getIncrementId(),
                 'quote_id' => $order->getQuoteId(),
                 'affiliation' => $this->storeManager->getStore()->getName(),
-                'value' => $this->priceCurrency->round($order->getBaseGrandTotal()),
+                'value' => (string) $this->priceCurrency->round($order->getBaseGrandTotal()),
                 'tax' => $this->priceCurrency->round($order->getBaseTaxAmount()), // tax
                 'shipping' => $this->priceCurrency->round($order->getBaseShippingAmount()), // shipping price
                 'coupon' => $order->getCouponCode(), // coupon if exists

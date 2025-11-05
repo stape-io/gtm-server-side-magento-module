@@ -64,7 +64,7 @@ define([
                         currency: window.checkoutConfig?.quoteData?.quote_currency_code,
                         cart_total: quote.totals().grand_total,
                         cart_quantity: quote.totals().items_qty,
-                        value: quote.totals().grand_total,
+                        value: quote.totals()?.grand_total?.toString(),
                         items: prepareItems()
                     }
                 })
