@@ -84,9 +84,8 @@ class DeletePlugin
             return $proceed();
         }
 
-        if (!$itemId = (int) $subject->getRequest()->getParam('id')) {
-            $itemId = (int) $subject->getRequest()->getParam('item_id');
-        }
+        $request = $subject->getRequest();
+        $itemId = (int) ($request->getParam('id') ?: $request->getParam('item_id'));
 
         $quote = $this->checkoutSession->getQuote();
         /** @var \Magento\Quote\Model\Quote\Item $item */
