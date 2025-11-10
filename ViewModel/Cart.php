@@ -114,6 +114,7 @@ class Cart implements ArgumentInterface, DatalayerInterface
             'cart_quantity' => (int) $quote->getItemsQty(),
             'cart_total' => $this->priceCurrency->round($quote->getBaseGrandTotal()),
             'ecommerce' => [
+                'value' => (string) $this->priceCurrency->round($quote->getBaseGrandTotal()),
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
                 'items' => $this->prepareItems($quote),
             ],

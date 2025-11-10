@@ -3,6 +3,7 @@
 namespace Stape\Gtm\Plugin\Checkout\Cart;
 
 use Magento\Checkout\Controller\Cart\Delete;
+use Magento\Checkout\Controller\Sidebar\RemoveItem;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Psr\Log\LoggerInterface;
@@ -71,19 +72,21 @@ class DeletePlugin
     /**
      * Add remove from cart event
      *
-     * @param Delete $subject
+     * @param Delete|RemoveItem $subject
      * @param callable $proceed
      * @return mixed
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function aroundExecute(Delete $subject, callable $proceed)
+    public function aroundExecute($subject, callable $proceed)
     {
         if (!$this->configProvider->isActive()) {
             return $proceed();
         }
 
-        $itemId = (int) $subject->getRequest()->getParam('id');
+        $request = $subject->getRequest();
+        $itemId = (int) ($request->getParam('id') ?: $request->getParam('item_id'));
+
         $quote = $this->checkoutSession->getQuote();
         /** @var \Magento\Quote\Model\Quote\Item $item */
         if (!$item = $quote->getItemById($itemId)) {
@@ -97,6 +100,7 @@ class DeletePlugin
 
             if ($item->isDeleted()) {
                 $this->dataProvider->add('remove_from_cart', [
+                    'value' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                     'items' => [
                         [
                             'item_name' => $item->getName(),

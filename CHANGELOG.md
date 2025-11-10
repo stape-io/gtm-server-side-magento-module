@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.32
+- datalayer event value param added;
+
 v1.0.31
 - renamed module in admin panel;
 - added select_item event;

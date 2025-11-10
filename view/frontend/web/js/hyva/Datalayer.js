@@ -76,7 +76,9 @@ export class Datalayer {
         if (isEventAllowed && eventData.ecommerce) {
             window.dataLayer.push({ecommerce: null});
         }
-
+        if (eventData.ecommerce.value) {
+            eventData.ecommerce.value = eventData.ecommerce.value.toString();
+        }
         if (isEventAllowed) {
             window.dataLayer.push(eventData);
         }
@@ -125,7 +127,7 @@ export class Datalayer {
                 ecomm_pagetype: this.config?.pageType,
                 ecommerce: {
                     currency: this.config?.extraData?.currency,
-                    value: productInfo.price,
+                    value: productInfo?.price?.toString(),
                     item_list_name: type,
                     items: [
                         productInfo

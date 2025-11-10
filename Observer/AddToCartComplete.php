@@ -87,6 +87,7 @@ class AddToCartComplete implements ObserverInterface
         $childItem = $quoteItem->getHasChildren() ? current($quoteItem->getChildren()) : null;
         $this->dataProvider->add('add_to_cart', [
             'currency' => $this->checkoutSession->getQuote()->getBaseCurrencyCode(),
+            'value' => (string) $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
             'items' => [
                 [
                     'item_name' => $product->getName(),

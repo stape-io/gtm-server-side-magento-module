@@ -19,4 +19,7 @@
     <type name="Magento\Checkout\Controller\Cart\Delete">
         <plugin name="stape_gtm_cart_delete" type="Stape\Gtm\Plugin\Checkout\Cart\DeletePlugin" />
     </type>
+    <type name="Magento\Checkout\Controller\Sidebar\RemoveItem">
+        <plugin name="stape_gtm_cart_item_remove" type="Stape\Gtm\Plugin\Checkout\Cart\DeletePlugin" />
+    </type>
 </config>
