@@ -7,7 +7,6 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Framework\View\Layout;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Wishlist\Block\Customer\Wishlist;
 use Stape\Gtm\Model\Product\Mapper\EventItemsMapper;
 use Stape\Gtm\ViewModel\DatalayerInterface;
 
@@ -43,6 +42,10 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
      * Define class dependencies
      *
      * @param Layout $layout
+     * @param StoreManagerInterface $storeManager
+     * @param EventItemsMapper $mapper
+     * @param Json $json
+     * @param Context $context
      */
     public function __construct(
         Layout $layout,
@@ -59,18 +62,19 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
     }
 
     /**
-     * Retrieve json
+     * Retrieve event data
      *
-     * @return bool|string
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getJson()
+    public function getEventData()
     {
         $wishlist = $this->wishlistHelper->getWishlist();
-        $items = array_map(function($item) {
+        $items = array_map(function ($item) {
             return $item->getProduct();
         }, $wishlist->getItemCollection()->getItems());
-
-        return $this->json->serialize([
+        return [
             'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
             'lists' => [
                 [
@@ -78,6 +82,16 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
                     'items' => $this->mapper->toEventItems($items)
                 ]
             ]
-        ]);
+        ];
+    }
+
+    /**
+     * Retrieve json
+     *
+     * @return bool|string
+     */
+    public function getJson()
+    {
+        return $this->json->serialize($this->getEventData());
     }
 }

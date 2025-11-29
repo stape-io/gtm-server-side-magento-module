@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <preference type="Stape\Gtm\Model\Data\SessionDataProvider" for="Stape\Gtm\Model\Data\DataProviderInterface"/>
+    <preference type="Stape\Gtm\Model\Datalayer\Modifier\Pool" for="Stape\Gtm\Model\Datalayer\Modifier\PoolInterface"/>
     <type name="Magento\Framework\App\Response\Http">
         <plugin name="stape_gtm_server_side_cookie" type="Stape\Gtm\Plugin\HttpPlugin" sortOrder="1"/>
     </type>
@@ -21,5 +22,24 @@
     </type>
     <type name="Magento\Checkout\Controller\Sidebar\RemoveItem">
         <plugin name="stape_gtm_cart_item_remove" type="Stape\Gtm\Plugin\Checkout\Cart\DeletePlugin" />
+    </type>
+    <virtualType name="DataLayerCartModifierPool" type="Stape\Gtm\Model\Datalayer\Modifier\Pool">
+        <arguments>
+            <argument name="modifiers" xsi:type="array">
+                <item name="cart_state" xsi:type="array">
+                    <item name="class" xsi:type="string">Stape\Gtm\Model\Datalayer\Modifier\CartState</item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Stape\Gtm\ViewModel\Checkout">
+        <arguments>
+            <argument name="modifierPool" xsi:type="object">DataLayerCartModifierPool</argument>
+        </arguments>
+    </type>
+    <type name="Stape\Gtm\ViewModel\Cart">
+        <arguments>
+            <argument name="modifierPool" xsi:type="object">DataLayerCartModifierPool</argument>
+        </arguments>
     </type>
 </config>

@@ -9,6 +9,7 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Psr\Log\LoggerInterface;
 use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Data\DataProviderInterface;
+use Stape\Gtm\Model\Datalayer\Modifier\CartState;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
 class DeletePlugin
@@ -44,6 +45,11 @@ class DeletePlugin
     protected $logger;
 
     /**
+     * @var CartState $cartStateModifier
+     */
+    protected $cartStateModifier;
+
+    /**
      * Define class dependencies
      *
      * @param CheckoutSession $checkoutSession
@@ -52,6 +58,7 @@ class DeletePlugin
      * @param PriceCurrencyInterface $priceCurrency
      * @param CategoryResolver $categoryResolver
      * @param LoggerInterface $logger
+     * @param CartState $cartStateModifier
      */
     public function __construct(
         CheckoutSession $checkoutSession,
@@ -59,7 +66,8 @@ class DeletePlugin
         DataProviderInterface $dataProvider,
         PriceCurrencyInterface $priceCurrency,
         CategoryResolver $categoryResolver,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        CartState $cartStateModifier
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->configProvider = $configProvider;
@@ -67,6 +75,7 @@ class DeletePlugin
         $this->priceCurrency = $priceCurrency;
         $this->categoryResolver = $categoryResolver;
         $this->logger = $logger;
+        $this->cartStateModifier = $cartStateModifier;
     }
 
     /**
@@ -99,7 +108,7 @@ class DeletePlugin
             $result = $proceed();
 
             if ($item->isDeleted()) {
-                $this->dataProvider->add('remove_from_cart', [
+                $eventData = $this->cartStateModifier->modifyEventData([
                     'value' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                     'items' => [
                         [
@@ -114,6 +123,7 @@ class DeletePlugin
                         ]
                     ]
                 ]);
+                $this->dataProvider->add('remove_from_cart', $eventData);
             }
         } catch (\Exception $e) {
             $this->logger->notice(sprintf('Could not track remove_from_cart_stape event. Error: %s', $e->getMessage()));

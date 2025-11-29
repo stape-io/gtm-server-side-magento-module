@@ -31,6 +31,7 @@ class ExtraData extends \Magento\Framework\View\Element\Template
      * @param Context $context
      * @param Registry $coreRegistry
      * @param Json $json
+     * @param EventItemsMapper $mapper
      * @param array $data
      */
     public function __construct(

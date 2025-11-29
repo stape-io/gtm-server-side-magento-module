@@ -2,12 +2,10 @@
 
 namespace Stape\Gtm\Observer;
 
+use Magento\Checkout\Model\Session;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Framework\Stdlib\CookieManagerInterface;
 use Stape\Gtm\Model\ConfigProvider;
-use Stape\Gtm\Model\Data\Webhook\CookieList as WebhookCookies;
-use Stape\Gtm\Model\Webhook\Adapter;
 
 class QuoteSubmitSuccessObserver implements ObserverInterface
 {
@@ -17,52 +15,22 @@ class QuoteSubmitSuccessObserver implements ObserverInterface
     private $configProvider;
 
     /**
-     * @var Adapter $adapter
+     * @var Session $checkoutSession
      */
-    private $adapter;
-
-    /**
-     * @var CookieManagerInterface $cookieManager
-     */
-    private $cookieManager;
-
-    /** @var string[]  */
-    private $cookies = [];
+    private $checkoutSession;
 
     /**
      * Define class dependencies
      *
      * @param ConfigProvider $configProvider
-     * @param Adapter $adapter
-     * @param WebhookCookies $cookieList
-     * @param CookieManagerInterface $cookieManager
+     * @param Session $checkoutSession
      */
     public function __construct(
         ConfigProvider $configProvider,
-        Adapter $adapter,
-        WebhookCookies $cookieList,
-        CookieManagerInterface $cookieManager
+        Session $checkoutSession
     ) {
         $this->configProvider = $configProvider;
-        $this->adapter = $adapter;
-        $this->cookieManager = $cookieManager;
-        $this->cookies = $cookieList->getAll();
-    }
-
-    /**
-     * Preparing additional information
-     *
-     * @return array
-     */
-    private function prepareAdditionalInfo()
-    {
-        $additionalInformation = [];
-
-        foreach ($this->cookies as $cookieName) {
-            $additionalInformation['cookies'][$cookieName] = $this->cookieManager->getCookie($cookieName);
-        }
-
-        return $additionalInformation;
+        $this->checkoutSession = $checkoutSession;
     }
 
     /**
@@ -73,13 +41,8 @@ class QuoteSubmitSuccessObserver implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-
-        /** @var \Magento\Sales\Model\Order $order */
-        $order = $observer->getOrder();
-        $enabled = $this->configProvider->webhooksEnabled($order->getStoreId());
-        $hookEnabled = $this->configProvider->isPurchaseWebhookEnabled($order->getStoreId());
-        if ($enabled && $hookEnabled) {
-            $this->adapter->purchase($order, $this->prepareAdditionalInfo());
+        if ($this->configProvider->ecommerceEventsEnabled()) {
+            $this->checkoutSession->unsetData('stape_cart_id');
         }
     }
 }

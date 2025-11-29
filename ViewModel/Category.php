@@ -12,26 +12,14 @@ use Magento\Framework\View\Layout;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
+use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 
-class Category implements ArgumentInterface, DatalayerInterface
+class Category extends DatalayerAbstract implements ArgumentInterface
 {
-    /**
-     * @var Json $json
-     */
-    private $json;
-
-    /**
-     * @var StoreManagerInterface $storeManager
-     */
-    private $storeManager;
-
     /**
      * @var Layer $layer
      */
     private $layer;
-
-    /** @var PriceCurrencyInterface $priceCurrency */
-    private $priceCurrency;
 
     /** @var Layout $layout */
     private $layout;
@@ -45,11 +33,6 @@ class Category implements ArgumentInterface, DatalayerInterface
      * @var ManagerInterface $eventManager
      */
     private $eventManager;
-
-    /**
-     * @var EventFormatter $eventFormatter
-     */
-    private $eventFormatter;
 
     /**
      * Define class dependencies
@@ -71,16 +54,13 @@ class Category implements ArgumentInterface, DatalayerInterface
         Layout $layout,
         ConfigProvider $configProvider,
         ManagerInterface $eventManager,
-        EventFormatter $eventFormatter
+        EventFormatter $eventFormatter,
     ) {
-        $this->json = $json;
-        $this->storeManager = $storeManager;
+        parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency);
         $this->layer = $layerResolver->get();
-        $this->priceCurrency = $priceCurrency;
         $this->layout = $layout;
         $this->configProvider = $configProvider;
         $this->eventManager = $eventManager;
-        $this->eventFormatter = $eventFormatter;
     }
 
     /**
@@ -163,15 +143,11 @@ class Category implements ArgumentInterface, DatalayerInterface
     }
 
     /**
-     * Retrieve json
-     *
-     * @return bool|string
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * Retrieve event data
      */
-    public function getJson()
+    public function getEventData()
     {
-        return $this->json->serialize([
+        return [
             'event' => $this->eventFormatter->formatName('view_collection'),
             'ecomm_pagetype' => 'category',
             'ecommerce' => [
@@ -179,6 +155,6 @@ class Category implements ArgumentInterface, DatalayerInterface
                 'item_list_name' => $this->getCategoryName(),
                 'items' => $this->prepareItems()
             ],
-        ]);
+        ];
     }
 }
