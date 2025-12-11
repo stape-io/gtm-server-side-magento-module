@@ -8,6 +8,7 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Data\DataProviderInterface;
+use Stape\Gtm\Model\Datalayer\Modifier\CartState;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
 class AddToCartComplete implements ObserverInterface
@@ -39,6 +40,11 @@ class AddToCartComplete implements ObserverInterface
     private $priceCurrency;
 
     /**
+     * @var CartState $cartStateModifier
+     */
+    private $cartStateModifier;
+
+    /**
      * Define class dependencies
      *
      * @param CategoryResolver $categoryResolver
@@ -46,19 +52,22 @@ class AddToCartComplete implements ObserverInterface
      * @param ConfigProvider $configProvider
      * @param DataProviderInterface $dataProvider
      * @param PriceCurrencyInterface $priceCurrency
+     * @param CartState $cartStateModifier
      */
     public function __construct(
         CategoryResolver $categoryResolver,
         Session $checkoutSession,
         ConfigProvider $configProvider,
         DataProviderInterface $dataProvider,
-        PriceCurrencyInterface $priceCurrency
+        PriceCurrencyInterface $priceCurrency,
+        CartState $cartStateModifier,
     ) {
         $this->categoryResolver = $categoryResolver;
         $this->checkoutSession = $checkoutSession;
         $this->configProvider = $configProvider;
         $this->dataProvider = $dataProvider;
         $this->priceCurrency = $priceCurrency;
+        $this->cartStateModifier = $cartStateModifier;
     }
 
     /**
@@ -85,7 +94,7 @@ class AddToCartComplete implements ObserverInterface
         }
         $category = $this->categoryResolver->resolve($product);
         $childItem = $quoteItem->getHasChildren() ? current($quoteItem->getChildren()) : null;
-        $this->dataProvider->add('add_to_cart', [
+        $eventData = $this->cartStateModifier->modifyEventData([
             'currency' => $this->checkoutSession->getQuote()->getBaseCurrencyCode(),
             'value' => (string) $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
             'items' => [
@@ -101,5 +110,6 @@ class AddToCartComplete implements ObserverInterface
                 ]
             ]
         ]);
+        $this->dataProvider->add('add_to_cart', $eventData);
     }
 }

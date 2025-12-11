@@ -63,6 +63,7 @@ class Converter
                 'quantity' => $item->getQtyOrdered(),
                 'item_variant' => $childItem ? $childItem->getSku() : null,
                 'variation_id' => $childItem ? $childItem->getProductId() : null,
+                'purchase_type' => false,
             ];
         }
         return $items;

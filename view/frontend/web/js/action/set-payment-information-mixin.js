@@ -33,6 +33,31 @@ define([
         });
     }
 
+    function getCartState() {
+        const cartData = customerData.get('cart')();
+        const priceFormat = Object.assign({...quote.getPriceFormat()}, {'pattern': '%s'});
+        return {
+            cart_id: cartData?.stape_cart_id,
+            cart_quantity: quote?.totals()?.items_qty,
+            currency: window.checkoutConfig?.quoteData?.quote_currency_code,
+            cart_value: priceUtils.formatPrice(quote?.totals().grand_total, priceFormat, false),
+            lines: quote?.getItems()?.map(item => {
+                const cartItem = _.find(cartData.items, function(cartItem) {
+                    return cartItem.item_id === item.item_id;
+                });
+                return {
+                    'item_variant': cartItem.child_product_sku ? cartItem.child_product_sku : undefined,
+                    'item_id': cartItem.product_id,
+                    'item_name': item.name,
+                    'item_sku': cartItem.product_sku,
+                    'quantity': item.qty,
+                    'line_total_price': priceUtils.formatPrice(item?.row_total_incl_tax, priceFormat, false),
+                    'price': priceUtils.formatPrice(item.price, priceFormat, false),
+                }
+            })
+        }
+    }
+
     /**
      * Customizing logic to push info into datalayer
      */
@@ -61,6 +86,7 @@ define([
                         customer_id: quote.customer_id,
                     },
                     ecommerce: {
+                        cart_state: getCartState(),
                         currency: window.checkoutConfig?.quoteData?.quote_currency_code,
                         cart_total: quote.totals().grand_total,
                         cart_quantity: quote.totals().items_qty,

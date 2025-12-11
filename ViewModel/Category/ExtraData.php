@@ -52,11 +52,34 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
     }
 
     /**
+     * Retrieve list name
+     *
      * @return string
      */
     protected function getListName()
     {
         return 'products';
+    }
+
+    /**
+     * Retrieve event data
+     *
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getEventData()
+    {
+        $collection = $this->categoryViewModel->getProductCollection();
+        return [
+            'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+            'lists' => [
+                [
+                    'item_list_name' => $this->getListName(),
+                    'items' => $this->mapper->toEventItems($collection)
+                ]
+            ]
+        ];
     }
 
     /**
@@ -66,16 +89,6 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
      */
     public function getJson()
     {
-        $collection = $this->categoryViewModel->getProductCollection();
-
-        return $this->json->serialize([
-            'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
-            'lists' => [
-                [
-                    'item_list_name' => $this->getListName(),
-                    'items' => $this->mapper->toEventItems($collection)
-                ]
-            ]
-        ]);
+        return $this->json->serialize($this->getEventData());
     }
 }

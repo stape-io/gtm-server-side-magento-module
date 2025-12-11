@@ -2,63 +2,50 @@
 
 namespace Stape\Gtm\ViewModel;
 
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
+use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 
-class Search implements ArgumentInterface, DatalayerInterface
+class Search extends DatalayerAbstract implements ArgumentInterface
 {
-    /**
-     * @var StoreManagerInterface $storeManager
-     */
-    private $storeManager;
-
-    /**
-     * @var EventFormatter $eventFormatter
-     */
-    private $eventFormatter;
-
     /**
      * @var Category $categoryView
      */
     private $categoryView;
 
     /**
-     * @var Json $json
-     */
-    private $json;
-
-    /**
      * Define class dependencies
      *
-     * @param Category $categoryView
+     * @param Json $json
      * @param EventFormatter $eventFormatter
      * @param StoreManagerInterface $storeManager
-     * @param Json $json
+     * @param PriceCurrencyInterface $priceCurrency
+     * @param Category $categoryView
      */
     public function __construct(
-        Category              $categoryView,
-        EventFormatter        $eventFormatter,
-        StoreManagerInterface $storeManager,
-        Json                  $json
+        Json                    $json,
+        EventFormatter          $eventFormatter,
+        StoreManagerInterface   $storeManager,
+        PriceCurrencyInterface  $priceCurrency,
+        Category                $categoryView
     ) {
-        $this->storeManager = $storeManager;
-        $this->eventFormatter = $eventFormatter;
+        parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency);
         $this->categoryView = $categoryView;
-        $this->json = $json;
     }
 
     /**
-     * Retrieve json
+     * Retrieve event data
      *
-     * @return bool|string
+     * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getJson()
+    public function getEventData()
     {
-        return $this->json->serialize([
+        return [
             'event' => $this->eventFormatter->formatName('view_collection'),
             'ecomm_pagetype' => 'search',
             'ecommerce' => [
@@ -66,6 +53,6 @@ class Search implements ArgumentInterface, DatalayerInterface
                 'item_list_name' => 'Search',
                 'items' => $this->categoryView->prepareItems()
             ],
-        ]);
+        ];
     }
 }

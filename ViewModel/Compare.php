@@ -2,30 +2,17 @@
 
 namespace Stape\Gtm\ViewModel;
 
-use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 
-class Compare implements ArgumentInterface, DatalayerInterface
+class Compare extends DatalayerAbstract implements ArgumentInterface
 {
     /**
-     * @var Json $json
-     */
-    private $json;
-
-    public function __construct(Json $json)
-    {
-        $this->json = $json;
-    }
-
-    /**
-     * Retrieve json
+     * Retrieve event data
      *
-     * @return bool|string
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @return array
      */
-    public function getJson()
+    public function getEventData()
     {
-        return $this->json->serialize([]);
+        return [];
     }
 }

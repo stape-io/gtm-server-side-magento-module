@@ -5,8 +5,8 @@ use Stape\Gtm\Block\Gtm;
 /**
  * @var Gtm $block
  * @var \Magento\Framework\Escaper $escaper
+ * @var \Magento\Framework\View\Helper\SecureHtmlRender $secureRenderer
  */
-
 ?>
 <?php $dataLayer = $block->getDataLayer(); ?>
 <?php if (!empty($block->getContainerId())): ?>
@@ -20,20 +20,16 @@ use Stape\Gtm\Block\Gtm;
 <?php $dataLayer = $block->getDataLayer(); ?>
 
 <?php if ($dataLayer && $block->isDataLayerEnabled()): ?>
-    <?php $extraData = $block->getExtraData(); ?>
-    <script type="module">
-        import { Datalayer } from '<?= $escaper->escapeUrl($block->getViewFileUrl("Stape_Gtm::js/hyva/Datalayer.js")) ?>';
+    <?php $extraData = $block->getExtraData()?->getJson() ?? '{}'; ?>
+    <?= /* @noEscape */  $secureRenderer->renderTag('script', ['type' => 'module'], <<<JS
+        import { Datalayer } from '{$escaper->escapeUrl($block->getViewFileUrl("Stape_Gtm::js/hyva/Datalayer.js"))}';
         window.stapeDataLayer = new Datalayer({
-            productItemSelector: '<?= $escaper->escapeHtml($block->getProductItemSelector()) ?>',
-            eventSuffix: '<?= $escaper->escapeHtml($block->getEventSuffix()) ?>',
-            <?php // phpcs:disable ?>
-            pageType: '<?= /* @noEscape */ $block->getPageType(); ?>',
-            defaultEventData: <?= /* @noEscape */ $dataLayer->getJson(); ?> || {},
-            extraData: <?= /* @noEscape */ $extraData ? $extraData->getJson() : '{}'; ?>
-            <?php // phpcs:enable ?>
+            productItemSelector: '{$escaper->escapeHtml($block->getProductItemSelector())}',
+            eventSuffix: '{$escaper->escapeHtml($block->getEventSuffix())}',
+            pageType: '{$block->getPageType()}',
+            defaultEventData: {$dataLayer->getJson()} || {},
+            extraData: {$extraData}
         });
-    </script>
-    <?= $this->getChildHtml('stape.gtm.extradata'); ?>
+JS, false); ?>
+    <?= /* @noEscape */ $this->getChildHtml('stape.gtm.extradata'); ?>
 <?php endif; ?>
-
-

@@ -7,40 +7,21 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 
-class Checkout implements ArgumentInterface
+class Checkout extends DatalayerAbstract implements ArgumentInterface
 {
-    /**
-     * @var Json $json
-     */
-    private $json;
-
-    /**
-     * @var StoreManagerInterface $storeManager
-     */
-    private $storeManager;
-
     /**
      * @var Session $checkoutSession
      */
     private $checkoutSession;
 
     /**
-     * @var PriceCurrencyInterface $priceCurrency
-     */
-    private $priceCurrency;
-
-    /**
      * @var CategoryResolver $categoryResolver
      */
     private $categoryResolver;
-
-    /**
-     * @var EventFormatter $eventFormatter
-     */
-    private $eventFormatter;
 
     /**
      * Define class dependencies
@@ -51,6 +32,7 @@ class Checkout implements ArgumentInterface
      * @param PriceCurrencyInterface $priceCurrency
      * @param CategoryResolver $categoryResolver
      * @param EventFormatter $eventFormatter
+     * @param PoolInterface $modifierPool
      */
     public function __construct(
         Json $json,
@@ -58,14 +40,12 @@ class Checkout implements ArgumentInterface
         Session $checkoutSession,
         PriceCurrencyInterface $priceCurrency,
         CategoryResolver $categoryResolver,
-        EventFormatter $eventFormatter
+        EventFormatter $eventFormatter,
+        PoolInterface $modifierPool
     ) {
-        $this->json = $json;
-        $this->storeManager = $storeManager;
+        parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency, $modifierPool);
         $this->checkoutSession = $checkoutSession;
-        $this->priceCurrency = $priceCurrency;
         $this->categoryResolver = $categoryResolver;
-        $this->eventFormatter = $eventFormatter;
     }
 
     /**
@@ -97,18 +77,18 @@ class Checkout implements ArgumentInterface
     /**
      * Retrieve json
      *
-     * @return bool|string
+     * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getJson()
+    public function getEventData()
     {
         /** @var \Magento\Quote\Model\Quote $quote */
         if (!$quote = $this->checkoutSession->getQuote()) {
-            return null;
+            return [];
         }
 
-        return $this->json->serialize([
+        return [
             'event' => $this->eventFormatter->formatName('begin_checkout'),
             'ecomm_pagetype' => 'basket',
             'cart_quantity' => (int) $quote->getItemsQty(),
@@ -118,6 +98,6 @@ class Checkout implements ArgumentInterface
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
                 'items' => $this->prepareItems($quote),
             ],
-        ]);
+        ];
     }
 }

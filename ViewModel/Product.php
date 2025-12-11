@@ -8,21 +8,12 @@ use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 
-class Product implements ArgumentInterface, DatalayerInterface
+class Product extends DatalayerAbstract implements ArgumentInterface
 {
-    /**
-     * @var Json $json
-     */
-    private $json;
-
-    /**
-     * @var StoreManagerInterface $storeManager
-     */
-    private $storeManager;
-
     /**
      * @var Registry $registry
      */
@@ -37,16 +28,6 @@ class Product implements ArgumentInterface, DatalayerInterface
      * @var CategoryResolver $categoryResolver
      */
     private $categoryResolver;
-
-    /**
-     * @var PriceCurrencyInterface $priceCurrency
-     */
-    private $priceCurrency;
-
-    /**
-     * @var EventFormatter $eventFormatter
-     */
-    private $eventFormatter;
 
     /**
      * Define class dependencies
@@ -68,13 +49,10 @@ class Product implements ArgumentInterface, DatalayerInterface
         PriceCurrencyInterface $priceCurrency,
         EventFormatter $eventFormatter
     ) {
-        $this->json = $json;
-        $this->storeManager = $storeManager;
+        parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency);
         $this->registry = $registry;
         $this->catalogHelper = $catalogHelper;
         $this->categoryResolver = $categoryResolver;
-        $this->priceCurrency = $priceCurrency;
-        $this->eventFormatter = $eventFormatter;
     }
 
     /**
@@ -143,17 +121,16 @@ class Product implements ArgumentInterface, DatalayerInterface
     }
 
     /**
-     * Retrieve json
+     * Retrieve event data
      *
-     * @return bool|string
+     * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getJson()
+    public function getEventData()
     {
         $value = $this->priceCurrency->round($this->getProduct()->getFinalPrice());
-
-        return $this->json->serialize([
+        return [
             'event' => $this->eventFormatter->formatName('view_item'),
             'ecomm_pagetype' => 'product',
             'ecommerce' => [
@@ -163,6 +140,6 @@ class Product implements ArgumentInterface, DatalayerInterface
                     $this->getProductData()
                 ])
             ],
-        ]);
+        ];
     }
 }

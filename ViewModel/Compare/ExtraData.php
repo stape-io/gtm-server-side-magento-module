@@ -38,6 +38,9 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
      * Define class dependencies
      *
      * @param Layout $layout
+     * @param StoreManagerInterface $storeManager
+     * @param EventItemsMapper $mapper
+     * @param Json $json
      */
     public function __construct(
         Layout $layout,
@@ -52,14 +55,16 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
     }
 
     /**
-     * Retrieve json
+     * Retrieve event data
      *
-     * @return bool|string
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getJson()
+    public function getEventData()
     {
         $compareList = $this->layout->createBlock(ListCompare::class);
-        return $this->json->serialize([
+        return [
             'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
             'lists' => [
                 [
@@ -67,6 +72,16 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
                     'items' => $this->mapper->toEventItems($compareList->getItems())
                 ]
             ]
-        ]);
+        ];
+    }
+
+    /**
+     * Retrieve json
+     *
+     * @return bool|string
+     */
+    public function getJson()
+    {
+        return $this->json->serialize($this->getEventData());
     }
 }

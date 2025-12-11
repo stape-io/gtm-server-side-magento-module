@@ -2,8 +2,9 @@ define([
     'jquery',
     'underscore',
     'ko',
-    'Magento_Customer/js/customer-data'
-], function($, _, ko, customerData) {
+    'Magento_Customer/js/customer-data',
+    'Magento_Catalog/js/price-utils'
+], function($, _, ko, customerData, priceUtils) {
     'use strict';
     window.dataLayerConfig = {
         userDataEnabled: false
@@ -49,6 +50,7 @@ define([
         const productItemselector = config.productItemSelector || '.product-item';
         const cartData = customerData.get('cart');
         const lastAddedProduct = ko.observable(null);
+        const priceFormat = {pattern: '%s'};
         window.dataLayerConfig.userDataEnabled = config.isUserDataEnabled || false;
         window.dataLayerConfig.stapeEventSuffix = config?.suffix;
         window.dataLayer = window.dataLayer || [];
@@ -74,7 +76,22 @@ define([
                     event: 'add_to_cart' + config?.suffix,
                     ecomm_pagetype: 'product',
                     ecommerce: {
-                        value: itemDetails?.product_price_value?.toString(),
+                        cart_state: {
+                            cart_id: data?.stape_cart_id,
+                            cart_quantity: data.summary_count,
+                            currency: config?.data?.ecommerce?.currency,
+                            cart_value: priceUtils.formatPrice(data.subtotalAmount, priceFormat, false),
+                            lines: data.items.map(item => { return {
+                                item_variant: item.child_product_sku ? item.child_product_sku : undefined,
+                                item_id: item.product_id,
+                                item_name: item.product_name,
+                                item_sku: item.product_sku,
+                                quantity: item.qty,
+                                line_total_price: priceUtils.formatPrice(item?.product_price_value * item?.qty, priceFormat, false),
+                                price: priceUtils.formatPrice(item.product_price_value, priceFormat, false),
+                            }})
+                        },
+                        value: priceUtils.formatPrice(itemDetails?.product_price_value, priceFormat, false),
                         currency: config?.data?.ecommerce?.currency,
                         items: [
                             {
@@ -99,6 +116,7 @@ define([
                     event: eventName,
                     ecomm_pagetype: 'basket',
                     ecommerce: {
+                        cart_state: data?.stape_gtm_events[eventName]?.cart_state || undefined,
                         value: data?.stape_gtm_events[eventName]?.value?.toString(),
                         currency: config?.data?.ecommerce?.currency,
                         items: data?.stape_gtm_events[eventName]?.items,

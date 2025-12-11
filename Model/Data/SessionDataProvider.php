@@ -4,6 +4,7 @@ namespace Stape\Gtm\Model\Data;
 
 use Magento\Checkout\Model\Session;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
+use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 
 class SessionDataProvider implements DataProviderInterface
 {
@@ -18,17 +19,25 @@ class SessionDataProvider implements DataProviderInterface
     private $eventFormatter;
 
     /**
+     * @var PoolInterface $modifiersPool
+     */
+    private $modifiersPool;
+
+    /**
      * Define class dependencies
      *
      * @param Session $checkoutSession
      * @param EventFormatter $eventFormatter
+     * @param PoolInterface $modifiersPool
      */
     public function __construct(
         Session $checkoutSession,
-        EventFormatter $eventFormatter
+        EventFormatter $eventFormatter,
+        PoolInterface $modifiersPool
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->eventFormatter = $eventFormatter;
+        $this->modifiersPool = $modifiersPool;
     }
 
     /**
@@ -51,6 +60,9 @@ class SessionDataProvider implements DataProviderInterface
     public function add($eventName, $data)
     {
         $gtmEvents = $this->get();
+        foreach ($this->modifiersPool->getModifiersInstances() as $modifier) {
+            $data = $modifier->modifyEventData($data);
+        }
         $gtmEvents[$this->eventFormatter->formatName($eventName)] = $data;
         $this->checkoutSession->setStapeGtmEvents($gtmEvents);
     }

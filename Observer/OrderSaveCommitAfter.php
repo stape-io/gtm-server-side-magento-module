@@ -5,10 +5,11 @@ namespace Stape\Gtm\Observer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Stdlib\CookieManagerInterface;
-use \Magento\Sales\Api\OrderPaymentRepositoryInterface;
+use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Data\Webhook\CookieList as WebhookCookies;
+use Stape\Gtm\Model\CookieReader;
 use Stape\Gtm\Model\Webhook\Adapter;
 
 class OrderSaveCommitAfter implements ObserverInterface
@@ -38,8 +39,15 @@ class OrderSaveCommitAfter implements ObserverInterface
      */
     private $logger;
 
-    /** @var string[]  */
-    private $cookies = [];
+    /**
+     * @var WebhookCookies
+     */
+    private $cookieList;
+
+    /**
+     * @var CookieReader $cookieReader
+     */
+    private $cookieReader;
 
     /**
      * Define class dependencies
@@ -49,6 +57,7 @@ class OrderSaveCommitAfter implements ObserverInterface
      * @param CookieManagerInterface $cookieManager
      * @param OrderPaymentRepositoryInterface $orderPaymentRepository
      * @param WebhookCookies $cookieList
+     * @param CookieReader $cookieReader
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -57,6 +66,7 @@ class OrderSaveCommitAfter implements ObserverInterface
         CookieManagerInterface $cookieManager,
         OrderPaymentRepositoryInterface $orderPaymentRepository,
         WebhookCookies $cookieList,
+        CookieReader $cookieReader,
         LoggerInterface $logger
     ) {
         $this->configProvider = $configProvider;
@@ -64,7 +74,8 @@ class OrderSaveCommitAfter implements ObserverInterface
         $this->cookieManager = $cookieManager;
         $this->orderPaymentRepository = $orderPaymentRepository;
         $this->logger = $logger;
-        $this->cookies = $cookieList->getAll();
+        $this->cookieList = $cookieList;
+        $this->cookieReader = $cookieReader;
     }
 
     /**
@@ -76,8 +87,10 @@ class OrderSaveCommitAfter implements ObserverInterface
     {
         $additionalInformation = [];
 
-        foreach ($this->cookies as $cookieName) {
-            $additionalInformation['cookies'][$cookieName] = $this->cookieManager->getCookie($cookieName);
+        foreach ($this->cookieReader->getAllCookies() as $name => $value) {
+            if ($this->cookieList->isAllowedCookie($name)) {
+                $additionalInformation['cookies'][$name] = $value;
+            }
         }
 
         return $additionalInformation;

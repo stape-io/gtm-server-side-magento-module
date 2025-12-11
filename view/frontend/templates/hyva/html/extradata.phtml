@@ -2,6 +2,7 @@
 /**
  * @var \Stape\Gtm\Block\Hyva\ExtraData $this
  * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ * @var \Magento\Framework\View\Helper\SecureHtmlRender $secureRenderer
  */
 $extraData = [
     'currency' => $this->getCurrencyCode(),
@@ -25,8 +26,9 @@ if ($product = $this->getProduct()) {
 }
 
 ?>
-<script>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', ['type' => 'text/javascript'], <<<JS
     document.addEventListener('DOMContentLoaded', function() {
-        window.stapeDataLayer.addExtraData(<?= /* @noEscape */ $this->dataToJson($extraData); ?>);
+        window.stapeDataLayer.addExtraData({$this->dataToJson($extraData)});
     })
-</script>
+JS, false); ?>
+

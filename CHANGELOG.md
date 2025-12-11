@@ -1,5 +1,9 @@
 # Changelog
 
+v1.0.33
+- added cart state to datalayer events;
+- extended cookies list;
+
 v1.0.32
 - datalayer event value param added;
 

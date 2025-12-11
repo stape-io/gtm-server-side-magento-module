@@ -11,8 +11,6 @@ use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Stape\Gtm\Model\Product\Mapper\EventItemsMapper;
 use Stape\Gtm\ViewModel\DatalayerInterface;
 
-
-
 class LinkedProducts implements ArgumentInterface, DatalayerInterface
 {
 
@@ -83,14 +81,15 @@ class LinkedProducts implements ArgumentInterface, DatalayerInterface
     }
 
     /**
-     * Build JSON
+     * Retrieve event data
      *
-     * @return bool|string
+     * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getJson()
+    public function getEventData()
     {
+
         $result = [
             'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
         ];
@@ -112,7 +111,18 @@ class LinkedProducts implements ArgumentInterface, DatalayerInterface
                 }
             }
         }
+        return $result;
+    }
 
-        return $this->json->serialize($result);
+    /**
+     * Build JSON
+     *
+     * @return bool|string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getJson()
+    {
+        return $this->json->serialize($this->getEventData());
     }
 }

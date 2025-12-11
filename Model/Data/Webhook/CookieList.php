@@ -50,6 +50,51 @@ class CookieList
             'stape_klaviyo_kx',
             'stape_klaviyo_email',
             'Stape',
+            'euconsent-v2',
+            'addtl_consent',
+            'usprivacy',
+            'OptanonConsent',
+            'CookieConsent',
+            'didomi_token',
+            'didomi_dcs',
+            'axeptio_cookies',
+            'axeptio_authorized_vendors',
+            'cookieyes-consent',
+            'complianz_consent_status',
+            'borlabs-cookie',
+            'uc_settings'
         ];
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getWildCardCookies()
+    {
+        return [
+            '_iub_cs-',
+            'cmplz_'
+        ];
+    }
+
+    /**
+     * Check if cookie is allowed
+     *
+     * @param string $cookieName
+     * @return bool
+     */
+    public function isAllowedCookie($cookieName)
+    {
+        if (in_array($cookieName, $this->getAll())) {
+            return true;
+        }
+
+        foreach ($this->getWildCardCookies() as $wildcard) {
+            if (stripos($cookieName, $wildcard) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

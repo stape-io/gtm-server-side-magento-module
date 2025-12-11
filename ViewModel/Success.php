@@ -8,30 +8,17 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Data\Order;
+use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 
-class Success implements ArgumentInterface
+class Success extends DatalayerAbstract implements ArgumentInterface
 {
-    /**
-     * @var Json $json
-     */
-    private $json;
-
-    /**
-     * @var StoreManagerInterface $storeManager
-     */
-    private $storeManager;
 
     /**
      * @var Session $checkoutSession
      */
     private $checkoutSession;
-
-    /**
-     * @var PriceCurrencyInterface $priceCurrency
-     */
-    private $priceCurrency;
 
     /**
      * @var CategoryResolver $categoryResolver
@@ -44,37 +31,29 @@ class Success implements ArgumentInterface
     private $orderData;
 
     /**
-     * @var EventFormatter $eventFormatter
-     */
-    private $eventFormatter;
-
-    /**
      * Define class dependencies
      *
      * @param Json $json
+     * @param EventFormatter $eventFormatter
      * @param StoreManagerInterface $storeManager
      * @param Session $checkoutSession
      * @param PriceCurrencyInterface $priceCurrency
      * @param CategoryResolver $categoryResolver
      * @param Order $orderData
-     * @param EventFormatter $eventFormatter
      */
     public function __construct(
         Json $json,
+        EventFormatter $eventFormatter,
         StoreManagerInterface $storeManager,
         Session $checkoutSession,
         PriceCurrencyInterface $priceCurrency,
         CategoryResolver $categoryResolver,
-        Order $orderData,
-        EventFormatter $eventFormatter
+        Order $orderData
     ) {
-        $this->json = $json;
-        $this->storeManager = $storeManager;
+        parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency);
         $this->checkoutSession = $checkoutSession;
-        $this->priceCurrency = $priceCurrency;
         $this->categoryResolver = $categoryResolver;
         $this->orderData = $orderData;
-        $this->eventFormatter = $eventFormatter;
     }
 
     /**
@@ -107,6 +86,7 @@ class Success implements ArgumentInterface
                 'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                 'quantity' => (int) $item->getQtyOrdered(),
                 'item_sku' => $item->getSku(),
+                'purchase_type' => false,
             ];
 
             if ($item->getHasChildren()) {
@@ -120,13 +100,13 @@ class Success implements ArgumentInterface
     }
 
     /**
-     * Retrieve json
+     * Retrieve event data
      *
-     * @return bool|string
+     * @return array|null
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getJson()
+    public function getEventData()
     {
         if (!$order = $this->getOrder()) {
             return null;
@@ -138,7 +118,7 @@ class Success implements ArgumentInterface
             $address = $order->getShippingAddress();
         }
 
-        return $this->json->serialize([
+        return [
             'event' => $this->eventFormatter->formatName('purchase'),
             'ecomm_pagetype' => 'purchase',
             'user_data' => [
@@ -170,6 +150,6 @@ class Success implements ArgumentInterface
                 'discount_amount' => $this->priceCurrency->round($order->getBaseDiscountAmount()), //
                 'items' => $this->prepareItems($order),
             ],
-        ]);
+        ];
     }
 }
