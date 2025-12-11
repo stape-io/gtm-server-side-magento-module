@@ -7,6 +7,7 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Data\Order;
 use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
@@ -31,6 +32,11 @@ class Success extends DatalayerAbstract implements ArgumentInterface
     private $orderData;
 
     /**
+     * @var ConfigProvider $configProvider
+     */
+    private $configProvider;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -40,6 +46,7 @@ class Success extends DatalayerAbstract implements ArgumentInterface
      * @param PriceCurrencyInterface $priceCurrency
      * @param CategoryResolver $categoryResolver
      * @param Order $orderData
+     * @param ConfigProvider $configProvider
      */
     public function __construct(
         Json $json,
@@ -48,12 +55,14 @@ class Success extends DatalayerAbstract implements ArgumentInterface
         Session $checkoutSession,
         PriceCurrencyInterface $priceCurrency,
         CategoryResolver $categoryResolver,
-        Order $orderData
+        Order $orderData,
+        ConfigProvider $configProvider
     ) {
         parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency);
         $this->checkoutSession = $checkoutSession;
         $this->categoryResolver = $categoryResolver;
         $this->orderData = $orderData;
+        $this->configProvider = $configProvider;
     }
 
     /**
@@ -77,24 +86,29 @@ class Success extends DatalayerAbstract implements ArgumentInterface
         $items = [];
         /** @var \Magento\Sales\Model\Order\Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
-            $category = $this->categoryResolver->resolve($item->getProduct());
+            $product = $item->getProduct();
+            $category = $this->categoryResolver->resolve($product);
 
-            $itemCandidate = [
-                'item_id' => $item->getProductId(),
+            $itemSku = $item->getSku();
+            $baseSku = $product->getData('sku');
+            $itemVariant = ($itemSku !== $baseSku && strpos($itemSku, $baseSku) === 0)
+                ? ltrim(substr($itemSku, strlen($baseSku)), '- ')
+                : null;
+
+            $useSkuAsId = $this->configProvider->useSkuAsItemId();
+            $childItem = $item->getHasChildren() ? current($item->getChildrenItems()) : null;
+
+            $items[] = [
+                'item_id' => $useSkuAsId ? $baseSku : $item->getProductId(),
                 'item_name' => $item->getName(),
                 'item_category' => $category ? $category->getName() : null,
                 'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                 'quantity' => (int) $item->getQtyOrdered(),
-                'item_sku' => $item->getSku(),
+                'item_sku' => $baseSku,
                 'purchase_type' => false,
+                'variation_id' => $childItem ? ($useSkuAsId ? $childItem->getSku() : $childItem->getProductId()) : null,
+                'item_variant' => $childItem ? $childItem->getSku() : $itemVariant,
             ];
-
-            if ($item->getHasChildren()) {
-                $itemCandidate['variation_id'] = current($item->getChildrenItems())->getProductId();
-                $itemCandidate['item_variant'] = current($item->getChildrenItems())->getSku();
-            }
-
-            $items[] = $itemCandidate;
         }
         return $items;
     }

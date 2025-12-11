@@ -64,6 +64,11 @@ class ConfigProvider
     public const XPATH_COLLECTION_SIZE = 'stape_gtm/datalayer/collection_size';
 
     /*
+     * XPATH for using SKU as item_id instead of product entity ID
+     */
+    public const XPATH_USE_SKU_AS_ITEM_ID = 'stape_gtm/datalayer/use_sku_as_item_id';
+
+    /*
      * XPATH to check if webhooks are enabled
      */
     public const XPATH_WEBHOOK_ACTIVE = 'stape_gtm/webhooks/active';
@@ -306,6 +311,21 @@ class ConfigProvider
     {
         return $this->scopeConfig->isSetFlag(
             self::XPATH_DATALAYER_STAPE_SUFFIX_ACTIVE,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
+    }
+
+    /**
+     * Check if SKU should be used as item_id instead of product entity ID
+     *
+     * @param string|null $scopeCode
+     * @return bool
+     */
+    public function useSkuAsItemId($scopeCode = null)
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XPATH_USE_SKU_AS_ITEM_ID,
             ScopeInterface::SCOPE_STORE,
             $scopeCode
         );

@@ -9,6 +9,7 @@
             <datalayer>
                 <collection_size>30</collection_size>
                 <stape_suffix_active>1</stape_suffix_active>
+                <use_sku_as_item_id>0</use_sku_as_item_id>
             </datalayer>
         </stape_gtm>
     </default>

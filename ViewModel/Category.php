@@ -129,11 +129,12 @@ class Category extends DatalayerAbstract implements ArgumentInterface
         $collection = $this->getProductCollection();
         $items = [];
         $index = 0;
+        $useSkuAsId = $this->configProvider->useSkuAsItemId();
         /** @var \Magento\Catalog\Model\Product $product */
         foreach ($collection as $product) {
             $items[] = [
                 'item_name' => $product->getName(),
-                'item_id' => $product->getId(),
+                'item_id' => $useSkuAsId ? $product->getSku() : $product->getId(),
                 'item_sku' => $product->getSku(),
                 'item_price' => $this->priceCurrency->round($product->getFinalPrice()),
                 'index' => $index++

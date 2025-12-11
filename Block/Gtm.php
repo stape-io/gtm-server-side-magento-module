@@ -146,6 +146,16 @@ class Gtm extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Retrieve data layer view model
+     *
+     * @return \Stape\Gtm\ViewModel\DatalayerInterface|null
+     */
+    public function getDataLayer()
+    {
+        return $this->getData('data_layer');
+    }
+
+    /**
      * Retrieve formatted event name
      *
      * @return string
@@ -153,5 +163,15 @@ class Gtm extends \Magento\Framework\View\Element\Template
     public function getEventSuffix()
     {
         return $this->configProvider->isStapeEventSuffixActive() ? EventFormatter::STAPE_EVENT_SUFFIX : '';
+    }
+
+    /**
+     * Check if SKU should be used as item_id
+     *
+     * @return bool
+     */
+    public function useSkuAsItemId()
+    {
+        return $this->configProvider->useSkuAsItemId();
     }
 }

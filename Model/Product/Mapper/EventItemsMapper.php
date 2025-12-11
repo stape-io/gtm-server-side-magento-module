@@ -6,6 +6,7 @@ use Magento\Catalog\Block\Product\Context;
 use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
 class EventItemsMapper
@@ -32,23 +33,31 @@ class EventItemsMapper
     protected $context;
 
     /**
+     * @var ConfigProvider $configProvider
+     */
+    protected $configProvider;
+
+    /**
      * Define class dependencies
      *
      * @param PriceCurrencyInterface $priceCurrency
      * @param StoreManagerInterface $storeManager
      * @param CategoryResolver $categoryResolver
      * @param Context $context
+     * @param ConfigProvider $configProvider
      */
     public function __construct(
         PriceCurrencyInterface $priceCurrency,
         StoreManagerInterface $storeManager,
         CategoryResolver $categoryResolver,
-        Context $context
+        Context $context,
+        ConfigProvider $configProvider
     ) {
         $this->priceCurrency = $priceCurrency;
         $this->storeManager = $storeManager;
         $this->categoryResolver = $categoryResolver;
         $this->context = $context;
+        $this->configProvider = $configProvider;
     }
 
     /**
@@ -62,6 +71,7 @@ class EventItemsMapper
         $items = [];
         $index = 0;
         $imageBuilder = $this->context->getImageBuilder();
+        $useSkuAsId = $this->configProvider->useSkuAsItemId();
 
         /** @var \Magento\Catalog\Model\Product $product */
         foreach ($itemList as $product) {
@@ -69,7 +79,7 @@ class EventItemsMapper
             $items[$product->getId()] = [
                 'imageUrl' => $imageBuilder->create($product, 'category_page_grid')->getImageUrl(),
                 'item_name' => $product->getName(),
-                'item_id' => $product->getId(),
+                'item_id' => $useSkuAsId ? $product->getSku() : $product->getId(),
                 'item_sku' => $product->getSku(),
                 'price' => $this->priceCurrency->round($product->getFinalPrice()),
                 'index' => $index++,

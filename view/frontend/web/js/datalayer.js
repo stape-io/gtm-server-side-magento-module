@@ -53,6 +53,7 @@ define([
         const priceFormat = {pattern: '%s'};
         window.dataLayerConfig.userDataEnabled = config.isUserDataEnabled || false;
         window.dataLayerConfig.stapeEventSuffix = config?.suffix;
+        window.dataLayerConfig.useSkuAsItemId = config?.useSkuAsItemId || false;
         window.dataLayer = window.dataLayer || [];
 
         if (config.isUserDataEnabled && isLoggedIn()) {
@@ -71,6 +72,14 @@ define([
         cartData.subscribe(function(data) {
             const itemDetails = findItem(lastAddedProduct())
             if (wasAddToCartCalled) {
+                const baseSku = itemDetails.product_sku;
+                const itemSku = itemDetails.item_sku || itemDetails.product_sku;
+                const itemVariant = (itemSku !== baseSku && itemSku.indexOf(baseSku) === 0)
+                    ? itemSku.substring(baseSku.length).replace(/^[-\s]+/, '')
+                    : null;
+
+                const useSkuAsId = config?.useSkuAsItemId || false;
+
                 dataLayer.push({ecommerce: null});
                 window.dataLayer.push({
                     event: 'add_to_cart' + config?.suffix,
@@ -81,28 +90,35 @@ define([
                             cart_quantity: data.summary_count,
                             currency: config?.data?.ecommerce?.currency,
                             cart_value: priceUtils.formatPrice(data.subtotalAmount, priceFormat, false),
-                            lines: data.items.map(item => { return {
-                                item_variant: item.child_product_sku ? item.child_product_sku : undefined,
-                                item_id: item.product_id,
-                                item_name: item.product_name,
-                                item_sku: item.product_sku,
-                                quantity: item.qty,
-                                line_total_price: priceUtils.formatPrice(item?.product_price_value * item?.qty, priceFormat, false),
-                                price: priceUtils.formatPrice(item.product_price_value, priceFormat, false),
-                            }})
+                            lines: data.items.map(item => {
+                                const lineBaseSku = item.product_sku;
+                                const lineItemSku = item.item_sku || item.product_sku;
+                                const lineItemVariant = (lineItemSku !== lineBaseSku && lineItemSku.indexOf(lineBaseSku) === 0)
+                                    ? lineItemSku.substring(lineBaseSku.length).replace(/^[-\s]+/, '')
+                                    : null;
+                                return {
+                                    item_variant: item.child_product_sku ? item.child_product_sku : lineItemVariant,
+                                    item_id: useSkuAsId ? lineBaseSku : item.product_id,
+                                    item_name: item.product_name,
+                                    item_sku: lineBaseSku,
+                                    quantity: item.qty,
+                                    line_total_price: priceUtils.formatPrice(item?.product_price_value * item?.qty, priceFormat, false),
+                                    price: priceUtils.formatPrice(item.product_price_value, priceFormat, false),
+                                }
+                            })
                         },
                         value: priceUtils.formatPrice(itemDetails?.product_price_value, priceFormat, false),
                         currency: config?.data?.ecommerce?.currency,
                         items: [
                             {
                                 'item_name': itemDetails.product_name,
-                                'item_id': itemDetails.product_id,
-                                'item_sku': itemDetails.product_sku,
+                                'item_id': useSkuAsId ? baseSku : itemDetails.product_id,
+                                'item_sku': baseSku,
                                 'item_category': itemDetails.category,
                                 'price': itemDetails.product_price_value,
                                 'quantity': itemDetails.qty,
-                                'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
-                                'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : undefined
+                                'variation_id': itemDetails.child_product_id ? (useSkuAsId ? itemDetails.child_product_sku : itemDetails.child_product_id) : undefined,
+                                'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : itemVariant
                             }
                         ]
                     }
@@ -123,7 +139,6 @@ define([
                     }
                 })
             }
-
 
             wasAddToCartCalled = false;
             lastAddedProduct(null);
@@ -173,6 +188,14 @@ define([
 
             const itemDetails = findItem(product);
             if (itemDetails) {
+                const baseSku = itemDetails.product_sku;
+                const itemSku = itemDetails.item_sku || itemDetails.product_sku;
+                const itemVariant = (itemSku !== baseSku && itemSku.indexOf(baseSku) === 0)
+                    ? itemSku.substring(baseSku.length).replace(/^[-\s]+/, '')
+                    : null;
+
+                const useSkuAsId = config?.useSkuAsItemId || false;
+
                 dataLayer.push({ecommerce: null});
                 window.dataLayer.push({
                     event: 'remove_from_cart' + config?.suffix,
@@ -183,13 +206,13 @@ define([
                         items: [
                             {
                                 'item_name': itemDetails.product_name,
-                                'item_id': itemDetails.product_id,
-                                'item_sku': itemDetails.product_sku,
+                                'item_id': useSkuAsId ? baseSku : itemDetails.product_id,
+                                'item_sku': baseSku,
                                 'item_category': itemDetails.category,
                                 'price': itemDetails.product_price_value,
                                 'quantity': itemDetails.qty,
-                                'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
-                                'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : undefined
+                                'variation_id': itemDetails.child_product_id ? (useSkuAsId ? itemDetails.child_product_sku : itemDetails.child_product_id) : undefined,
+                                'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : itemVariant
                             }
                         ]
                     }

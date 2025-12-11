@@ -94,19 +94,28 @@ class AddToCartComplete implements ObserverInterface
         }
         $category = $this->categoryResolver->resolve($product);
         $childItem = $quoteItem->getHasChildren() ? current($quoteItem->getChildren()) : null;
+
+        $itemSku = $quoteItem->getSku();
+        $baseSku = $product->getData('sku');
+        $itemVariant = ($itemSku !== $baseSku && strpos($itemSku, $baseSku) === 0)
+            ? ltrim(substr($itemSku, strlen($baseSku)), '- ')
+            : null;
+
+        $useSkuAsId = $this->configProvider->useSkuAsItemId();
+
         $eventData = $this->cartStateModifier->modifyEventData([
             'currency' => $this->checkoutSession->getQuote()->getBaseCurrencyCode(),
             'value' => (string) $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
             'items' => [
                 [
                     'item_name' => $product->getName(),
-                    'item_id' => $product->getId(),
-                    'item_sku' => $product->getSku(),
+                    'item_id' => $useSkuAsId ? $baseSku : $product->getId(),
+                    'item_sku' => $baseSku,
                     'item_category' => $category ? $category->getName() : null,
                     'price' => $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
                     'quantity' => $qty,
-                    'variation_id' => $childItem ? $childItem->getProductId() : null,
-                    'item_variant' => $childItem ? $childItem->getSku() : null,
+                    'variation_id' => $childItem ? ($useSkuAsId ? $childItem->getSku() : $childItem->getProductId()) : null,
+                    'item_variant' => $childItem ? $childItem->getSku() : $itemVariant,
                 ]
             ]
         ]);

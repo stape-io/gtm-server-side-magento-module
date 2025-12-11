@@ -108,18 +108,26 @@ class DeletePlugin
             $result = $proceed();
 
             if ($item->isDeleted()) {
+                $childItem = $item->getHasChildren() ? current($item->getChildren()) : null;
+                $itemSku = $item->getSku();
+                $baseSku = $product->getData('sku');
+                $itemVariant = ($itemSku !== $baseSku && strpos($itemSku, $baseSku) === 0)
+                    ? ltrim(substr($itemSku, strlen($baseSku)), '- ')
+                    : null;
+                $useSkuAsId = $this->configProvider->useSkuAsItemId();
+
                 $eventData = $this->cartStateModifier->modifyEventData([
                     'value' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                     'items' => [
                         [
                             'item_name' => $item->getName(),
-                            'item_id' => $item->getProduct()->getId(),
-                            'item_sku' => $item->getSku(),
+                            'item_id' => $useSkuAsId ? $baseSku : $product->getId(),
+                            'item_sku' => $baseSku,
                             'item_category' => $category ? $category->getName() : null,
                             'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                             'quantity' => $item->getQty(),
-                            'variation_id' => $item->getHasChildren()
-                                ? current($item->getChildren())->getProductId() : null
+                            'variation_id' => $childItem ? ($useSkuAsId ? $childItem->getSku() : $childItem->getProductId()) : null,
+                            'item_variant' => $childItem ? $childItem->getSku() : $itemVariant
                         ]
                     ]
                 ]);

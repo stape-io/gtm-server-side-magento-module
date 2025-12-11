@@ -8,7 +8,7 @@ use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
+use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Product\CategoryResolver;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 
@@ -30,6 +30,11 @@ class Product extends DatalayerAbstract implements ArgumentInterface
     private $categoryResolver;
 
     /**
+     * @var ConfigProvider $configProvider
+     */
+    private $configProvider;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -39,6 +44,7 @@ class Product extends DatalayerAbstract implements ArgumentInterface
      * @param CategoryResolver $categoryResolver
      * @param PriceCurrencyInterface $priceCurrency
      * @param EventFormatter $eventFormatter
+     * @param ConfigProvider $configProvider
      */
     public function __construct(
         Json $json,
@@ -53,6 +59,7 @@ class Product extends DatalayerAbstract implements ArgumentInterface
         $this->registry = $registry;
         $this->catalogHelper = $catalogHelper;
         $this->categoryResolver = $categoryResolver;
+        $this->configProvider = $configProvider;
     }
 
     /**
@@ -111,9 +118,11 @@ class Product extends DatalayerAbstract implements ArgumentInterface
             return [];
         }
 
+        $useSkuAsId = $this->configProvider->useSkuAsItemId();
+
         return [
             'item_name' => $product->getName(),
-            'item_id' => $product->getId(),
+            'item_id' => $useSkuAsId ? $product->getSku() : $product->getId(),
             'item_sku' => $product->getSku(),
             'item_category' => $this->getCategoryName($product),
             'price' => $this->priceCurrency->round($product->getFinalPrice()),

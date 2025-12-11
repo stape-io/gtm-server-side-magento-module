@@ -20,7 +20,8 @@
                     "suffix": "<?= /* @noEscape */ $block->getEventSuffix(); ?>",
                     "pageType": "<?= $escaper->escapeHtml($block->getPageType() ?? ''); ?>",
                     "extraData": <?= /* @noEscape */ $extraData ? $extraData->getJson() : '{}'; ?>,
-                    "productItemSelector": "<?= $escaper->escapeHtml($block->getProductItemSelector()); ?>"
+                    "productItemSelector": "<?= $escaper->escapeHtml($block->getProductItemSelector()); ?>",
+                    "useSkuAsItemId": <?= $block->useSkuAsItemId() ? 'true' : 'false'; ?>
                 }
             }
         }

@@ -61,6 +61,11 @@ This feature is available only if you use <a href="https://stape.io/gtm-server-h
                     <label>Product Collection Limit</label>
                     <validate>validate-integer</validate>
                 </field>
+                <field id="use_sku_as_item_id" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="30" translate="label" type="select">
+                    <label>Use SKU as Item ID</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[When enabled, product SKU will be used for item_id and variation_id instead of product entity ID. This follows GA4 best practices.]]></comment>
+                </field>
             </group>
             <group id="webhooks" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
                 <label>Webhooks</label>

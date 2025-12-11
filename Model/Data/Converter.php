@@ -5,6 +5,7 @@ namespace Stape\Gtm\Model\Data;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
+use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
 class Converter
@@ -25,20 +26,28 @@ class Converter
     private $orderData;
 
     /**
+     * @var ConfigProvider $configProvider
+     */
+    private $configProvider;
+
+    /**
      * Define class dependencies
      *
      * @param CategoryResolver $categoryResolver
      * @param PriceCurrencyInterface $priceCurrency
      * @param \Stape\Gtm\Model\Data\Order $orderData
+     * @param ConfigProvider $configProvider
      */
     public function __construct(
         CategoryResolver $categoryResolver,
         PriceCurrencyInterface $priceCurrency,
-        \Stape\Gtm\Model\Data\Order $orderData
+        \Stape\Gtm\Model\Data\Order $orderData,
+        ConfigProvider $configProvider
     ) {
         $this->categoryResolver = $categoryResolver;
         $this->priceCurrency = $priceCurrency;
         $this->orderData = $orderData;
+        $this->configProvider = $configProvider;
     }
 
     /**
@@ -52,17 +61,27 @@ class Converter
         $items = [];
         /** @var \Magento\Sales\Model\Order\Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
-            $category = $this->categoryResolver->resolve($item->getProduct());
+            $product = $item->getProduct();
+            $category = $this->categoryResolver->resolve($product);
             $childItem = $item->getHasChildren() ? current($item->getChildrenItems() ?? []) : null;
+
+            $itemSku = $item->getSku();
+            $baseSku = $product->getData('sku');
+            $itemVariant = ($itemSku !== $baseSku && strpos($itemSku, $baseSku) === 0)
+                ? ltrim(substr($itemSku, strlen($baseSku)), '- ')
+                : null;
+
+            $useSkuAsId = $this->configProvider->useSkuAsItemId();
+
             $items[] = [
-                'item_id' => $item->getProductId(),
+                'item_id' => $useSkuAsId ? $baseSku : $item->getProductId(),
                 'item_name' => $item->getName(),
-                'item_sku' => $item->getSku(),
+                'item_sku' => $baseSku,
                 'item_category' => $category ? $category->getName() : '',
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => $item->getQtyOrdered(),
-                'item_variant' => $childItem ? $childItem->getSku() : null,
-                'variation_id' => $childItem ? $childItem->getProductId() : null,
+                'item_variant' => $childItem ? $childItem->getSku() : $itemVariant,
+                'variation_id' => $childItem ? ($useSkuAsId ? $childItem->getSku() : $childItem->getProductId()) : null,
                 'purchase_type' => false,
             ];
         }
@@ -84,18 +103,28 @@ class Converter
                 continue;
             }
 
-            $category = $this->categoryResolver->resolve($orderItem->getProduct());
+            $product = $orderItem->getProduct();
+            $category = $this->categoryResolver->resolve($product);
             $childItem = $item->getOrderItem()->getHasChildren()
                 ? current($item->getOrderItem()->getChildrenItems() ?? []) : null;
+
+            $itemSku = $item->getSku();
+            $baseSku = $product->getData('sku');
+            $itemVariant = ($itemSku !== $baseSku && strpos($itemSku, $baseSku) === 0)
+                ? ltrim(substr($itemSku, strlen($baseSku)), '- ')
+                : null;
+
+            $useSkuAsId = $this->configProvider->useSkuAsItemId();
+
             $items[] = [
-                'item_id' => $item->getProductId(),
+                'item_id' => $useSkuAsId ? $baseSku : $item->getProductId(),
                 'item_name' => $item->getName(),
-                'item_sku' => $item->getSku(),
+                'item_sku' => $baseSku,
                 'item_category' => $category ? $category->getName() : '',
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => $item->getQty(),
-                'item_variant' => $childItem ? $childItem->getSku() : null,
-                'variation_id' => $childItem ? $childItem->getProductId() : null,
+                'item_variant' => $childItem ? $childItem->getSku() : $itemVariant,
+                'variation_id' => $childItem ? ($useSkuAsId ? $childItem->getSku() : $childItem->getProductId()) : null,
             ];
         }
         return $items;

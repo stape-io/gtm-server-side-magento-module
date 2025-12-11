@@ -57,6 +57,9 @@ class ItemPoolPlugin
             $result['child_product_sku'] = $childItem->getSku();
         }
 
+        $result['product_sku'] = $item->getProduct()->getData('sku');
+        $result['item_sku'] = $item->getSku();
+
         return $result;
     }
 }
