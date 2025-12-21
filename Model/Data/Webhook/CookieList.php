@@ -67,6 +67,8 @@ class CookieList
     }
 
     /**
+     * Retrieve wildcard cookies
+     *
      * @return string[]
      */
     public function getWildCardCookies()

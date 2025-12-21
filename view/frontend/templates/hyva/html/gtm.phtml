@@ -31,5 +31,5 @@ use Stape\Gtm\Block\Gtm;
             extraData: {$extraData}
         });
 JS, false); ?>
-    <?= /* @noEscape */ $this->getChildHtml('stape.gtm.extradata'); ?>
+    <?= /* @noEscape */ $block->getChildHtml('stape.gtm.extradata'); ?>
 <?php endif; ?>

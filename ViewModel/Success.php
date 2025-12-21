@@ -2,11 +2,13 @@
 
 namespace Stape\Gtm\ViewModel;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Data\Order;
 use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
@@ -31,6 +33,11 @@ class Success extends DatalayerAbstract implements ArgumentInterface
     private $orderData;
 
     /**
+     * @var ItemVariantFactory $itemVariantFactory
+     */
+    private $itemVariantFactory;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -40,6 +47,7 @@ class Success extends DatalayerAbstract implements ArgumentInterface
      * @param PriceCurrencyInterface $priceCurrency
      * @param CategoryResolver $categoryResolver
      * @param Order $orderData
+     * @param ItemVariantFactory $itemVariantFactory
      */
     public function __construct(
         Json $json,
@@ -48,12 +56,14 @@ class Success extends DatalayerAbstract implements ArgumentInterface
         Session $checkoutSession,
         PriceCurrencyInterface $priceCurrency,
         CategoryResolver $categoryResolver,
-        Order $orderData
+        Order $orderData,
+        ItemVariantFactory $itemVariantFactory
     ) {
         parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency);
         $this->checkoutSession = $checkoutSession;
         $this->categoryResolver = $categoryResolver;
         $this->orderData = $orderData;
+        $this->itemVariantFactory = $itemVariantFactory;
     }
 
     /**
@@ -85,14 +95,13 @@ class Success extends DatalayerAbstract implements ArgumentInterface
                 'item_category' => $category ? $category->getName() : null,
                 'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                 'quantity' => (int) $item->getQtyOrdered(),
-                'item_sku' => $item->getSku(),
+                'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'purchase_type' => false,
             ];
 
-            if ($item->getHasChildren()) {
-                $itemCandidate['variation_id'] = current($item->getChildrenItems())->getProductId();
-                $itemCandidate['item_variant'] = current($item->getChildrenItems())->getSku();
-            }
+            $itemVariant = $this->itemVariantFactory->createFromOrderItem($item);
+            $itemCandidate['variation_id'] = $itemVariant->getVariationId();
+            $itemCandidate['item_variant'] = $itemVariant->getSku();
 
             $items[] = $itemCandidate;
         }

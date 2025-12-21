@@ -2,12 +2,14 @@
 
 namespace Stape\Gtm\Observer;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Data\DataProviderInterface;
+use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Datalayer\Modifier\CartState;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
@@ -45,6 +47,11 @@ class AddToCartComplete implements ObserverInterface
     private $cartStateModifier;
 
     /**
+     * @var ItemVariantFactory $itemVariantFactory
+     */
+    private $itemVariantFactory;
+
+    /**
      * Define class dependencies
      *
      * @param CategoryResolver $categoryResolver
@@ -53,6 +60,7 @@ class AddToCartComplete implements ObserverInterface
      * @param DataProviderInterface $dataProvider
      * @param PriceCurrencyInterface $priceCurrency
      * @param CartState $cartStateModifier
+     * @param ItemVariantFactory $itemVariantFactory
      */
     public function __construct(
         CategoryResolver $categoryResolver,
@@ -61,6 +69,7 @@ class AddToCartComplete implements ObserverInterface
         DataProviderInterface $dataProvider,
         PriceCurrencyInterface $priceCurrency,
         CartState $cartStateModifier,
+        ItemVariantFactory $itemVariantFactory,
     ) {
         $this->categoryResolver = $categoryResolver;
         $this->checkoutSession = $checkoutSession;
@@ -68,6 +77,7 @@ class AddToCartComplete implements ObserverInterface
         $this->dataProvider = $dataProvider;
         $this->priceCurrency = $priceCurrency;
         $this->cartStateModifier = $cartStateModifier;
+        $this->itemVariantFactory = $itemVariantFactory;
     }
 
     /**
@@ -94,6 +104,9 @@ class AddToCartComplete implements ObserverInterface
         }
         $category = $this->categoryResolver->resolve($product);
         $childItem = $quoteItem->getHasChildren() ? current($quoteItem->getChildren()) : null;
+
+        $itemVariant = $this->itemVariantFactory->createFromQuoteItem($quoteItem);
+
         $eventData = $this->cartStateModifier->modifyEventData([
             'currency' => $this->checkoutSession->getQuote()->getBaseCurrencyCode(),
             'value' => (string) $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
@@ -101,12 +114,12 @@ class AddToCartComplete implements ObserverInterface
                 [
                     'item_name' => $product->getName(),
                     'item_id' => $product->getId(),
-                    'item_sku' => $product->getSku(),
+                    'item_sku' => $product->getData(ProductInterface::SKU),
                     'item_category' => $category ? $category->getName() : null,
                     'price' => $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
                     'quantity' => $qty,
-                    'variation_id' => $childItem ? $childItem->getProductId() : null,
-                    'item_variant' => $childItem ? $childItem->getSku() : null,
+                    'variation_id' => $itemVariant->getVariationId(),
+                    'item_variant' => $itemVariant->getSku(),
                 ]
             ]
         ]);

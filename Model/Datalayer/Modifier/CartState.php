@@ -2,8 +2,10 @@
 
 namespace Stape\Gtm\Model\Datalayer\Modifier;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
+use Stape\Gtm\Model\Data\ItemVariantFactory;
 
 class CartState implements ModifierInterface
 {
@@ -19,17 +21,25 @@ class CartState implements ModifierInterface
     protected $priceCurrency;
 
     /**
+     * @var ItemVariantFactory $itemVariantFactory
+     */
+    protected $itemVariantFactory;
+
+    /**
      * Define class dependencies
      *
      * @param Session $checkoutSession
      * @param PriceCurrencyInterface $priceCurrency
+     * @param ItemVariantFactory $itemVariantFactory
      */
     public function __construct(
         Session $checkoutSession,
-        PriceCurrencyInterface $priceCurrency
+        PriceCurrencyInterface $priceCurrency,
+        ItemVariantFactory $itemVariantFactory
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->priceCurrency = $priceCurrency;
+        $this->itemVariantFactory = $itemVariantFactory;
     }
 
     /**
@@ -58,10 +68,11 @@ class CartState implements ModifierInterface
     {
         $items = [];
         foreach ($quote->getAllVisibleItems() as $item) {
+            $itemVariant = $this->itemVariantFactory->createFromQuoteItem($item);
             $items[] = [
-                'item_variant' => $item->getId(),
+                'item_variant' => $itemVariant->getSku(),
                 'item_id' => $item->getId(),
-                'item_sku' => $item->getSku(),
+                'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'item_name' => $item->getName(),
                 'quantity' => $item->getQty(),
                 'line_total_price' => $this->priceCurrency->round($item->getRowTotalInclTax()),
