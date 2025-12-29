@@ -2,11 +2,13 @@
 
 namespace Stape\Gtm\ViewModel;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
@@ -24,6 +26,11 @@ class Checkout extends DatalayerAbstract implements ArgumentInterface
     private $categoryResolver;
 
     /**
+     * @var ItemVariantFactory $itemVariantFactory
+     */
+    protected $itemVariantFactory;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -33,6 +40,7 @@ class Checkout extends DatalayerAbstract implements ArgumentInterface
      * @param CategoryResolver $categoryResolver
      * @param EventFormatter $eventFormatter
      * @param PoolInterface $modifierPool
+     * @param ItemVariantFactory $itemVariantFactory
      */
     public function __construct(
         Json $json,
@@ -41,11 +49,13 @@ class Checkout extends DatalayerAbstract implements ArgumentInterface
         PriceCurrencyInterface $priceCurrency,
         CategoryResolver $categoryResolver,
         EventFormatter $eventFormatter,
-        PoolInterface $modifierPool
+        PoolInterface $modifierPool,
+        ItemVariantFactory $itemVariantFactory
     ) {
         parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency, $modifierPool);
         $this->checkoutSession = $checkoutSession;
         $this->categoryResolver = $categoryResolver;
+        $this->itemVariantFactory = $itemVariantFactory;
     }
 
     /**
@@ -60,15 +70,16 @@ class Checkout extends DatalayerAbstract implements ArgumentInterface
         /** @var \Magento\Quote\Model\Quote\Item $item */
         foreach ($quote->getAllVisibleItems() as $item) {
             $category = $this->categoryResolver->resolve($item->getProduct());
+            $itemVariant = $this->itemVariantFactory->createFromQuoteItem($item);
             $items[] = [
                 'item_name' => $item->getName(),
                 'item_id' => $item->getProductId(),
-                'item_sku' => $item->getSku(),
+                'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'item_category' => $category ? $category->getName() : null,
                 'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                 'quantity' => (int) $item->getQty(),
-                'variation_id' => (int) $item->getHasChildren() ? current($item->getChildren())->getProductId() : null,
-                'item_variant' => (int) $item->getHasChildren() ? current($item->getChildren())->getSku() : null,
+                'variation_id' => $itemVariant->getVariationId(),
+                'item_variant' => $itemVariant->getSku(),
             ];
         }
         return $items;

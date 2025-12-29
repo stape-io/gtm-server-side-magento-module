@@ -2,6 +2,7 @@
 
 namespace Stape\Gtm\Model\Data;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
@@ -25,20 +26,28 @@ class Converter
     private $orderData;
 
     /**
+     * @var ItemVariantFactory
+     */
+    private $itemVariantFactory;
+
+    /**
      * Define class dependencies
      *
      * @param CategoryResolver $categoryResolver
      * @param PriceCurrencyInterface $priceCurrency
      * @param \Stape\Gtm\Model\Data\Order $orderData
+     * @param ItemVariantFactory $itemVariantFactory
      */
     public function __construct(
         CategoryResolver $categoryResolver,
         PriceCurrencyInterface $priceCurrency,
-        \Stape\Gtm\Model\Data\Order $orderData
+        \Stape\Gtm\Model\Data\Order $orderData,
+        ItemVariantFactory $itemVariantFactory
     ) {
         $this->categoryResolver = $categoryResolver;
         $this->priceCurrency = $priceCurrency;
         $this->orderData = $orderData;
+        $this->itemVariantFactory = $itemVariantFactory;
     }
 
     /**
@@ -53,16 +62,16 @@ class Converter
         /** @var \Magento\Sales\Model\Order\Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
             $category = $this->categoryResolver->resolve($item->getProduct());
-            $childItem = $item->getHasChildren() ? current($item->getChildrenItems() ?? []) : null;
+            $itemVariant = $this->itemVariantFactory->createFromOrderItem($item);
             $items[] = [
                 'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
-                'item_sku' => $item->getSku(),
+                'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'item_category' => $category ? $category->getName() : '',
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => $item->getQtyOrdered(),
-                'item_variant' => $childItem ? $childItem->getSku() : null,
-                'variation_id' => $childItem ? $childItem->getProductId() : null,
+                'item_variant' => $itemVariant->getSku(),
+                'variation_id' => $itemVariant->getVariationId(),
                 'purchase_type' => false,
             ];
         }
@@ -85,17 +94,17 @@ class Converter
             }
 
             $category = $this->categoryResolver->resolve($orderItem->getProduct());
-            $childItem = $item->getOrderItem()->getHasChildren()
-                ? current($item->getOrderItem()->getChildrenItems() ?? []) : null;
+            $itemVariant = $this->itemVariantFactory->createFromOrderItem($item->getOrderItem());
+
             $items[] = [
                 'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
-                'item_sku' => $item->getSku(),
+                'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'item_category' => $category ? $category->getName() : '',
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => $item->getQty(),
-                'item_variant' => $childItem ? $childItem->getSku() : null,
-                'variation_id' => $childItem ? $childItem->getProductId() : null,
+                'item_variant' => $itemVariant->getSku(),
+                'variation_id' => $itemVariant->getVariationId(),
             ];
         }
         return $items;

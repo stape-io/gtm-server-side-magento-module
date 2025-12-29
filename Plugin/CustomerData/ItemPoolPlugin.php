@@ -2,9 +2,11 @@
 
 namespace Stape\Gtm\Plugin\CustomerData;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Checkout\CustomerData\ItemPoolInterface;
 use Magento\Quote\Model\Quote\Item;
 use Stape\Gtm\Model\ConfigProvider;
+use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
 class ItemPoolPlugin
@@ -20,17 +22,25 @@ class ItemPoolPlugin
     protected $categoryResolver;
 
     /**
+     * @var ItemVariantFactory $itemVariantFactory
+     */
+    protected $itemVariantFactory;
+
+    /**
      * Define class dependencies
      *
      * @param ConfigProvider $config
      * @param CategoryResolver $categoryResolver
+     * @param ItemVariantFactory $itemVariantFactory
      */
     public function __construct(
         ConfigProvider $config,
-        CategoryResolver $categoryResolver
+        CategoryResolver $categoryResolver,
+        ItemVariantFactory $itemVariantFactory
     ) {
         $this->config = $config;
         $this->categoryResolver = $categoryResolver;
+        $this->itemVariantFactory = $itemVariantFactory;
     }
 
     /**
@@ -52,10 +62,15 @@ class ItemPoolPlugin
         }
 
         if ($item->getHasChildren()) {
-            $childItem = current($item->getChildren());
-            $result['child_product_id'] = $childItem->getProductId();
-            $result['child_product_sku'] = $childItem->getSku();
+            $itemVariant = $this->itemVariantFactory->createFromQuoteItem($item);
+
+            $result['child_product_id'] = $itemVariant->getVariationId();
+            $result['child_product_sku'] = $itemVariant->getSku();
         }
+
+        $result['product_sku'] = $item->getProduct()->getData(ProductInterface::SKU);
+        $result['item_sku'] = $item->getSku();
+        $result['added'] = strtotime($item->getCreatedAt());
 
         return $result;
     }
