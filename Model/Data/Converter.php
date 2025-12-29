@@ -61,7 +61,8 @@ class Converter
         $items = [];
         /** @var \Magento\Sales\Model\Order\Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
-            $category = $this->categoryResolver->resolve($item->getProduct());
+            $product = $item->getProduct();
+            $category = $product ? $this->categoryResolver->resolve($product) : null;
             $itemVariant = $this->itemVariantFactory->createFromOrderItem($item);
             $items[] = [
                 'item_id' => $item->getProductId(),
