@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.34
+- improved SKU tracking
+
 v1.0.33
 - added cart state to datalayer events;
 - extended cookies list;

@@ -2,6 +2,7 @@
 
 namespace Stape\Gtm\Plugin\Checkout\Cart;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Checkout\Controller\Cart\Delete;
 use Magento\Checkout\Controller\Sidebar\RemoveItem;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -9,6 +10,7 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Psr\Log\LoggerInterface;
 use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Data\DataProviderInterface;
+use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Datalayer\Modifier\CartState;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
@@ -50,6 +52,11 @@ class DeletePlugin
     protected $cartStateModifier;
 
     /**
+     * @var ItemVariantFactory $itemVariantFactory
+     */
+    protected $itemVariantFactory;
+
+    /**
      * Define class dependencies
      *
      * @param CheckoutSession $checkoutSession
@@ -59,6 +66,7 @@ class DeletePlugin
      * @param CategoryResolver $categoryResolver
      * @param LoggerInterface $logger
      * @param CartState $cartStateModifier
+     * @param ItemVariantFactory $itemVariantFactory
      */
     public function __construct(
         CheckoutSession $checkoutSession,
@@ -67,7 +75,8 @@ class DeletePlugin
         PriceCurrencyInterface $priceCurrency,
         CategoryResolver $categoryResolver,
         LoggerInterface $logger,
-        CartState $cartStateModifier
+        CartState $cartStateModifier,
+        ItemVariantFactory $itemVariantFactory
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->configProvider = $configProvider;
@@ -76,6 +85,7 @@ class DeletePlugin
         $this->categoryResolver = $categoryResolver;
         $this->logger = $logger;
         $this->cartStateModifier = $cartStateModifier;
+        $this->itemVariantFactory = $itemVariantFactory;
     }
 
     /**
@@ -108,18 +118,19 @@ class DeletePlugin
             $result = $proceed();
 
             if ($item->isDeleted()) {
+                $itemVariant = $this->itemVariantFactory->createFromQuoteItem($item);
                 $eventData = $this->cartStateModifier->modifyEventData([
                     'value' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                     'items' => [
                         [
                             'item_name' => $item->getName(),
                             'item_id' => $item->getProduct()->getId(),
-                            'item_sku' => $item->getSku(),
+                            'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                             'item_category' => $category ? $category->getName() : null,
                             'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
                             'quantity' => $item->getQty(),
-                            'variation_id' => $item->getHasChildren()
-                                ? current($item->getChildren())->getProductId() : null
+                            'variation_id' => $itemVariant->getVariationId(),
+                            'item_variant' => $itemVariant->getSku(),
                         ]
                     ]
                 ]);

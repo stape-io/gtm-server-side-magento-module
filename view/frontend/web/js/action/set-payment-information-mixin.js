@@ -8,6 +8,19 @@ define([
     'use strict';
 
     /**
+     * Parse item variant SKU
+     *
+     * @param itemSku
+     * @param baseSku
+     * @returns {string|null}
+     */
+    function getItemVariantSku(itemSku, baseSku) {
+        return (itemSku !== baseSku && itemSku.indexOf(baseSku) === 0)
+            ? itemSku.substring(baseSku.length).replace(/^[-\s]+/, '')
+            : null;
+    }
+
+    /**
      * Prepare quote items for data layer
      *
      * @returns {*}
@@ -16,19 +29,22 @@ define([
         const cartData = customerData.get('cart')();
         const priceFormat = Object.assign({...quote.getPriceFormat()}, {'pattern': '%s'});
         return quote.getItems().map(function(itemDetails) {
-            cartData.items.find
             const cartItem = _.find(cartData.items, function(cartItem) {
                 return cartItem.item_id === itemDetails.item_id;
             });
+
+            const baseSku = cartItem.product_sku;
+            const itemSku = itemDetails.sku;
+
             return {
                 'item_name': itemDetails.name,
                 'item_id': itemDetails.product_id,
-                'item_sku': itemDetails.sku,
+                'item_sku': baseSku,
                 'item_category': cartItem.category,
                 'price': priceUtils.formatPrice(itemDetails.base_price, priceFormat, false),
                 'quantity': parseInt(itemDetails?.qty),
                 'variation_id': cartItem.child_product_id ? cartItem.child_product_id : undefined,
-                'item_variant': cartItem.child_product_sku ? cartItem.child_product_sku : undefined
+                'item_variant': cartItem.child_product_sku ? cartItem.child_product_sku : getItemVariantSku(itemSku, baseSku)
             }
         });
     }
@@ -45,11 +61,15 @@ define([
                 const cartItem = _.find(cartData.items, function(cartItem) {
                     return cartItem.item_id === item.item_id;
                 });
+
+                const baseSku = cartItem.product_sku;
+                const itemSku = item.sku;
+
                 return {
-                    'item_variant': cartItem.child_product_sku ? cartItem.child_product_sku : undefined,
+                    'item_variant': cartItem.child_product_sku ? cartItem.child_product_sku : getItemVariantSku(itemSku, baseSku),
                     'item_id': cartItem.product_id,
                     'item_name': item.name,
-                    'item_sku': cartItem.product_sku,
+                    'item_sku': baseSku,
                     'quantity': item.qty,
                     'line_total_price': priceUtils.formatPrice(item?.row_total_incl_tax, priceFormat, false),
                     'price': priceUtils.formatPrice(item.price, priceFormat, false),

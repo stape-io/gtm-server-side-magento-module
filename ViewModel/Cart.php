@@ -2,11 +2,13 @@
 
 namespace Stape\Gtm\ViewModel;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
@@ -24,6 +26,11 @@ class Cart extends DatalayerAbstract implements ArgumentInterface
     private $categoryResolver;
 
     /**
+     * @var ItemVariantFactory $itemVariantFactory
+     */
+    private $itemVariantFactory;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -32,6 +39,7 @@ class Cart extends DatalayerAbstract implements ArgumentInterface
      * @param PriceCurrencyInterface $priceCurrency
      * @param CategoryResolver $categoryResolver
      * @param EventFormatter $eventFormatter
+     * @param ItemVariantFactory $itemVariantFactory
      * @param ?PoolInterface $modifierPool
      */
     public function __construct(
@@ -41,6 +49,7 @@ class Cart extends DatalayerAbstract implements ArgumentInterface
         PriceCurrencyInterface $priceCurrency,
         CategoryResolver $categoryResolver,
         EventFormatter $eventFormatter,
+        ItemVariantFactory $itemVariantFactory,
         ?PoolInterface $modifierPool = null
     ) {
         parent::__construct(
@@ -52,6 +61,7 @@ class Cart extends DatalayerAbstract implements ArgumentInterface
         );
         $this->checkoutSession = $checkoutSession;
         $this->categoryResolver = $categoryResolver;
+        $this->itemVariantFactory = $itemVariantFactory;
     }
 
     /**
@@ -66,15 +76,16 @@ class Cart extends DatalayerAbstract implements ArgumentInterface
         /** @var \Magento\Quote\Model\Quote\Item $item */
         foreach ($quote->getAllVisibleItems() as $item) {
             $category = $this->categoryResolver->resolve($item->getProduct());
+            $itemVariant = $this->itemVariantFactory->createFromQuoteItem($item);
             $items[] = [
                 'item_name' => $item->getName(),
                 'item_id' => $item->getProductId(),
-                'item_sku' => $item->getSku(),
+                'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'item_category' => $category ? $category->getName() : null,
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => (int) $item->getQty(),
-                'variation_id' => $item->getHasChildren() ? current($item->getChildren())->getProductId() : null,
-                'item_variant' => $item->getHasChildren() ? current($item->getChildren())->getSku() : null
+                'variation_id' => $itemVariant->getVariationId(),
+                'item_variant' => $itemVariant->getSku(),
             ];
         }
         return $items;
