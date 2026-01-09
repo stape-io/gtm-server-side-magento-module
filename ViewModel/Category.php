@@ -54,7 +54,7 @@ class Category extends DatalayerAbstract implements ArgumentInterface
         Layout $layout,
         ConfigProvider $configProvider,
         ManagerInterface $eventManager,
-        EventFormatter $eventFormatter,
+        EventFormatter $eventFormatter
     ) {
         parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency);
         $this->layer = $layerResolver->get();
