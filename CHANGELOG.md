@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.35
+- PHP7.4 compatibility fixed;
+
 v1.0.34
 - improved SKU tracking
 
