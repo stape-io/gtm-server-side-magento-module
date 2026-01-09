@@ -1,5 +1,9 @@
 # Changelog
 
+v1.0.35
+- fixed PHP7.4 backward compatibility;
+- fixed CSP issue on checkout;
+
 v1.0.34
 - improved SKU tracking
 

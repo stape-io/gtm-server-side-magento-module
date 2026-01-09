@@ -45,7 +45,7 @@ class ItemVariantFactory
      * @param QuoteItem|OrderItem $item
      * @return string|null
      */
-    protected function resolveVariantSku(QuoteItem|OrderItem $item): string|null
+    protected function resolveVariantSku($item)
     {
         $baseSku = $item->getProduct()->getData('sku');
         return ($item->getSku() !== $baseSku && strpos($item->getSku(), $baseSku) === 0)
@@ -59,7 +59,7 @@ class ItemVariantFactory
      * @param QuoteItem|OrderItem $item
      * @return int|null
      */
-    protected function resolveVariationId(QuoteItem|OrderItem $item): int|null
+    protected function resolveVariationId($item)
     {
         $childItem = $item->getHasChildren() ? current($item->getChildrenItems() ?? []) : null;
         return $childItem ? $childItem->getProductId() : null;

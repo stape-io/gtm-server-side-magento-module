@@ -20,7 +20,7 @@ use Stape\Gtm\Block\Gtm;
 <?php $dataLayer = $block->getDataLayer(); ?>
 
 <?php if ($dataLayer && $block->isDataLayerEnabled()): ?>
-    <?php $extraData = $block->getExtraData()?->getJson() ?? '{}'; ?>
+    <?php $extraData = $block->getExtraData() && $block->getExtraData()->getJson() ? $block->getExtraData()->getJson() : '{}'; ?>
     <?= /* @noEscape */  $secureRenderer->renderTag('script', ['type' => 'module'], <<<JS
         import { Datalayer } from '{$escaper->escapeUrl($block->getViewFileUrl("Stape_Gtm::js/hyva/Datalayer.js"))}';
         window.stapeDataLayer = new Datalayer({

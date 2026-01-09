@@ -27,20 +27,20 @@ interface ItemVariantInterface
      *
      * @return string|null
      */
-    public function getSku(): string|null;
+    public function getSku();
 
     /**
      * Define variation id
      *
-     * @param string|int $variationId
+     * @param string|int|null $variationId
      * @return ItemVariantInterface
      */
-    public function setVariationId(string|int|null $variationId): ItemVariantInterface;
+    public function setVariationId($variationId): ItemVariantInterface;
 
     /**
      * Retrieve Variation id
      *
      * @return string|int|null
      */
-    public function getVariationId(): string|int|null;
+    public function getVariationId();
 }

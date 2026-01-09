@@ -24,7 +24,7 @@ class ItemVariant extends AbstractExtensibleModel implements ItemVariantInterfac
      *
      * @return string|null
      */
-    public function getSku(): string|null
+    public function getSku()
     {
         return $this->_getData(self::SKU);
     }
@@ -35,7 +35,7 @@ class ItemVariant extends AbstractExtensibleModel implements ItemVariantInterfac
      * @param string|int|null $variationId
      * @return ItemVariantInterface
      */
-    public function setVariationId(string|int|null $variationId): ItemVariantInterface
+    public function setVariationId($variationId): ItemVariantInterface
     {
         $this->setData(self::VARIATION_ID, $variationId);
         return $this;
@@ -46,7 +46,7 @@ class ItemVariant extends AbstractExtensibleModel implements ItemVariantInterfac
      *
      * @return string|int|null
      */
-    public function getVariationId(): string|int|null
+    public function getVariationId()
     {
         return $this->_getData(self::VARIATION_ID);
     }

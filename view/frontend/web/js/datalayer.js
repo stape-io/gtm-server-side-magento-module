@@ -88,8 +88,11 @@ define([
 
             if (wasAddToCartCalled) {
                 dataLayer.push({ecommerce: null});
-                const baseSku = itemDetails.product_sku;
-                const itemSku = itemDetails.item_sku || itemDetails.product_sku;
+                if (!itemDetails) {
+                    return;
+                }
+                const baseSku = itemDetails?.product_sku;
+                const itemSku = itemDetails.item_sku || itemDetails?.product_sku;
                 const itemVariantSku = getItemVariantSku(itemSku, baseSku);
                 window.dataLayer.push({
                     event: 'add_to_cart' + config?.suffix,
@@ -198,8 +201,8 @@ define([
             const itemDetails = findItem(product);
             if (itemDetails) {
 
-                const baseSku = itemDetails.product_sku;
-                const itemSku = itemDetails.item_sku || itemDetails.product_sku;
+                const baseSku = itemDetails?.product_sku;
+                const itemSku = itemDetails.item_sku || itemDetails?.product_sku;
                 const itemVariantSku = getItemVariantSku(itemSku, baseSku);
 
                 dataLayer.push({ecommerce: null});

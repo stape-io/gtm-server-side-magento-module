@@ -69,7 +69,7 @@ class AddToCartComplete implements ObserverInterface
         DataProviderInterface $dataProvider,
         PriceCurrencyInterface $priceCurrency,
         CartState $cartStateModifier,
-        ItemVariantFactory $itemVariantFactory,
+        ItemVariantFactory $itemVariantFactory
     ) {
         $this->categoryResolver = $categoryResolver;
         $this->checkoutSession = $checkoutSession;
