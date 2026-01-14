@@ -97,6 +97,21 @@ class OrderSaveCommitAfter implements ObserverInterface
     }
 
     /**
+     * Check if webhook is allowed to trigger
+     *
+     * @param \Magento\Sales\Model\Order $order
+     * @return bool
+     */
+    private function isWebhookAllowed(\Magento\Sales\Model\Order $order)
+    {
+        if (!$configState = $this->configProvider->getPurchaseWebhookOrderState($order->getStoreId())) {
+            return $order->dataHasChangedFor('total_paid') && $order->getTotalPaid() >= $order->getGrandTotal();
+        }
+
+        return $order->dataHasChangedFor('status') && $order->getStatus() === $configState;
+    }
+
+    /**
      * Send webhook for purchase event
      *
      * @param Observer $observer
@@ -107,7 +122,7 @@ class OrderSaveCommitAfter implements ObserverInterface
         /** @var \Magento\Sales\Model\Order $order */
         $order = $observer->getOrder();
 
-        if (!$order->dataHasChangedFor('total_paid') || $order->getGrandTotal() > $order->getTotalPaid()) {
+        if (!$this->isWebhookAllowed($order)) {
             return;
         }
 

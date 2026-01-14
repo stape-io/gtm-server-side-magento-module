@@ -13,7 +13,7 @@ use Stape\Gtm\Model\Data\Converter;
 class Adapter
 {
 
-    public const MODULE_VERSION = '1.0.34';
+    public const MODULE_VERSION = '1.0.36';
 
     /**
      * @var Json $json
@@ -105,7 +105,13 @@ class Adapter
         $data = [
                 'user_data' => $this->converter->orderToUserData($order),
                 'ecommerce' => $this->converter->orderToEcomData($order),
+                'payment_type' => $order->getPayment()->getMethodInstance()->getTitle(),
             ] + $additionalInfo;
+
+        if ($order->getShippingAddress()) {
+            $data['shipping_tier'] = $order->getShippingDescription();
+        }
+
         $this->call('purchase_stape_webhook', $data, $order->getStoreId());
     }
 
