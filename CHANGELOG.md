@@ -5,6 +5,10 @@ v.1.0.36
 - added payment_type param for purchase webhook;
 - added shipping_tier param for purchase webhook;
 
+v1.0.35
+- fixed PHP7.4 backward compatibility;
+- fixed CSP issue on checkout;
+
 v1.0.34
 - improved SKU tracking
 
