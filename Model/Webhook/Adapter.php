@@ -13,7 +13,7 @@ use Stape\Gtm\Model\Data\Converter;
 class Adapter
 {
 
-    public const MODULE_VERSION = '1.0.34';
+    public const MODULE_VERSION = '1.0.35';
 
     /**
      * @var Json $json

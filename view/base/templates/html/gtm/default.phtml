@@ -1,11 +1,15 @@
 <?php
 /**
  * @var \Magento\Framework\Escaper $escaper
+ * @var \Magento\Framework\View\Helper\SecureHtmlRender $secureRenderer
  */
 
 // phpcs:disable
 ?>
 <!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s);j.async=true;j.src="<?= $escaper->escapeUrl($block->getGtmUrl());?>.js?"+i;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<?= /* @noEscape */ $block->getContainerId(); ?>');</script>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], <<<JS
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s);j.async=true;j.src="{$escaper->escapeUrl($block->getGtmUrl())}.js?"+i;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','{$block->getContainerId()}');
+JS, false); ?>
+
 <!-- End Google Tag Manager -->
 <?php //phpcs:enable ?>
