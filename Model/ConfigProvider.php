@@ -74,6 +74,11 @@ class ConfigProvider
     public const XPATH_WEBHOOK_PURCHASE_ACTIVE = 'stape_gtm/webhooks/purchase';
 
     /*
+     * XPATH purchase webhook active or not
+     */
+    public const XPATH_WEBHOOK_PURCHASE_ORDER_STATE = 'stape_gtm/webhooks/purchase_order_state';
+
+    /*
      * XPATH refund webhook active or not
      */
     public const XPATH_WEBHOOK_REFUND_ACTIVE = 'stape_gtm/webhooks/refund';
@@ -240,6 +245,21 @@ class ConfigProvider
     {
         return $this->scopeConfig->isSetFlag(
             self::XPATH_WEBHOOK_PURCHASE_ACTIVE,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
+    }
+
+    /**
+     * Retrieve webhook order state trigerring purchase webhook
+     *
+     * @param string|null $scopeCode
+     * @return string|null
+     */
+    public function getPurchaseWebhookOrderState($scopeCode = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XPATH_WEBHOOK_PURCHASE_ORDER_STATE,
             ScopeInterface::SCOPE_STORE,
             $scopeCode
         );

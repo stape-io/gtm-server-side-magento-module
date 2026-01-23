@@ -1,5 +1,10 @@
 # Changelog
 
+v.1.0.36
+- added admin configuration option to control purchase webhook;
+- added payment_type param for purchase webhook;
+- added shipping_tier param for purchase webhook;
+
 v1.0.35
 - fixed PHP7.4 backward compatibility;
 - fixed CSP issue on checkout;

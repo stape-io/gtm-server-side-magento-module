@@ -77,11 +77,15 @@ This feature is available only if you use <a href="https://stape.io/gtm-server-h
                     <label>Purchase Webhook</label>
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 </field>
-                <field id="refund" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
+                <field id="purchase_order_state" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Required Order State For Purchase</label>
+                    <source_model>Stape\Gtm\Model\Config\Source\Order\PurchaseStatuses</source_model>
+                </field>
+                <field id="refund" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="20" translate="label" type="select">
                     <label>Refund Webhook</label>
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 </field>
-                <field id="test" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="button">
+                <field id="test" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="30" translate="label" type="button">
                     <label>Send test webhook</label>
                     <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\Webhook\Button\Test</frontend_model>
                 </field>
