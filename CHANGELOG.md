@@ -1,5 +1,8 @@
 # Changelog
 
+v.1.0.37
+- added logic to generate GTM snippet via API;
+
 v.1.0.36
 - added admin configuration option to control purchase webhook;
 - added payment_type param for purchase webhook;
