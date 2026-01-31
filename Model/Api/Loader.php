@@ -3,12 +3,13 @@
 namespace Stape\Gtm\Model\Api;
 
 use Magento\Framework\DataObjectFactory;
+use Magento\Framework\Exception\NotFoundException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Stape\Gtm\Model\Api\Request\RequestInterfaceFactory;
-use Magento\Framework\Exception\LocalizedException;
 use Psr\Log\LoggerInterface;
 use Stape\Gtm\Model\Api\Request\RequestInterface;
 use Stape\Gtm\Model\ConfigProvider;
+use GuzzleHttp\Psr7\Utils;
 
 class Loader
 {
@@ -98,6 +99,21 @@ class Loader
     }
 
     /**
+     * Create URI object
+     *
+     * @param string $uri
+     * @return \Psr\Http\Message\UriInterface|null
+     */
+    private function createUri($uri)
+    {
+        try {
+            return Utils::uriFor($uri);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
      * Generate GTM code snippet
      *
      * @param string|int $scope
@@ -111,15 +127,14 @@ class Loader
             'dataLayerObjectName' => 'dataLayer',
         ];
 
-        // phpcs:disable
-        $params = array_filter(parse_url($this->configProvider->getCustomDomain($scope) ?? ''));
-        // phpcs:enable
-        if ($params && $params['host']) {
-            $requestData['domain'] = $params['host'];
+        $uri = $this->createUri($this->configProvider->getCustomDomain($scope) ?? '');
+
+        if ($uri && $uri->getHost()) {
+            $requestData['domain'] = $uri->getHost();
         }
 
-        if ($params && !empty($params['path'])) {
-            $requestData['sameOriginPath'] = $params['path'];
+        if ($uri && $uri->getPath()) {
+            $requestData['sameOriginPath'] = $uri->getPath();
         }
 
         if ($this->configProvider->useCookieKeeper($scope)) {
@@ -138,7 +153,7 @@ class Loader
             ]);
 
             if ($result->getStatus() !== 200) {
-                throw new \Exception($response->getData('error/error') ?? 'Could not generate GTM snippet');
+                throw new NotFoundException($response->getData('error/error') ?? 'Could not generate GTM snippet');
             }
 
             return $response->getData('body/jsCode');
