@@ -115,7 +115,6 @@ class CustomLoader extends \Magento\Framework\App\Config\Value
     protected function resetLinkedOptions()
     {
         $resetParams = [
-            ConfigProvider::XPATH_GTM_STAPE_ANALYTICS_ENABLED,
             ConfigProvider::XPATH_GTM_KEEP_COOKIE,
         ];
 

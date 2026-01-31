@@ -93,6 +93,11 @@ class ConfigProvider
      */
     public const XPATH_DOMAIN_LIST_URL = 'stape_gtm/domain_list/url';
 
+    /*
+     * Config path for GTM snippet
+     */
+    public const XPATH_GTM_SNIPPET = 'stape_gtm/general/gtm_snippet';
+
     /**
      * @var ScopeConfigInterface $scopeConfig
      */
@@ -329,5 +334,16 @@ class ConfigProvider
             ScopeInterface::SCOPE_STORE,
             $scopeCode
         );
+    }
+
+    /**
+     * Retrieve GTM snippet
+     *
+     * @param stirng|int $scopeCode
+     * @return string|null
+     */
+    public function getGtmSnippet($scopeCode = null)
+    {
+        return $this->scopeConfig->getValue(self::XPATH_GTM_SNIPPET, ScopeInterface::SCOPE_STORE, $scopeCode);
     }
 }
