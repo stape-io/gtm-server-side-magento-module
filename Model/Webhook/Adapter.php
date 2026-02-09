@@ -7,23 +7,18 @@ use Magento\Framework\HTTP\ClientFactory;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
+use Stape\Gtm\Model\Api\Client;
+use Stape\Gtm\Model\Api\Request\RequestInterfaceFactory;
 use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Data\Converter;
 
 class Adapter
 {
 
-    public const MODULE_VERSION = '1.0.36';
-
     /**
-     * @var Json $json
+     * @var Client
      */
-    private $json;
-
-    /**
-     * @var ClientFactory $clientFactory
-     */
-    private $clientFactory;
+    private $client;
 
     /**
      * @var ConfigProvider $configProvider
@@ -41,56 +36,73 @@ class Adapter
     private $converter;
 
     /**
+     * @var RequestInterfaceFactory $requestFactory
+     */
+    private $requestFactory;
+
+    /**
      * Define class dependencies
      *
-     * @param Json $json
-     * @param ClientFactory $clientFactory
+     * @param Client $client
      * @param ConfigProvider $configProvider
      * @param LoggerInterface $logger
      * @param Converter $converter
+     * @param RequestInterfaceFactory $requestFactory
      */
     public function __construct(
-        Json            $json,
-        ClientFactory   $clientFactory,
-        ConfigProvider  $configProvider,
-        LoggerInterface $logger,
-        Converter       $converter
+        Client                  $client,
+        ConfigProvider          $configProvider,
+        LoggerInterface         $logger,
+        Converter               $converter,
+        RequestInterfaceFactory $requestFactory,
     ) {
-        $this->json = $json;
-        $this->clientFactory = $clientFactory;
+        $this->client = $client;
         $this->configProvider = $configProvider;
         $this->logger = $logger;
         $this->converter = $converter;
+        $this->requestFactory = $requestFactory;
     }
 
     /**
-     * Make request
+     * Init request
+     *
+     * @param string|int|null $scope
+     * @return \Stape\Gtm\Model\Api\Request\RequestInterface
+     */
+    protected function createRequest($scope = null)
+    {
+        return $this->requestFactory->create()
+            ->setUrl($this->configProvider->getWebhooksUrl($scope));
+    }
+
+    /**
+     * Execute API Call to Stape service
      *
      * @param string $event
      * @param array $data
-     * @param string $scopeCode
+     * @param string|null $scope
      * @return bool
      */
-    private function call($event, $data, $scopeCode = null)
+    protected function call($event, $data, $scope = null)
     {
         $data['event'] = $event;
-        $client = $this->clientFactory->create();
-        $client->addHeader('Content-Type', 'application/json');
-        $client->addHeader('Accept', 'application/json');
-        $client->addHeader('x-stape-app-version', self::MODULE_VERSION);
+        /** @var \Stape\Gtm\Model\Api\Request\RequestInterface $request */
+        $request = $this->createRequest($scope)
+            ->setUrl($this->configProvider->getWebhooksUrl($scope))
+            ->setData($data);
 
         try {
 
-            $url = $this->configProvider->getWebhooksUrl($scopeCode);
-            if (empty($url)) {
+            if (empty($request->getUrl())) {
                 throw new LocalizedException(__('GTM server container URL must not be empty.'));
             }
 
-            $client->post($url, $this->json->serialize($data));
+            $result = $this->client->post($request);
+            return $result->getStatus() === 200;
         } catch (\Exception $e) {
             $this->logger->error(sprintf('[STAPE WEBHOOK %s] %s', $event, $e->getMessage()));
+            return false;
         }
-        return $client->getStatus() == 200;
     }
 
     /**

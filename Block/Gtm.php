@@ -154,4 +154,23 @@ class Gtm extends \Magento\Framework\View\Element\Template
     {
         return $this->configProvider->isStapeEventSuffixActive() ? EventFormatter::STAPE_EVENT_SUFFIX : '';
     }
+
+    /**
+     * Retrieve GTM snippet html
+     *
+     * @return string
+     */
+    public function getGtmSnippetHtml()
+    {
+        $snippet = $this->configProvider->getGtmSnippet();
+        if (!empty($snippet)) {
+            return $snippet;
+        }
+
+        if ($this->useCookieKeeper()) {
+            return $this->getChildHtml('stape.gtm.advanced');
+        }
+
+        return $this->getChildHtml('stape.gtm.default');
+    }
 }
