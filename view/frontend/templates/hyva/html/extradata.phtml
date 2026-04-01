@@ -28,9 +28,11 @@ if ($product = $block->getProduct()) {
 }
 
 ?>
-<?= /* @noEscape */ $secureRenderer->renderTag('script', ['type' => 'text/javascript'], <<<JS
+<?php $js = <<<JS
     document.addEventListener('DOMContentLoaded', function() {
         window.stapeDataLayer.addExtraData({$block->dataToJson($extraData)});
     })
-JS, false); ?>
+JS;
+?>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', ['type' => 'text/javascript'], $js, false); ?>
 

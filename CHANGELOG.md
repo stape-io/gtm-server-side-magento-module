@@ -1,5 +1,8 @@
 # Changelog
 
+v.1.0.38
+- fixed HEREDOC error happening with html minify enabled in production mode;
+
 v.1.0.37
 - added logic to generate GTM snippet via API;
 
