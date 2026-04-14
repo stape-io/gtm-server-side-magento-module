@@ -121,6 +121,10 @@ class Loader
      */
     public function generateLoader($scope = null)
     {
+        if (empty($this->configProvider->getCustomLoader($scope))) {
+            return null;
+        }
+
         $requestData = [
             'webGtmId' => $this->configProvider->getContainerId($scope),
             'source' => 'magento',
@@ -153,7 +157,7 @@ class Loader
             ]);
 
             if ($result->getStatus() !== 200) {
-                throw new NotFoundException($response->getData('error/error') ?? 'Could not generate GTM snippet');
+                throw new NotFoundException(__($response->getData('error/error')) ?? __('Could not generate GTM snippet'));
             }
 
             return $response->getData('body/jsCode');

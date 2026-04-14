@@ -1,12 +1,15 @@
 # Changelog
 
-v.1.0.38
+v1.0.39
+- fixed exception thrown during config save with empty custom loader;
+
+v1.0.38
 - fixed HEREDOC error happening with html minify enabled in production mode;
 
-v.1.0.37
+v1.0.37
 - added logic to generate GTM snippet via API;
 
-v.1.0.36
+v1.0.36
 - added admin configuration option to control purchase webhook;
 - added payment_type param for purchase webhook;
 - added shipping_tier param for purchase webhook;
