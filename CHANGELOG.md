@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.40
+- fixed issue with refund webhook;
+
 v1.0.39
 - fixed exception thrown during config save with empty custom loader;
 

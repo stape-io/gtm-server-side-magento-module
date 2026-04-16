@@ -100,7 +100,7 @@ class Converter
             $items[] = [
                 'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
-                'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
+                'item_sku' => $orderItem->getProduct()->getData(ProductInterface::SKU),
                 'item_category' => $category ? $category->getName() : '',
                 'price' => $this->priceCurrency->round($item->getBasePrice()),
                 'quantity' => $item->getQty(),

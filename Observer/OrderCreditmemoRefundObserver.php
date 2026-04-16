@@ -62,8 +62,8 @@ class OrderCreditmemoRefundObserver implements ObserverInterface
 
         try {
             $this->adapter->refund($creditmemo);
-        } catch (\Exception $e) {
-            $this->logger->notice($e->getMessage());
+        } catch (\Throwable $e) {
+            $this->logger->notice($e);
         }
     }
 }
