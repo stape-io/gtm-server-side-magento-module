@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.41
+- added try/catch block for product collection;
+
 v1.0.40
 - fixed issue with refund webhook;
 

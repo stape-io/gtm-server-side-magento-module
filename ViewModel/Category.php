@@ -86,11 +86,15 @@ class Category extends DatalayerAbstract implements ArgumentInterface
         $toolbar->setCollection($collection);
         $collection->setPageSize($this->configProvider->getCollectionSize());
         $collection->setCurPage(1);
-
-        $this->eventManager->dispatch(
-            'catalog_block_product_list_collection',
-            ['collection' => $collection]
-        );
+        try {
+            $this->eventManager->dispatch(
+                'catalog_block_product_list_collection',
+                ['collection' => $collection]
+            );
+            // phpcs:disable
+        } catch (\Throwable $e) {
+            // phpcs:enable
+        }
 
         return $collection;
     }
