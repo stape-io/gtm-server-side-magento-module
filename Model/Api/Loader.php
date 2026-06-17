@@ -14,9 +14,14 @@ use GuzzleHttp\Psr7\Utils;
 class Loader
 {
     /*
-     * BASE API URL
+     * GLOBAL API BASE URL
      */
     private const BASE_URL = 'https://api.app.stape.io/api/v2';
+
+    /*
+     * EU API URL (fallback for EU containers that 404 on the global endpoint)
+     */
+    private const EU_BASE_URL = 'https://api.app.eu.stape.io/api/v2';
 
     /**
      * @var Client $client
@@ -80,21 +85,25 @@ class Loader
      * @param string $endpoint
      * @return string
      */
-    protected function getUrl($endpoint)
+    protected function getUrl($endpoint, $baseUrl = self::BASE_URL)
     {
-        return sprintf('%s/%s', self::BASE_URL, $endpoint);
+        return sprintf('%s/%s', $baseUrl, $endpoint);
     }
 
     /**
      * Create request object
      *
      * @param string|null $scope
+     * @param string $baseUrl
      * @return RequestInterface
      */
-    private function createRequest($scope = null)
+    private function createRequest($scope = null, $baseUrl = self::BASE_URL)
     {
         return $this->requestFactory->create()->setUrl(
-            $this->getUrl(sprintf('container/%s/custom-loader', $this->configProvider->getCustomLoader($scope)))
+            $this->getUrl(
+                sprintf('container/%s/custom-loader', $this->configProvider->getCustomLoader($scope)),
+                $baseUrl
+            )
         );
     }
 
@@ -148,8 +157,14 @@ class Loader
 
         try {
 
-            $request = $this->createRequest($scope)->setData($requestData);
-            $result = $this->client->post($request);
+            $result = $this->client->post($this->createRequest($scope)->setData($requestData));
+
+            // EU containers 404 on the global endpoint; retry against the EU endpoint before falling back.
+            if ($result->getStatus() === 404) {
+                $result = $this->client->post(
+                    $this->createRequest($scope, self::EU_BASE_URL)->setData($requestData)
+                );
+            }
 
             /** @var \Magento\Framework\DataObject $response */
             $response = $this->dataObjectFactory->create([
