@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.42
+- added EU API endpoint as backup for custom loader generation;
+
 v1.0.41
 - added try/catch block for product collection;
 
