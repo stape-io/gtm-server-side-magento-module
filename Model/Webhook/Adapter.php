@@ -98,7 +98,8 @@ class Adapter
             }
 
             $result = $this->client->post($request);
-            return $result->getStatus() === 200;
+            $status = (int) $result->getStatus();
+            return $status >= 200 && $status < 300;
         } catch (\Exception $e) {
             $this->logger->error(sprintf('[STAPE WEBHOOK %s] %s', $event, $e->getMessage()));
             return false;
