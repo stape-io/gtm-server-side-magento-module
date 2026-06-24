@@ -95,8 +95,12 @@ class AddToCartComplete implements ObserverInterface
         /** @var \Magento\Catalog\Model\Product $product */
         $product = $observer->getData('product');
 
-        /** @var \Magento\Quote\Model\Quote\Item $quote */
+        /** @var \Magento\Quote\Model\Quote\Item|false $quoteItem */
         $quoteItem = $this->checkoutSession->getQuote()->getItemByProduct($product);
+
+        if (!$quoteItem || !is_object($quoteItem)) {
+            return;
+        }
 
         $qty = (int)$observer->getData('request')->getParam('qty');
         if ($qty === 0) {
