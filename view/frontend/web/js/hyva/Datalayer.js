@@ -165,7 +165,7 @@ export class Datalayer {
                     cartEventData.user_data = eventData.user_data;
                 }
 
-                eventRegistry[eventData.event] = undefined;
+                eventRegistry[eventCode] = undefined;
                 _this.pushEventData(cartEventData);
             });
         }
