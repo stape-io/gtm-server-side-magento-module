@@ -1,5 +1,9 @@
 # Changelog
 
+v1.0.43
+- fixed CSP compatibility for config-stored GTM snippet by whitelisting its inline scripts via content hash (full page cache safe);
+- fixed price formatting to be locale agnostic; 
+
 v1.0.42
 - added EU API endpoint as backup for custom loader generation;
 - fixed HTTP status code handling from webhook responses;
