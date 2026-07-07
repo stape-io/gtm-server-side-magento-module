@@ -1,6 +1,17 @@
 let stapeCustomerData = {};
 const eventRegistry = {};
 
+/**
+ * Format a monetary value as a canonical fixed 2-decimal string
+ * (e.g. 10 => "10.00"), locale-independent so no comma/grouping leaks in.
+ *
+ * @param {*} v
+ * @returns {String}
+ */
+function toMoney(v) {
+    return (Number(v) || 0).toFixed(2);
+}
+
 export class Datalayer {
     constructor(config) {
         this.config = Object.assign({
@@ -77,7 +88,7 @@ export class Datalayer {
             window.dataLayer.push({ecommerce: null});
         }
         if (eventData.ecommerce.value) {
-            eventData.ecommerce.value = eventData.ecommerce.value.toString();
+            eventData.ecommerce.value = toMoney(eventData.ecommerce.value);
         }
         if (isEventAllowed) {
             window.dataLayer.push(eventData);
@@ -127,7 +138,7 @@ export class Datalayer {
                 ecomm_pagetype: this.config?.pageType,
                 ecommerce: {
                     currency: this.config?.extraData?.currency,
-                    value: productInfo?.price?.toString(),
+                    value: toMoney(productInfo?.price),
                     item_list_name: type,
                     items: [
                         productInfo

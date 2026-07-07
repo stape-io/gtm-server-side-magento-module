@@ -6,10 +6,12 @@ use Magento\Catalog\Block\Product\Context;
 use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Stape\Gtm\Model\Price\FormatsPrice;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
 class EventItemsMapper
 {
+    use FormatsPrice;
 
     /**
      * @var PriceCurrencyInterface $priceCurrency
@@ -71,7 +73,7 @@ class EventItemsMapper
                 'item_name' => $product->getName(),
                 'item_id' => $product->getId(),
                 'item_sku' => $product->getSku(),
-                'price' => $this->priceCurrency->round($product->getFinalPrice()),
+                'price' => $this->formatPrice($product->getFinalPrice()),
                 'index' => $index++,
                 'quantity' => '1',
                 'variant_name' => $product->getName(),

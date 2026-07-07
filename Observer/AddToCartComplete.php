@@ -11,10 +11,12 @@ use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Data\DataProviderInterface;
 use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Datalayer\Modifier\CartState;
+use Stape\Gtm\Model\Price\FormatsPrice;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
 class AddToCartComplete implements ObserverInterface
 {
+    use FormatsPrice;
 
     /**
      * @var CategoryResolver $categoryResolver
@@ -113,14 +115,14 @@ class AddToCartComplete implements ObserverInterface
 
         $eventData = $this->cartStateModifier->modifyEventData([
             'currency' => $this->checkoutSession->getQuote()->getBaseCurrencyCode(),
-            'value' => (string) $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
+            'value' => $this->formatPrice($quoteItem->getBasePriceInclTax()),
             'items' => [
                 [
                     'item_name' => $product->getName(),
                     'item_id' => $product->getId(),
                     'item_sku' => $product->getData(ProductInterface::SKU),
                     'item_category' => $category ? $category->getName() : null,
-                    'price' => $this->priceCurrency->round($quoteItem->getBasePriceInclTax()),
+                    'price' => $this->formatPrice($quoteItem->getBasePriceInclTax()),
                     'quantity' => $qty,
                     'variation_id' => $itemVariant->getVariationId(),
                     'item_variant' => $itemVariant->getSku(),

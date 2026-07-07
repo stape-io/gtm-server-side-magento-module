@@ -6,9 +6,11 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Stape\Gtm\Model\Data\ItemVariantFactory;
+use Stape\Gtm\Model\Price\FormatsPrice;
 
 class CartState implements ModifierInterface
 {
+    use FormatsPrice;
 
     /**
      * @var Session $checkoutSession
@@ -75,8 +77,8 @@ class CartState implements ModifierInterface
                 'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'item_name' => $item->getName(),
                 'quantity' => $item->getQty(),
-                'line_total_price' => $this->priceCurrency->round($item->getRowTotalInclTax()),
-                'price' => $this->priceCurrency->round($item->getPrice()),
+                'line_total_price' => $this->formatPrice($item->getRowTotalInclTax()),
+                'price' => $this->formatPrice($item->getPrice()),
             ];
         }
         return $items;
@@ -93,7 +95,7 @@ class CartState implements ModifierInterface
         return [
             'cart_id' => $this->checkoutSession->getData('stape_cart_id'),
             'cart_quantity' => (int) $quote->getItemsQty(),
-            'cart_value' => $this->priceCurrency->round($quote->getBaseGrandTotal()),
+            'cart_value' => $this->formatPrice($quote->getBaseGrandTotal()),
             'currency' => $quote->getBaseCurrencyCode(),
             'lines' => $this->prepareItems($quote)
         ];

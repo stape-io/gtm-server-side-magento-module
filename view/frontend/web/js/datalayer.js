@@ -2,10 +2,21 @@ define([
     'jquery',
     'underscore',
     'ko',
-    'Magento_Customer/js/customer-data',
-    'Magento_Catalog/js/price-utils'
-], function($, _, ko, customerData, priceUtils) {
+    'Magento_Customer/js/customer-data'
+], function($, _, ko, customerData) {
     'use strict';
+
+    /**
+     * Format a monetary value as a canonical fixed 2-decimal string
+     * (e.g. 10 => "10.00"), locale-independent so no comma/grouping leaks in.
+     *
+     * @param {*} v
+     * @returns {String}
+     */
+    function toMoney(v) {
+        return (Number(v) || 0).toFixed(2);
+    }
+
     window.dataLayerConfig = {
         userDataEnabled: false
     };
@@ -61,7 +72,6 @@ define([
         const productItemselector = config.productItemSelector || '.product-item';
         const cartData = customerData.get('cart');
         const lastAddedProduct = ko.observable(null);
-        const priceFormat = {pattern: '%s'};
         window.dataLayerConfig.userDataEnabled = config.isUserDataEnabled || false;
         window.dataLayerConfig.stapeEventSuffix = config?.suffix;
         window.dataLayer = window.dataLayer || [];
@@ -102,7 +112,7 @@ define([
                             cart_id: data?.stape_cart_id,
                             cart_quantity: data.summary_count,
                             currency: config?.data?.ecommerce?.currency,
-                            cart_value: priceUtils.formatPrice(data.subtotalAmount, priceFormat, false),
+                            cart_value: toMoney(data.subtotalAmount),
                             lines: data.items.map(item => {
                                 const lineBaseSku = item.product_sku;
                                 const lineItemSku = item.item_sku || item.product_sku;
@@ -113,12 +123,12 @@ define([
                                     item_name: item.product_name,
                                     item_sku: lineBaseSku,
                                     quantity: item.qty,
-                                    line_total_price: priceUtils.formatPrice(item?.product_price_value * item?.qty, priceFormat, false),
-                                    price: priceUtils.formatPrice(item.product_price_value, priceFormat, false),
+                                    line_total_price: toMoney(item?.product_price_value * item?.qty),
+                                    price: toMoney(item.product_price_value),
                                 }}
                             )
                         },
-                        value: priceUtils.formatPrice(itemDetails?.product_price_value, priceFormat, false),
+                        value: toMoney(itemDetails?.product_price_value),
                         currency: config?.data?.ecommerce?.currency,
                         items: [
                             {
@@ -126,7 +136,7 @@ define([
                                 'item_id': itemDetails.product_id,
                                 'item_sku': baseSku,
                                 'item_category': itemDetails.category,
-                                'price': itemDetails.product_price_value,
+                                'price': toMoney(itemDetails.product_price_value),
                                 'quantity': itemDetails.qty,
                                 'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
                                 'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : itemVariantSku
@@ -144,7 +154,7 @@ define([
                     ecomm_pagetype: 'basket',
                     ecommerce: {
                         cart_state: data?.stape_gtm_events[eventName]?.cart_state || undefined,
-                        value: data?.stape_gtm_events[eventName]?.value?.toString(),
+                        value: toMoney(data?.stape_gtm_events[eventName]?.value),
                         currency: config?.data?.ecommerce?.currency,
                         items: data?.stape_gtm_events[eventName]?.items,
                     }
@@ -210,7 +220,7 @@ define([
                     event: 'remove_from_cart' + config?.suffix,
                     ecomm_pagetype: 'product',
                     ecommerce: {
-                        value: itemDetails?.product_price_value.toString(),
+                        value: toMoney(itemDetails?.product_price_value),
                         currency: config?.data?.ecommerce?.currency,
                         items: [
                             {
@@ -218,7 +228,7 @@ define([
                                 'item_id': itemDetails.product_id,
                                 'item_sku': baseSku,
                                 'item_category': itemDetails.category,
-                                'price': itemDetails.product_price_value,
+                                'price': toMoney(itemDetails.product_price_value),
                                 'quantity': itemDetails.qty,
                                 'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
                                 'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : itemVariantSku
@@ -254,7 +264,7 @@ define([
                     ecomm_pagetype: config?.pageType,
                     ecommerce: {
                         currency: config?.extraData?.currency,
-                        value: productInfo?.price?.toString(),
+                        value: toMoney(productInfo?.price),
                         item_list_name: type,
                         items: [
                             productInfo

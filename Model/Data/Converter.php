@@ -6,10 +6,13 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
+use Stape\Gtm\Model\Price\FormatsPrice;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
 class Converter
 {
+    use FormatsPrice;
+
     /**
      * @var CategoryResolver $categoryResolver
      */
@@ -69,7 +72,7 @@ class Converter
                 'item_name' => $item->getName(),
                 'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'item_category' => $category ? $category->getName() : '',
-                'price' => $this->priceCurrency->round($item->getBasePrice()),
+                'price' => $this->formatPrice($item->getBasePrice()),
                 'quantity' => $item->getQtyOrdered(),
                 'item_variant' => $itemVariant->getSku(),
                 'variation_id' => $itemVariant->getVariationId(),
@@ -102,7 +105,7 @@ class Converter
                 'item_name' => $item->getName(),
                 'item_sku' => $orderItem->getProduct()->getData(ProductInterface::SKU),
                 'item_category' => $category ? $category->getName() : '',
-                'price' => $this->priceCurrency->round($item->getBasePrice()),
+                'price' => $this->formatPrice($item->getBasePrice()),
                 'quantity' => $item->getQty(),
                 'item_variant' => $itemVariant->getSku(),
                 'variation_id' => $itemVariant->getVariationId(),
@@ -149,11 +152,11 @@ class Converter
             'transaction_id' => $order->getIncrementId(),
             'quote_id' => $order->getQuoteId(),
             'affiliation' => $order->getStoreName(),
-            'value' => $this->priceCurrency->round($order->getBaseGrandTotal()),
-            'tax' => $this->priceCurrency->round($order->getBaseTaxAmount()),
-            'shipping' => $this->priceCurrency->round($order->getBaseShippingAmount()),
+            'value' => $this->formatPrice($order->getBaseGrandTotal()),
+            'tax' => $this->formatPrice($order->getBaseTaxAmount()),
+            'shipping' => $this->formatPrice($order->getBaseShippingAmount()),
             'coupon' => $order->getCouponCode(),
-            'discount_amount' => $this->priceCurrency->round($order->getBaseDiscountAmount()),
+            'discount_amount' => $this->formatPrice($order->getBaseDiscountAmount()),
             'currency' => $order->getOrderCurrencyCode(),
             'items' => $this->prepareOrderItems($order)
         ];
@@ -170,11 +173,11 @@ class Converter
         return [
             'transaction_id' => $creditMemo->getOrder()->getIncrementId(),
             'affiliation' => $creditMemo->getOrder()->getStoreName(),
-            'value' => $this->priceCurrency->round($creditMemo->getBaseGrandTotal()),
-            'tax' => $this->priceCurrency->round($creditMemo->getBaseTaxAmount()),
-            'shipping' => $this->priceCurrency->round($creditMemo->getBaseShippingAmount()),
+            'value' => $this->formatPrice($creditMemo->getBaseGrandTotal()),
+            'tax' => $this->formatPrice($creditMemo->getBaseTaxAmount()),
+            'shipping' => $this->formatPrice($creditMemo->getBaseShippingAmount()),
             'coupon' => $creditMemo->getOrder()->getCouponCode(),
-            'discount_amount' => $this->priceCurrency->round($creditMemo->getBaseDiscountAmount()),
+            'discount_amount' => $this->formatPrice($creditMemo->getBaseDiscountAmount()),
             'currency' => $creditMemo->getOrder()->getOrderCurrencyCode(),
             'items' => $this->prepareCreditMemoItems($creditMemo)
         ];

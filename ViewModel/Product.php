@@ -116,7 +116,7 @@ class Product extends DatalayerAbstract implements ArgumentInterface
             'item_id' => $product->getId(),
             'item_sku' => $product->getSku(),
             'item_category' => $this->getCategoryName($product),
-            'price' => $this->priceCurrency->round($product->getFinalPrice()),
+            'price' => $this->formatPrice($product->getFinalPrice()),
         ];
     }
 
@@ -129,12 +129,12 @@ class Product extends DatalayerAbstract implements ArgumentInterface
      */
     public function getEventData()
     {
-        $value = $this->priceCurrency->round($this->getProduct()->getFinalPrice());
+        $value = $this->formatPrice($this->getProduct()->getFinalPrice());
         return [
             'event' => $this->eventFormatter->formatName('view_item'),
             'ecomm_pagetype' => 'product',
             'ecommerce' => [
-                'value' => (string) $value,
+                'value' => $value,
                 'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
                 'items' => array_filter([
                     $this->getProductData()
