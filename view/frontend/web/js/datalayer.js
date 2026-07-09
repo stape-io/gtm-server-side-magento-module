@@ -10,11 +10,18 @@ define([
      * Format a monetary value as a canonical fixed 2-decimal string
      * (e.g. 10 => "10.00"), locale-independent so no comma/grouping leaks in.
      *
+     * Returns undefined for null/empty/non-numeric input so a missing total is
+     * omitted from the payload rather than emitted as a fake "0.00". A genuine
+     * zero still formats as "0.00".
+     *
      * @param {*} v
-     * @returns {String}
+     * @returns {String|undefined}
      */
     function toMoney(v) {
-        return (Number(v) || 0).toFixed(2);
+        if (v === null || v === undefined || v === '' || isNaN(Number(v))) {
+            return undefined;
+        }
+        return Number(v).toFixed(2);
     }
 
     window.dataLayerConfig = {
