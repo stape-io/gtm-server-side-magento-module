@@ -2,10 +2,27 @@ define([
     'mage/utils/wrapper',
     'underscore',
     'Magento_Checkout/js/model/quote',
-    'Magento_Customer/js/customer-data',
-    'Magento_Catalog/js/price-utils'
-], function(wrapper, _, quote, customerData, priceUtils) {
+    'Magento_Customer/js/customer-data'
+], function(wrapper, _, quote, customerData) {
     'use strict';
+
+    /**
+     * Format a monetary value as a canonical fixed 2-decimal string
+     * (e.g. 10 => "10.00"), locale-independent so no comma/grouping leaks in.
+     *
+     * Returns undefined for null/empty/non-numeric input so a missing total is
+     * omitted from the payload rather than emitted as a fake "0.00". A genuine
+     * zero still formats as "0.00".
+     *
+     * @param {*} v
+     * @returns {String|undefined}
+     */
+    function toMoney(v) {
+        if (v === null || v === undefined || v === '' || isNaN(Number(v))) {
+            return undefined;
+        }
+        return Number(v).toFixed(2);
+    }
 
     /**
      * Parse item variant SKU
@@ -27,7 +44,6 @@ define([
      */
     function prepareItems() {
         const cartData = customerData.get('cart')();
-        const priceFormat = Object.assign({...quote.getPriceFormat()}, {'pattern': '%s'});
         return quote.getItems().map(function(itemDetails) {
             const cartItem = _.find(cartData.items, function(cartItem) {
                 return cartItem.item_id === itemDetails.item_id;
@@ -41,7 +57,7 @@ define([
                 'item_id': itemDetails.product_id,
                 'item_sku': baseSku,
                 'item_category': cartItem.category,
-                'price': priceUtils.formatPrice(itemDetails.base_price, priceFormat, false),
+                'price': toMoney(itemDetails.base_price),
                 'quantity': parseInt(itemDetails?.qty),
                 'variation_id': cartItem.child_product_id ? cartItem.child_product_id : undefined,
                 'item_variant': cartItem.child_product_sku ? cartItem.child_product_sku : getItemVariantSku(itemSku, baseSku)
@@ -51,12 +67,11 @@ define([
 
     function getCartState() {
         const cartData = customerData.get('cart')();
-        const priceFormat = Object.assign({...quote.getPriceFormat()}, {'pattern': '%s'});
         return {
             cart_id: cartData?.stape_cart_id,
             cart_quantity: quote?.totals()?.items_qty,
             currency: window.checkoutConfig?.quoteData?.quote_currency_code,
-            cart_value: priceUtils.formatPrice(quote?.totals().grand_total, priceFormat, false),
+            cart_value: toMoney(quote?.totals().grand_total),
             lines: quote?.getItems()?.map(item => {
                 const cartItem = _.find(cartData.items, function(cartItem) {
                     return cartItem.item_id === item.item_id;
@@ -71,8 +86,8 @@ define([
                     'item_name': item.name,
                     'item_sku': baseSku,
                     'quantity': item.qty,
-                    'line_total_price': priceUtils.formatPrice(item?.row_total_incl_tax, priceFormat, false),
-                    'price': priceUtils.formatPrice(item.price, priceFormat, false),
+                    'line_total_price': toMoney(item?.row_total_incl_tax),
+                    'price': toMoney(item.price),
                 }
             })
         }
@@ -108,9 +123,9 @@ define([
                     ecommerce: {
                         cart_state: getCartState(),
                         currency: window.checkoutConfig?.quoteData?.quote_currency_code,
-                        cart_total: quote.totals().grand_total,
+                        cart_total: toMoney(quote.totals().grand_total),
                         cart_quantity: quote.totals().items_qty,
-                        value: quote.totals()?.grand_total?.toString(),
+                        value: toMoney(quote.totals()?.grand_total),
                         items: prepareItems()
                     }
                 })

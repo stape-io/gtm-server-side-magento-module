@@ -139,7 +139,7 @@ class Category extends DatalayerAbstract implements ArgumentInterface
                 'item_name' => $product->getName(),
                 'item_id' => $product->getId(),
                 'item_sku' => $product->getSku(),
-                'item_price' => $this->priceCurrency->round($product->getFinalPrice()),
+                'item_price' => $this->formatPrice($product->getFinalPrice()),
                 'index' => $index++
             ];
         }

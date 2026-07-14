@@ -12,10 +12,13 @@ use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Data\DataProviderInterface;
 use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Datalayer\Modifier\CartState;
+use Stape\Gtm\Model\Price\FormatsPrice;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
 class DeletePlugin
 {
+    use FormatsPrice;
+
     /**
      * @var CheckoutSession $checkoutSession
      */
@@ -120,14 +123,14 @@ class DeletePlugin
             if ($item->isDeleted()) {
                 $itemVariant = $this->itemVariantFactory->createFromQuoteItem($item);
                 $eventData = $this->cartStateModifier->modifyEventData([
-                    'value' => $this->priceCurrency->round($item->getBasePriceInclTax()),
+                    'value' => $this->formatPrice($item->getBasePriceInclTax()),
                     'items' => [
                         [
                             'item_name' => $item->getName(),
                             'item_id' => $item->getProduct()->getId(),
                             'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                             'item_category' => $category ? $category->getName() : null,
-                            'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
+                            'price' => $this->formatPrice($item->getBasePriceInclTax()),
                             'quantity' => $item->getQty(),
                             'variation_id' => $itemVariant->getVariationId(),
                             'item_variant' => $itemVariant->getSku(),

@@ -93,7 +93,7 @@ class Success extends DatalayerAbstract implements ArgumentInterface
                 'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
                 'item_category' => $category ? $category->getName() : null,
-                'price' => $this->priceCurrency->round($item->getBasePriceInclTax()),
+                'price' => $this->formatPrice($item->getBasePriceInclTax()),
                 'quantity' => (int) $item->getQtyOrdered(),
                 'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'purchase_type' => false,
@@ -142,7 +142,7 @@ class Success extends DatalayerAbstract implements ArgumentInterface
                 'city' => $address->getCity(),
                 'zip' => $address->getPostcode(),
                 'new_customer' => $this->orderData->isNewCustomer($address->getEmail()),
-                'customer_lifetime_spent' => $this->priceCurrency->round(
+                'customer_lifetime_spent' => $this->formatPrice(
                     $this->orderData->getLifetimeSpent($address->getEmail())
                 ),
             ],
@@ -151,12 +151,12 @@ class Success extends DatalayerAbstract implements ArgumentInterface
                 'transaction_id' => $order->getIncrementId(),
                 'quote_id' => $order->getQuoteId(),
                 'affiliation' => $this->storeManager->getStore()->getName(),
-                'value' => (string) $this->priceCurrency->round($order->getBaseGrandTotal()),
-                'tax' => $this->priceCurrency->round($order->getBaseTaxAmount()), // tax
-                'shipping' => $this->priceCurrency->round($order->getBaseShippingAmount()), // shipping price
+                'value' => $this->formatPrice($order->getBaseGrandTotal()),
+                'tax' => $this->formatPrice($order->getBaseTaxAmount()), // tax
+                'shipping' => $this->formatPrice($order->getBaseShippingAmount()), // shipping price
                 'coupon' => $order->getCouponCode(), // coupon if exists
-                'sub_total' => $this->priceCurrency->round($order->getBaseSubtotal()),
-                'discount_amount' => $this->priceCurrency->round($order->getBaseDiscountAmount()), //
+                'sub_total' => $this->formatPrice($order->getBaseSubtotal()),
+                'discount_amount' => $this->formatPrice($order->getBaseDiscountAmount()), //
                 'items' => $this->prepareItems($order),
             ],
         ];

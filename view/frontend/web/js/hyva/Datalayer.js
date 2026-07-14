@@ -1,6 +1,24 @@
 let stapeCustomerData = {};
 const eventRegistry = {};
 
+/**
+ * Format a monetary value as a canonical fixed 2-decimal string
+ * (e.g. 10 => "10.00"), locale-independent so no comma/grouping leaks in.
+ *
+ * Returns undefined for null/empty/non-numeric input so a missing total is
+ * omitted from the payload rather than emitted as a fake "0.00". A genuine
+ * zero still formats as "0.00".
+ *
+ * @param {*} v
+ * @returns {String|undefined}
+ */
+function toMoney(v) {
+    if (v === null || v === undefined || v === '' || isNaN(Number(v))) {
+        return undefined;
+    }
+    return Number(v).toFixed(2);
+}
+
 export class Datalayer {
     constructor(config) {
         this.config = Object.assign({
@@ -76,8 +94,8 @@ export class Datalayer {
         if (isEventAllowed && eventData.ecommerce) {
             window.dataLayer.push({ecommerce: null});
         }
-        if (eventData.ecommerce.value) {
-            eventData.ecommerce.value = eventData.ecommerce.value.toString();
+        if (eventData.ecommerce && eventData.ecommerce.value !== undefined) {
+            eventData.ecommerce.value = toMoney(eventData.ecommerce.value);
         }
         if (isEventAllowed) {
             window.dataLayer.push(eventData);
@@ -127,7 +145,7 @@ export class Datalayer {
                 ecomm_pagetype: this.config?.pageType,
                 ecommerce: {
                     currency: this.config?.extraData?.currency,
-                    value: productInfo?.price?.toString(),
+                    value: toMoney(productInfo?.price),
                     item_list_name: type,
                     items: [
                         productInfo

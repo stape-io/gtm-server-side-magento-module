@@ -7,9 +7,12 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
+use Stape\Gtm\Model\Price\FormatsPrice;
 
 abstract class DatalayerAbstract implements DatalayerInterface
 {
+    use FormatsPrice;
+
     /**
      * @var Json
      */
