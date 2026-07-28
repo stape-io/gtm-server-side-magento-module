@@ -1,5 +1,10 @@
 # Changelog
 
+v1.0.44
+- replaced base prices with display prices;
+- fixed currency discrepencies;
+- fixed item price without tax;
+
 v1.0.43
 - fixed CSP compatibility for config-stored GTM snippet by whitelisting its inline scripts via content hash (full page cache safe);
 - fixed price formatting to be locale agnostic; 
