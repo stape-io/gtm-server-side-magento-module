@@ -95,8 +95,8 @@ class CartState implements ModifierInterface
         return [
             'cart_id' => $this->checkoutSession->getData('stape_cart_id'),
             'cart_quantity' => (int) $quote->getItemsQty(),
-            'cart_value' => $this->formatPrice($quote->getBaseGrandTotal()),
-            'currency' => $quote->getBaseCurrencyCode(),
+            'cart_value' => $this->formatPrice($quote->getGrandTotal()),
+            'currency' => $quote->getQuoteCurrencyCode(),
             'lines' => $this->prepareItems($quote)
         ];
     }

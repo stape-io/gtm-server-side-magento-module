@@ -54,7 +54,7 @@ class Order
 
         $select = $collection->getSelect()
             ->reset(\Magento\Framework\Db\Select::COLUMNS)
-            ->columns(new \Zend_Db_Expr('SUM(total_paid) - SUM(total_refunded) as lifetime_spent'));
+            ->columns(new \Zend_Db_Expr('SUM(COALESCE(base_total_paid, 0)) - SUM(COALESCE(base_total_refunded, 0)) as lifetime_spent'));
 
         $result = $select->getConnection()->fetchOne($select);
         return $result ?? 0;

@@ -82,7 +82,7 @@ class Cart extends DatalayerAbstract implements ArgumentInterface
                 'item_id' => $item->getProductId(),
                 'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'item_category' => $category ? $category->getName() : null,
-                'price' => $this->formatPrice($item->getBasePrice()),
+                'price' => $this->formatPrice($item->getPrice()),
                 'quantity' => (int) $item->getQty(),
                 'variation_id' => $itemVariant->getVariationId(),
                 'item_variant' => $itemVariant->getSku(),
@@ -109,10 +109,10 @@ class Cart extends DatalayerAbstract implements ArgumentInterface
             'event' => $this->eventFormatter->formatName('view_cart'),
             'ecomm_pagetype' => 'basket',
             'cart_quantity' => (int) $quote->getItemsQty(),
-            'cart_total' => $this->formatPrice($quote->getBaseGrandTotal()),
+            'cart_total' => $this->formatPrice($quote->getGrandTotal()),
             'ecommerce' => [
-                'value' => $this->formatPrice($quote->getBaseGrandTotal()),
-                'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+                'value' => $this->formatPrice($quote->getGrandTotal()),
+                'currency' => $quote->getQuoteCurrencyCode(),
                 'items' => $this->prepareItems($quote),
             ],
         ];

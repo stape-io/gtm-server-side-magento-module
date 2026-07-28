@@ -114,15 +114,15 @@ class AddToCartComplete implements ObserverInterface
         $itemVariant = $this->itemVariantFactory->createFromQuoteItem($quoteItem);
 
         $eventData = $this->cartStateModifier->modifyEventData([
-            'currency' => $this->checkoutSession->getQuote()->getBaseCurrencyCode(),
-            'value' => $this->formatPrice($quoteItem->getBasePriceInclTax()),
+            'currency' => $this->checkoutSession->getQuote()->getQuoteCurrencyCode(),
+            'value' => $this->formatPrice($quoteItem->getPrice()),
             'items' => [
                 [
                     'item_name' => $product->getName(),
                     'item_id' => $product->getId(),
                     'item_sku' => $product->getData(ProductInterface::SKU),
                     'item_category' => $category ? $category->getName() : null,
-                    'price' => $this->formatPrice($quoteItem->getBasePriceInclTax()),
+                    'price' => $this->formatPrice($quoteItem->getPrice()),
                     'quantity' => $qty,
                     'variation_id' => $itemVariant->getVariationId(),
                     'item_variant' => $itemVariant->getSku(),

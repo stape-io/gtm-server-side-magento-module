@@ -123,14 +123,14 @@ class DeletePlugin
             if ($item->isDeleted()) {
                 $itemVariant = $this->itemVariantFactory->createFromQuoteItem($item);
                 $eventData = $this->cartStateModifier->modifyEventData([
-                    'value' => $this->formatPrice($item->getBasePriceInclTax()),
+                    'value' => $this->formatPrice($item->getPrice()),
                     'items' => [
                         [
                             'item_name' => $item->getName(),
                             'item_id' => $item->getProduct()->getId(),
                             'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                             'item_category' => $category ? $category->getName() : null,
-                            'price' => $this->formatPrice($item->getBasePriceInclTax()),
+                            'price' => $this->formatPrice($item->getPrice()),
                             'quantity' => $item->getQty(),
                             'variation_id' => $itemVariant->getVariationId(),
                             'item_variant' => $itemVariant->getSku(),

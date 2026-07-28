@@ -57,7 +57,7 @@ define([
                 'item_id': itemDetails.product_id,
                 'item_sku': baseSku,
                 'item_category': cartItem.category,
-                'price': toMoney(itemDetails.base_price),
+                'price': toMoney(itemDetails.price),
                 'quantity': parseInt(itemDetails?.qty),
                 'variation_id': cartItem.child_product_id ? cartItem.child_product_id : undefined,
                 'item_variant': cartItem.child_product_sku ? cartItem.child_product_sku : getItemVariantSku(itemSku, baseSku)

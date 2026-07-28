@@ -93,7 +93,7 @@ class Success extends DatalayerAbstract implements ArgumentInterface
                 'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
                 'item_category' => $category ? $category->getName() : null,
-                'price' => $this->formatPrice($item->getBasePriceInclTax()),
+                'price' => $this->formatPrice($item->getPrice()),
                 'quantity' => (int) $item->getQtyOrdered(),
                 'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'purchase_type' => false,
@@ -147,16 +147,16 @@ class Success extends DatalayerAbstract implements ArgumentInterface
                 ),
             ],
             'ecommerce' => [
-                'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+                'currency' => $order->getOrderCurrencyCode(),
                 'transaction_id' => $order->getIncrementId(),
                 'quote_id' => $order->getQuoteId(),
                 'affiliation' => $this->storeManager->getStore()->getName(),
-                'value' => $this->formatPrice($order->getBaseGrandTotal()),
-                'tax' => $this->formatPrice($order->getBaseTaxAmount()), // tax
-                'shipping' => $this->formatPrice($order->getBaseShippingAmount()), // shipping price
+                'value' => $this->formatPrice($order->getGrandTotal()),
+                'tax' => $this->formatPrice($order->getTaxAmount()), // tax
+                'shipping' => $this->formatPrice($order->getShippingAmount()), // shipping price
                 'coupon' => $order->getCouponCode(), // coupon if exists
-                'sub_total' => $this->formatPrice($order->getBaseSubtotal()),
-                'discount_amount' => $this->formatPrice($order->getBaseDiscountAmount()), //
+                'sub_total' => $this->formatPrice($order->getSubtotal()),
+                'discount_amount' => $this->formatPrice($order->getDiscountAmount()), //
                 'items' => $this->prepareItems($order),
             ],
         ];
