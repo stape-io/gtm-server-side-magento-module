@@ -75,12 +75,20 @@ class SameOriginPath extends \Magento\Framework\App\Config\Value
         // strip any pasted query string / fragment
         $value = preg_split('/[?#]/', $value)[0];
 
-        // collapse duplicate slashes; trailing slash, if entered, is preserved
+        // collapse duplicate slashes and drop the trailing one, so the stored
+        // path always matches the proxy URL shown in the admin
         $value = preg_replace('#/{2,}#', '/', $value);
+        $value = rtrim($value, '/');
+
+        if ($value === '') {
+            throw new ValidatorException(
+                __('Proxy path cannot be the store root. Use a sub-path, e.g. "/gtm".')
+            );
+        }
 
         if (strpos($value, '/') !== 0) {
             throw new ValidatorException(
-                __('Proxy path must start with "/" (e.g. "/gtm/").')
+                __('Proxy path must start with "/" (e.g. "/gtm").')
             );
         }
 

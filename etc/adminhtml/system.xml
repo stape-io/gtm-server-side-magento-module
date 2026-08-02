@@ -18,39 +18,34 @@
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 </field>
                 <field id="same_origin_active" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="15" translate="label" type="select">
-                    <label>Same-origin proxy (Beta)</label>
+                    <label><![CDATA[Same-origin proxy <span class="stape-badge">Beta</span>]]></label>
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
-                    <comment><![CDATA[Serve the GTM loader and all sGTM traffic from your own store domain. Requests to the first-party path below are transparently forwarded by Magento to your Stape sGTM container — no DNS, CDN or reverse-proxy setup required.]]></comment>
+                    <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\SameOrigin\Toggle</frontend_model>
+                    <comment><![CDATA[The GTM loader is served from Stape through <strong>your own Magento server</strong>, so it loads first-party.<br />The proxying runs on infrastructure you control, and its load scales with your traffic.]]></comment>
                 </field>
-                <field id="same_origin_path" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="16" translate="label">
+                <field id="same_origin_path" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="17" translate="label">
                     <label>Proxy path</label>
+                    <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\SameOrigin\Path</frontend_model>
                     <backend_model>Stape\Gtm\Model\Backend\SameOriginPath</backend_model>
                     <depends>
                         <field id="stape_gtm/general/same_origin_active">1</field>
                     </depends>
-                    <comment><![CDATA[First-party path used for proxying, e.g. "/gtm/". Must start with "/".]]></comment>
+                    <comment><![CDATA[The path on this domain that requests are proxied through. Must start with a slash. Save settings before testing.]]></comment>
                 </field>
-                <field id="same_origin_api_key" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="17" translate="label" type="text">
+                <field id="same_origin_api_key" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="18" translate="label" type="text">
                     <label>Container API key</label>
                     <depends>
                         <field id="stape_gtm/general/same_origin_active">1</field>
                     </depends>
-                    <comment><![CDATA[Full Stape container <strong>API key</strong> (not the container identifier). You can find it in your <a href="https://app.stape.io/" target="blank">Stape account</a> container settings.]]></comment>
+                    <comment><![CDATA[Paste your container API key, found under <a href="https://app.stape.io/" target="blank">Stape container settings</a> — <strong>not the container identifier</strong>.]]></comment>
                 </field>
-                <field id="same_origin_test" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="18" translate="label" type="button">
-                    <label>Test connection</label>
-                    <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\SameOrigin\Button\Test</frontend_model>
-                    <depends>
-                        <field id="stape_gtm/general/same_origin_active">1</field>
-                    </depends>
-                </field>
-                <field id="container_id" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="20" translate="label">
-                    <label>Web Container Id</label>
+
+                <field id="container_id" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="12" translate="label">
+                    <label>Web Google Tag Manager ID</label>
                     <depends>
                         <field id="stape_gtm/general/active">1</field>
                     </depends>
-                    <comment><![CDATA[Insert web GTM script</br>
-                    Enter the WEB Google Tag Manager ID, should be formatted as "GTM-XXXXXX".]]></comment>
+                    <comment><![CDATA[Enter the WEB Google Tag Manager ID, should be formatted as "GTM-XXXXXX".]]></comment>
                 </field>
                 <field id="custom_domain" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="30" translate="label">
                     <label>Custom Domain</label>

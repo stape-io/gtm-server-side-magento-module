@@ -1,0 +1,37 @@
+<?php
+/**
+ * @var \Stape\Gtm\Block\Adminhtml\System\Config\SameOrigin\Toggle $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<?php $element = $block->getElement(); ?>
+<?php $switchId = $element->getHtmlId() . '_switch'; ?>
+<div class="stape-so-switch">
+    <span class="stape-so-switch__native"><?= $element->getElementHtml(); ?></span>
+    <div class="admin__actions-switch" data-role="switcher">
+        <input type="checkbox"
+               class="admin__actions-switch-checkbox"
+               id="<?= $escaper->escapeHtmlAttr($switchId); ?>"
+            <?= $block->isChecked() ? 'checked="checked"' : ''; ?>/>
+        <label class="admin__actions-switch-label" for="<?= $escaper->escapeHtmlAttr($switchId); ?>">
+            <span class="admin__actions-switch-text"
+                  data-text-on="<?= $escaper->escapeHtmlAttr(__('On')); ?>"
+                  data-text-off="<?= $escaper->escapeHtmlAttr(__('Off')); ?>"></span>
+        </label>
+    </div>
+</div>
+<script type="text/x-magento-init">
+    {
+        "#<?= $escaper->escapeHtmlAttr($switchId); ?>": {
+            "Stape_Gtm/js/system/config/same-origin/toggle": {
+                "selectSelector": "#<?= $escaper->escapeHtmlAttr($element->getHtmlId()); ?>",
+                "inheritSelector": "#<?= $escaper->escapeHtmlAttr($element->getHtmlId()); ?>_inherit",
+                "groupRows": [
+                    "#row_<?= $escaper->escapeHtmlAttr($element->getHtmlId()); ?>",
+                    "#row_stape_gtm_general_same_origin_path",
+                    "#row_stape_gtm_general_same_origin_api_key"
+                ]
+            }
+        }
+    }
+</script>

@@ -34,12 +34,48 @@ define(['jquery', 'mage/translate'], function ($, $t) {
         });
     }
 
+    /**
+     * Copy the given text to the clipboard, falling back to a temporary
+     * selection for browsers without the async clipboard API.
+     *
+     * @param {String} text
+     * @returns {Promise}
+     */
+    function copyToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            return navigator.clipboard.writeText(text);
+        }
+
+        return $.Deferred(function (deferred) {
+            var $temp = $('<textarea>').val(text).css({position: 'fixed', opacity: 0}).appendTo('body');
+
+            $temp[0].select();
+
+            try {
+                document.execCommand('copy') ? deferred.resolve() : deferred.reject();
+            } catch (e) {
+                deferred.reject(e);
+            } finally {
+                $temp.remove();
+            }
+        }).promise();
+    }
+
     return function (config, element) {
         var $button = $(element),
             $message = $(config.messageContainer),
+            $panel = $(config.panelContainer),
+            $checking = $(config.checkingContainer),
+            $success = $(config.successContainer),
+            $error = $(config.errorContainer),
+            $errorText = $(config.errorTextContainer),
+            $url = $(config.urlContainer),
+            $copy = $(config.copyButton),
+            $feedback = $(config.copyFeedback),
             $pathField = $(config.pathFieldSelector),
             savedPath = config.savedPath || '',
-            baseUrl = (config.baseUrl || '').replace(/\/+$/, '');
+            baseUrl = (config.baseUrl || '').replace(/\/+$/, ''),
+            feedbackTimer = null;
 
         /**
          * Update the message element state.
@@ -58,7 +94,7 @@ define(['jquery', 'mage/translate'], function ($, $t) {
          * Post-save only: disabled until the saved path is non-empty and
          * equals the current input value.
          */
-        function syncButtonState() {
+        function syncState() {
             var current = $pathField.length ? String($pathField.val()).trim() : savedPath,
                 ready = savedPath !== '' && current === savedPath;
 
@@ -71,20 +107,74 @@ define(['jquery', 'mage/translate'], function ($, $t) {
             }
         }
 
-        syncButtonState();
-        $pathField.on('input change keyup', syncButtonState);
-
-        $button.on('click', function (e) {
+        /**
+         * Run both probes against the saved path.
+         *
+         * @returns {Promise} resolved with the plain and ".load" probe results
+         */
+        function runProbes() {
             var uid = generateUid(),
                 probeUid = generateUid(),
                 path = '/' + savedPath.replace(/^\/+/, ''),
                 plainUrl = baseUrl + path + (path.indexOf('?') === -1 ? '?' : '&') + 'test-uid=' + encodeURIComponent(uid),
                 loadUrl = baseUrl + path.replace(/\/+$/, '') + '/probe.load?test-uid=' + encodeURIComponent(probeUid);
 
+            return $.when(probe(plainUrl, uid), probe(loadUrl, probeUid));
+        }
+
+        /**
+         * Check the saved proxy path once, on page load, and render the result.
+         */
+        function checkStatus() {
+            if (savedPath === '' || !config.checkStatus) {
+                $panel.hide();
+
+                return;
+            }
+
+            $panel.show();
+            $checking.prop('hidden', false);
+            $success.prop('hidden', true);
+            $error.prop('hidden', true);
+
+            runProbes().done(function (plainOk, loadOk) {
+                $checking.prop('hidden', true);
+
+                if (plainOk && loadOk) {
+                    $success.prop('hidden', false);
+
+                    return;
+                }
+
+                $errorText.text(plainOk ?
+                    $t('The proxy path responds, but extension-suffixed requests (".load") do not reach Magento. Your web server likely serves such paths as static files — route the proxy path to Magento explicitly.') :
+                    $t('The proxy path is not reachable. It is likely shadowed by an existing route, redirect, URL rewrite, or a CDN/web-server rule.')
+                );
+                $error.prop('hidden', false);
+            });
+        }
+
+        syncState();
+        $pathField.on('input change keyup', syncState);
+        checkStatus();
+
+        $copy.on('click', function (e) {
+            e.preventDefault();
+
+            copyToClipboard($url.text()).then(function () {
+                $feedback.prop('hidden', false);
+                clearTimeout(feedbackTimer);
+                feedbackTimer = setTimeout(function () {
+                    $feedback.prop('hidden', true);
+                }, 2000);
+            });
+        });
+
+        $button.on('click', function (e) {
             e.preventDefault();
             showMessage('notice', $t('Testing connection…'));
 
-            $.when(probe(plainUrl, uid), probe(loadUrl, probeUid)).done(function (plainOk, loadOk) {
+            runProbes().done(function (plainOk, loadOk) {
                 if (plainOk && loadOk) {
                     showMessage('success', $t('Success! The proxy path is reachable and responds correctly.'));
                 } else if (plainOk) {

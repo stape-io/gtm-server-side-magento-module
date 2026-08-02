@@ -1,0 +1,212 @@
+.stape-badge {
+    display: inline-block;
+    margin-left: 2px;
+    padding: 1px 6px;
+    color: #fff;
+    background: #eb9a1f;
+    border-radius: 2px;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+.stape-so-switch__native {
+    display: none;
+}
+
+.accordion .config .stape-so-group > td {
+    background: #f2f8fd;
+    border-color: #cfe2f3;
+    border-style: solid;
+    border-width: 0;
+}
+
+.accordion .config .stape-so-group > td:first-child {
+    border-left-width: 1px;
+    padding-left: 20px;
+}
+
+.accordion .config .stape-so-group > td:last-child {
+    border-right-width: 1px;
+    padding-right: 20px;
+}
+
+.accordion .config .stape-so-group_first > td {
+    border-top-width: 1px;
+    padding-top: 20px;
+}
+
+.accordion .config .stape-so-group_first > td:first-child {
+    border-top-left-radius: 4px;
+}
+
+.accordion .config .stape-so-group_first > td:last-child {
+    border-top-right-radius: 4px;
+}
+
+.accordion .config .stape-so-group_last > td {
+    border-bottom-width: 1px;
+    padding-bottom: 20px;
+}
+
+.accordion .config .stape-so-group_last > td > *:last-child {
+    margin-bottom: 0;
+}
+
+.accordion .config .stape-so-group_last > td:first-child {
+    border-bottom-left-radius: 4px;
+}
+
+.accordion .config .stape-so-group_last > td:last-child {
+    border-bottom-right-radius: 4px;
+}
+
+/* keeps the gap above the group equal to the gap the next row adds below it */
+.accordion .config .stape-so-group_before > td {
+    padding-bottom: 22px;
+}
+
+.stape-so-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stape-so-control input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.stape-so-control button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.stape-so-message:empty {
+    display: none;
+}
+
+.stape-so-message {
+    margin-top: 10px;
+}
+
+.stape-so-panel {
+    margin-top: 15px;
+    padding: 15px 20px;
+    background: #fff;
+    border: 1px solid #e3e3e3;
+    border-radius: 4px;
+    line-height: 2.2rem;
+}
+
+.stape-so-panel__line {
+    margin: 0;
+}
+
+.stape-so-panel__checking {
+    color: #6f6f6f;
+}
+
+.stape-so-panel__state_error {
+    color: #b30000;
+}
+
+.stape-so-spinner {
+    display: inline-block;
+    box-sizing: border-box;
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+    border: 2px solid #d6d6d6;
+    border-top-color: #1979c3;
+    border-radius: 50%;
+    vertical-align: middle;
+    animation: stape-so-spin .8s linear infinite;
+}
+
+@keyframes stape-so-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.stape-so-panel__line + .stape-so-panel__line {
+    margin-top: 4px;
+}
+
+.stape-so-panel__url,
+.stape-so-panel code {
+    color: #1979c3;
+    font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+    font-weight: 700;
+    font-size: 1.3rem;
+}
+
+.stape-so-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 26px;
+    height: 26px;
+    margin: 0 2px 0 4px;
+    padding: 6px;
+    color: #6f6f6f;
+    background: none;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.stape-so-copy svg {
+    display: block;
+}
+
+.stape-so-copy:focus {
+    background: none;
+    outline: none;
+}
+
+.stape-so-copy:focus-visible {
+    outline: 1px solid #007bdb;
+}
+
+.stape-so-copy:hover {
+    color: #303030;
+    background: #f0f0f0;
+}
+
+.stape-so-copy-wrap {
+    position: relative;
+    display: inline-flex;
+    vertical-align: middle;
+}
+
+.stape-so-copy__feedback {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    z-index: 10;
+    margin-bottom: 8px;
+    padding: 4px 8px;
+    color: #fff;
+    background: #303030;
+    border-radius: 3px;
+    font-size: 1.2rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    transform: translateX(-50%);
+}
+
+.stape-so-copy__feedback::after {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    content: '';
+    border: 4px solid transparent;
+    border-top-color: #303030;
+    transform: translateX(-50%);
+}
