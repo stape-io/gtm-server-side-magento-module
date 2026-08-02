@@ -13,12 +13,12 @@ class Path extends Field
     /**
      * Test connection button html id
      */
-    const BUTTON_ID = 'stape_same_origin_test';
+    public const BUTTON_ID = 'stape_same_origin_test';
 
     /**
      * Panel template, rendered below the field comment
      */
-    const PANEL_TEMPLATE = 'Stape_Gtm::system/config/same-origin/path-panel.phtml';
+    public const PANEL_TEMPLATE = 'Stape_Gtm::system/config/same-origin/path-panel.phtml';
 
     /**
      * @var string $_template

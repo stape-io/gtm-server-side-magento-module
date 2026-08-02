@@ -11,7 +11,9 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\Escaper;
+use Magento\Framework\Session\Config\ConfigInterface as SessionConfig;
 use Magento\Store\Model\StoreManagerInterface;
+use Psr\Http\Message\UriFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Stape\Gtm\Controller\Router\SameOriginProxy;
 use Stape\Gtm\Model\ConfigProvider;
@@ -38,22 +40,41 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
     private const METHODS_WITH_BODY = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
     /*
-     * Request headers never forwarded upstream (lowercase)
+     * Request headers never forwarded upstream (lowercase). "cookie" and "referer"
+     * are re-added in a sanitized form; "authorization" is dropped so store
+     * credentials (e.g. staging basic auth) never leave the server.
      */
     private const STRIP_REQUEST_HEADERS = [
         'host', 'connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization',
         'te', 'trailer', 'transfer-encoding', 'upgrade', 'expect', 'content-length',
-        'accept-encoding',
+        'accept-encoding', 'authorization', 'cookie', 'referer',
     ];
 
     /*
      * Response headers never forwarded back to the client (lowercase):
-     * hop-by-hop headers plus restrictive security headers from upstream
+     * hop-by-hop headers plus the encoding/length of the decoded body
      */
     private const STRIP_RESPONSE_HEADERS = [
         'connection', 'keep-alive', 'transfer-encoding', 'content-encoding',
         'content-length', 'te', 'trailer', 'upgrade',
-        'x-frame-options', 'x-content-type-options', 'referrer-policy',
+    ];
+
+    /*
+     * Applied to responses the container does not describe itself: the test probe,
+     * local error responses and upstream responses without a Cache-Control header
+     */
+    private const NO_CACHE_HEADERS = [
+        'Cache-Control' => 'no-store, no-cache, private, max-age=0',
+    ];
+
+    /*
+     * Store cookies never forwarded upstream and never accepted from upstream
+     * (lowercase): session, authentication, CSRF and private content cookies
+     */
+    private const RESERVED_COOKIES = [
+        'phpsessid', 'admin', 'form_key', 'x-magento-vary', 'private_content_version',
+        'persistent_shopping_cart', 'mage-cache-sessid', 'mage-messages', 'section_data_ids',
+        'user_allowed_save_cookie', 'guest-view', 'login_redirect',
     ];
 
     /**
@@ -87,6 +108,16 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
     private $escaper;
 
     /**
+     * @var SessionConfig $sessionConfig
+     */
+    private $sessionConfig;
+
+    /**
+     * @var UriFactoryInterface $uriFactory
+     */
+    private $uriFactory;
+
+    /**
      * @var LoggerInterface $logger
      */
     private $logger;
@@ -100,6 +131,8 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
      * @param StoreManagerInterface $storeManager
      * @param ClientFactory $clientFactory
      * @param Escaper $escaper
+     * @param SessionConfig $sessionConfig
+     * @param UriFactoryInterface $uriFactory
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -109,6 +142,8 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
         StoreManagerInterface $storeManager,
         ClientFactory $clientFactory,
         Escaper $escaper,
+        SessionConfig $sessionConfig,
+        UriFactoryInterface $uriFactory,
         LoggerInterface $logger
     ) {
         $this->request = $request;
@@ -117,6 +152,8 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
         $this->storeManager = $storeManager;
         $this->clientFactory = $clientFactory;
         $this->escaper = $escaper;
+        $this->sessionConfig = $sessionConfig;
+        $this->uriFactory = $uriFactory;
         $this->logger = $logger;
     }
 
@@ -146,19 +183,18 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
         // test probe short-circuit: never forwarded upstream
         $testUid = $this->request->getParam('test-uid');
         if (is_string($testUid) && $testUid !== '') {
-            return $this->createResult(200)
+            return $this->applyNoCacheHeaders($this->createResult(200))
                 ->setHeader('Content-Type', 'text/plain; charset=utf-8', true)
-                ->setHeader('Cache-Control', 'no-store', true)
                 ->setContents($this->escaper->escapeHtml($testUid));
         }
 
         if (strlen($this->configProvider->getSameOriginApiKey() ?? '') < 1) {
-            return $this->createResult(404);
+            return $this->applyNoCacheHeaders($this->createResult(404));
         }
 
         $endpoint = $this->configProvider->getSameOriginEndpoint();
         if (empty($endpoint)) {
-            return $this->createResult(502);
+            return $this->applyNoCacheHeaders($this->createResult(502));
         }
 
         return $this->proxy($endpoint);
@@ -196,7 +232,7 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
             'allow_redirects' => false,
             'http_errors' => false,
             'verify' => true,
-            'decode_content' => false,
+            'decode_content' => true,
         ];
 
         if (in_array($method, self::METHODS_WITH_BODY, true)) {
@@ -208,10 +244,11 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
             $status = (int) $response->getStatusCode();
         } catch (\Throwable $e) {
             $this->logger->debug(sprintf('[STAPE] Same-origin proxy request failed. Error: %s', $e->getMessage()));
-            return $this->createResult(502);
+            return $this->applyNoCacheHeaders($this->createResult(502));
         }
 
         $result = $this->createResult($status);
+        $hasCacheControl = false;
 
         foreach ($response->getHeaders() as $name => $values) {
             $lowerName = strtolower($name);
@@ -220,9 +257,20 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
                 continue;
             }
 
+            if ($lowerName === 'cache-control') {
+                $hasCacheControl = true;
+                $result->setHeader($name, $this->forcePrivateCacheControl(implode(', ', $values)), true);
+                continue;
+            }
+
             if ($lowerName === 'set-cookie') {
                 $first = true;
                 foreach ($values as $cookie) {
+                    // upstream must not be able to set or overwrite store cookies
+                    if ($this->isReservedCookie((string) strstr($cookie, '=', true))) {
+                        continue;
+                    }
+
                     $cookie = preg_replace('/;\s*domain=[^;]*/i', '', $cookie);
                     $result->setHeader($name, $cookie, $first);
                     $first = false;
@@ -235,6 +283,10 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
 
         if ($forceJsContentType) {
             $result->setHeader('Content-Type', 'application/javascript; charset=utf-8', true);
+        }
+
+        if (!$hasCacheControl) {
+            $this->applyNoCacheHeaders($result);
         }
 
         $result->setContents((string) $response->getBody());
@@ -252,12 +304,70 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
     {
         $result = $this->rawFactory->create();
         $result->setHttpResponseCode($status);
+
         return $result;
     }
 
     /**
-     * Build headers forwarded upstream: all client headers except the strip
-     * list, plus x-stape-host with the first-party store host
+     * Mark the result as non-cacheable
+     *
+     * @param Raw $result
+     * @return Raw
+     */
+    private function applyNoCacheHeaders($result)
+    {
+        foreach (self::NO_CACHE_HEADERS as $name => $value) {
+            $result->setHeader($name, $value, true);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Keep the upstream freshness directives but bar shared caches
+     *
+     * Proxy responses are keyed by URL only while their content is visitor specific,
+     * so a shared cache (Varnish, CDN) must never store them. "private" is also what
+     * Magento's own Varnish VCL matches on to mark a response uncacheable.
+     *
+     * @param string $value
+     * @return string
+     */
+    private function forcePrivateCacheControl($value)
+    {
+        $directives = [];
+        $isPrivate = false;
+
+        foreach (explode(',', $value) as $directive) {
+            $directive = trim($directive);
+            $name = strtolower((string) strstr($directive . '=', '=', true));
+
+            // "public" would contradict the "private" appended below
+            if ($name === '' || $name === 'public') {
+                continue;
+            }
+
+            $isPrivate = $isPrivate || $name === 'private' || $name === 'no-store';
+            $directives[] = $directive;
+        }
+
+        if (empty($directives)) {
+            return self::NO_CACHE_HEADERS['Cache-Control'];
+        }
+
+        if (!$isPrivate) {
+            $directives[] = 'private';
+        }
+
+        return implode(', ', $directives);
+    }
+
+    /**
+     * Build headers forwarded upstream
+     *
+     * All client headers except the strip list, a cookie header without store
+     * cookies, a referer reduced to its origin, plus x-stape-host with the
+     * first-party store host.
      *
      * @return array
      */
@@ -273,6 +383,14 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
             $headers[$name][] = $header->getFieldValue();
         }
 
+        if ($cookie = $this->filterCookieHeader((string) $this->request->getHeader('Cookie'))) {
+            $headers['Cookie'] = [$cookie];
+        }
+
+        if ($referer = $this->reduceRefererToOrigin((string) $this->request->getHeader('Referer'))) {
+            $headers['Referer'] = [$referer];
+        }
+
         if ($host = $this->getStoreHost()) {
             $headers['x-stape-host'] = [$host];
         }
@@ -286,6 +404,94 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
     }
 
     /**
+     * Drop store cookies from the client cookie header
+     *
+     * Analytics cookies the container relies on are preserved.
+     *
+     * @param string $value
+     * @return string
+     */
+    private function filterCookieHeader($value)
+    {
+        $kept = [];
+
+        foreach (explode(';', $value) as $pair) {
+            $pair = trim($pair);
+            if ($pair === '') {
+                continue;
+            }
+
+            $name = strstr($pair, '=', true);
+            if ($this->isReservedCookie($name === false ? $pair : $name)) {
+                continue;
+            }
+
+            $kept[] = $pair;
+        }
+
+        return implode('; ', $kept);
+    }
+
+    /**
+     * Reduce the referer to its origin
+     *
+     * Keeps storefront paths and query strings (search terms, checkout or
+     * password reset parameters) from being disclosed upstream.
+     *
+     * @param string $value
+     * @return string
+     */
+    private function reduceRefererToOrigin($value)
+    {
+        try {
+            $uri = $this->uriFactory->createUri(trim($value));
+        } catch (\Exception $e) {
+            return '';
+        }
+
+        $host = $uri->getHost();
+
+        if ($host === '') {
+            return '';
+        }
+
+        $port = $uri->getPort();
+
+        return ($uri->getScheme() ?: 'https') . '://' . $host . ($port === null ? '' : ':' . $port) . '/';
+    }
+
+    /**
+     * Check whether the cookie name belongs to the store itself
+     *
+     * @param string $name
+     * @return bool
+     */
+    private function isReservedCookie($name)
+    {
+        $name = strtolower(trim($name));
+
+        if ($name === '') {
+            return false;
+        }
+
+        return in_array($name, self::RESERVED_COOKIES, true) || $name === $this->getSessionCookieName();
+    }
+
+    /**
+     * Retrieve the configured session cookie name
+     *
+     * @return string
+     */
+    private function getSessionCookieName()
+    {
+        try {
+            return strtolower((string) $this->sessionConfig->getName());
+        } catch (\Exception $e) {
+            return '';
+        }
+    }
+
+    /**
      * Retrieve host of the store base URL for the current store view
      *
      * @return string|null
@@ -293,8 +499,8 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
     private function getStoreHost()
     {
         try {
-            $parts = parse_url($this->storeManager->getStore()->getBaseUrl());
-            return $parts['host'] ?? null;
+            $host = $this->uriFactory->createUri($this->storeManager->getStore()->getBaseUrl())->getHost();
+            return $host !== '' ? $host : null;
         } catch (\Exception $e) {
             return null;
         }

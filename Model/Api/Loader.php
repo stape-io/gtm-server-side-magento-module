@@ -7,10 +7,11 @@ use Magento\Framework\Exception\NotFoundException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Api\Request\RequestInterfaceFactory;
+use Psr\Http\Message\UriFactoryInterface;
+use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Stape\Gtm\Model\Api\Request\RequestInterface;
 use Stape\Gtm\Model\ConfigProvider;
-use GuzzleHttp\Psr7\Utils;
 
 class Loader
 {
@@ -60,6 +61,11 @@ class Loader
     private $storeManager;
 
     /**
+     * @var UriFactoryInterface $uriFactory
+     */
+    private $uriFactory;
+
+    /**
      * Define class dependencies
      *
      * @param Client $client
@@ -68,6 +74,7 @@ class Loader
      * @param Json $json
      * @param DataObjectFactory $dataObjectFactory
      * @param StoreManagerInterface $storeManager
+     * @param UriFactoryInterface $uriFactory
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -77,6 +84,7 @@ class Loader
         Json $json,
         DataObjectFactory $dataObjectFactory,
         StoreManagerInterface $storeManager,
+        UriFactoryInterface $uriFactory,
         LoggerInterface $logger
     ) {
         $this->client = $client;
@@ -86,12 +94,14 @@ class Loader
         $this->logger = $logger;
         $this->dataObjectFactory = $dataObjectFactory;
         $this->storeManager = $storeManager;
+        $this->uriFactory = $uriFactory;
     }
 
     /**
      * Retrieve endpoint
      *
      * @param string $endpoint
+     * @param string $baseUrl
      * @return string
      */
     protected function getUrl($endpoint, $baseUrl = self::BASE_URL)
@@ -120,12 +130,12 @@ class Loader
      * Create URI object
      *
      * @param string $uri
-     * @return \Psr\Http\Message\UriInterface|null
+     * @return UriInterface|null
      */
     private function createUri($uri)
     {
         try {
-            return Utils::uriFor($uri);
+            return $this->uriFactory->createUri($uri);
         } catch (\Exception $e) {
             return null;
         }
@@ -167,9 +177,9 @@ class Loader
             return null;
         }
 
-        $parts = parse_url($baseUrl);
+        $uri = $this->createUri($baseUrl);
 
-        return $parts['host'] ?? null;
+        return $uri && $uri->getHost() !== '' ? $uri->getHost() : null;
     }
 
     /**
@@ -269,7 +279,9 @@ class Loader
             ]);
 
             if ($result->getStatus() !== 200) {
-                throw new NotFoundException(__($response->getData('error/error')) ?? __('Could not generate GTM snippet'));
+                throw new NotFoundException(
+                    __($response->getData('error/error')) ?? __('Could not generate GTM snippet')
+                );
             }
 
             $jsCode = $response->getData('body/jsCode');

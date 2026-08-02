@@ -9,7 +9,10 @@
     "require": {
         "php": ">=7.4.0",
         "jeremykendall/php-domain-parser": "^6.0",
-        "guzzlehttp/guzzle": "^7.0"
+        "guzzlehttp/guzzle": "^6.3.3 || ^7.0",
+        "guzzlehttp/psr7": "^1.6 || ^2.0",
+        "psr/http-factory": "^1.0",
+        "psr/http-message": "^1.0 || ^2.0"
     },
     "autoload": {
         "files": [

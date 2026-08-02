@@ -54,7 +54,7 @@ class SameOriginProxy implements RouterInterface
      */
     public function match(RequestInterface $request)
     {
-        if (!$this->configProvider->isSameOriginActive()) {
+        if (!$this->configProvider->isActive() || !$this->configProvider->isSameOriginActive()) {
             return null;
         }
 

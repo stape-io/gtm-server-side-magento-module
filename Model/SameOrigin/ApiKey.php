@@ -16,6 +16,16 @@ class ApiKey
      */
     private const DEFAULT_TLD = 'io';
 
+    /*
+     * Region and identifier are used as DNS labels of the endpoint host
+     */
+    private const LABEL_PATTERN = '/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i';
+
+    /*
+     * TLD segment of the endpoint host
+     */
+    private const TLD_PATTERN = '/^[a-z]{2,63}$/i';
+
     /**
      * Parse the API key into its segments
      *
@@ -26,8 +36,18 @@ class ApiKey
     {
         $parts = explode(':', trim((string) $key));
 
-        // invalid if fewer than 3 non-empty segments
-        if (count($parts) < 3 || strlen($parts[0]) < 1 || strlen($parts[1]) < 1 || strlen($parts[2]) < 1) {
+        // invalid if the segment count is unexpected or the secret is empty
+        if (count($parts) < 3 || count($parts) > 4 || strlen($parts[2]) < 1) {
+            return null;
+        }
+
+        $tld = (isset($parts[3]) && strlen($parts[3]) > 0) ? $parts[3] : self::DEFAULT_TLD;
+
+        // the segments end up in the endpoint host, so they must be valid host labels
+        if (!preg_match(self::LABEL_PATTERN, $parts[0])
+            || !preg_match(self::LABEL_PATTERN, $parts[1])
+            || !preg_match(self::TLD_PATTERN, $tld)
+        ) {
             return null;
         }
 
@@ -35,7 +55,7 @@ class ApiKey
             'region' => $parts[0],
             'identifier' => $parts[1],
             'secret' => $parts[2],
-            'tld' => (isset($parts[3]) && strlen($parts[3]) > 0) ? $parts[3] : self::DEFAULT_TLD,
+            'tld' => $tld,
         ];
     }
 

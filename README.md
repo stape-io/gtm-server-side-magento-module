@@ -42,8 +42,18 @@ Notes:
   location ^~ /gtm/ { try_files $uri /index.php$is_args$args; }
   ```
 
-- Varnish users may need a `pass` rule (VCL) for the configured proxy path so proxied
-  responses are never cached.
+- Proxy responses keep the cache lifetime your Stape container sets, but are always marked `private`, so browsers may reuse them while Magento's full page cache and any standards-compliant shared cache pass them through. Add an explicit rule if a cache in front of Magento is configured to ignore origin cache headers, e.g. Varnish VCL:
+
+  ```vcl
+  sub vcl_recv {
+      if (req.url ~ "^/gtm/") {
+          return (pass);
+      }
+  }
+  ```
+
+  On a CDN, create an equivalent bypass rule for the same path prefix. Replace `/gtm/` with the configured proxy path in both cases.
+  
 - While the same-origin proxy is fully configured, Cookie Keeper is superseded by
   first-party delivery and treated as disabled.
 
