@@ -241,6 +241,37 @@ class Loader
     }
 
     /**
+     * Rewrite the loader extension from ".js" to ".load"
+     *
+     * Web servers often serve ".js" paths as static files, so the same-origin loader is
+     * requested with the ".load" extension and mapped back by the proxy controller.
+     *
+     * The match is anchored to a URL whose first path segment is the configured proxy
+     * path, so it cannot touch the GTM bootstrap event name ("gtm.js") or third-party
+     * URLs that merely contain the proxy path further down their own path.
+     *
+     * @param string $jsCode
+     * @param string|int $scope
+     * @return string
+     */
+    private function rewriteLoaderExtension($jsCode, $scope)
+    {
+        $path = rtrim((string) $this->configProvider->getSameOriginPath($scope), '/');
+
+        if ($path === '') {
+            return $jsCode;
+        }
+
+        $path = '/' . ltrim($path, '/');
+
+        $pattern = '#((?:https?:)?//[^/"\'\s?]+'
+            . preg_quote($path, '#')
+            . '(?:/[A-Za-z0-9._~-]+)+)\.js(?=[?"\'])#i';
+
+        return preg_replace($pattern, '$1.load', $jsCode);
+    }
+
+    /**
      * Generate GTM code snippet
      *
      * @param string|int $scope
@@ -287,7 +318,7 @@ class Loader
             $jsCode = $response->getData('body/jsCode');
 
             if ($sameOrigin && is_string($jsCode)) {
-                $jsCode = preg_replace('/\.js(?=(\?|"|\'))/', '.load', $jsCode);
+                $jsCode = $this->rewriteLoaderExtension($jsCode, $scope);
             }
 
             return $jsCode;
