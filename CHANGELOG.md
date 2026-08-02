@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.44
+- added same-origin proxy (Beta): serve the GTM loader and all sGTM traffic from the store's own domain via a configurable first-party path, with container API key parsing, custom-loader integration, admin Test connection button and save-time path conflict detection;
+
 v1.0.43
 - fixed CSP compatibility for config-stored GTM snippet by whitelisting its inline scripts via content hash (full page cache safe);
 - fixed price formatting to be locale agnostic; 

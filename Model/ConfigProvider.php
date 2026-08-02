@@ -5,6 +5,7 @@ namespace Stape\Gtm\Model;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\ScopeInterface;
+use Stape\Gtm\Model\SameOrigin\ApiKey;
 
 class ConfigProvider
 {
@@ -42,6 +43,21 @@ class ConfigProvider
      * XPATH for GTM Cookie Keeper config value
      */
     public const XPATH_GTM_KEEP_COOKIE = 'stape_gtm/general/cookie_keeper';
+
+    /*
+     * XPATH for same-origin proxy toggle
+     */
+    public const XPATH_SAME_ORIGIN_ACTIVE = 'stape_gtm/general/same_origin_active';
+
+    /*
+     * XPATH for same-origin proxy path
+     */
+    public const XPATH_SAME_ORIGIN_PATH = 'stape_gtm/general/same_origin_path';
+
+    /*
+     * XPATH for same-origin container API key
+     */
+    public const XPATH_SAME_ORIGIN_API_KEY = 'stape_gtm/general/same_origin_api_key';
 
     /*
      * XPATH for data layer e-commerce events
@@ -109,17 +125,25 @@ class ConfigProvider
     private $jsonSerializer;
 
     /**
+     * @var ApiKey $apiKey
+     */
+    private $apiKey;
+
+    /**
      * Define class dependencies
      *
      * @param ScopeConfigInterface $scopeConfig
      * @param Json $jsonSerializer
+     * @param ApiKey $apiKey
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        Json $jsonSerializer
+        Json $jsonSerializer,
+        ApiKey $apiKey
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->jsonSerializer = $jsonSerializer;
+        $this->apiKey = $apiKey;
     }
 
     /**
@@ -194,6 +218,78 @@ class ConfigProvider
     }
 
     /**
+     * Check if same-origin proxy is enabled
+     *
+     * @param string|null $scopeCode
+     * @return bool
+     */
+    public function isSameOriginActive($scopeCode = null)
+    {
+        return $this->scopeConfig->isSetFlag(self::XPATH_SAME_ORIGIN_ACTIVE, ScopeInterface::SCOPE_STORE, $scopeCode);
+    }
+
+    /**
+     * Retrieve same-origin proxy path
+     *
+     * @param string|null $scopeCode
+     * @return string|null
+     */
+    public function getSameOriginPath($scopeCode = null)
+    {
+        return $this->scopeConfig->getValue(self::XPATH_SAME_ORIGIN_PATH, ScopeInterface::SCOPE_STORE, $scopeCode);
+    }
+
+    /**
+     * Retrieve same-origin container API key
+     *
+     * @param string|null $scopeCode
+     * @return string|null
+     */
+    public function getSameOriginApiKey($scopeCode = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XPATH_SAME_ORIGIN_API_KEY,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        ) ?: null;
+    }
+
+    /**
+     * Check if same-origin proxy is fully configured (toggle + path + API key)
+     *
+     * @param string|null $scopeCode
+     * @return bool
+     */
+    public function isSameOriginConfigured($scopeCode = null)
+    {
+        return $this->isSameOriginActive($scopeCode)
+            && strlen($this->getSameOriginPath($scopeCode) ?? '') > 0
+            && strlen($this->getSameOriginApiKey($scopeCode) ?? '') > 0;
+    }
+
+    /**
+     * Retrieve container identifier parsed from the same-origin API key
+     *
+     * @param string|null $scopeCode
+     * @return string|null
+     */
+    public function getSameOriginIdentifier($scopeCode = null)
+    {
+        return $this->apiKey->getIdentifier($this->getSameOriginApiKey($scopeCode));
+    }
+
+    /**
+     * Retrieve upstream sGTM endpoint parsed from the same-origin API key
+     *
+     * @param string|null $scopeCode
+     * @return string|null
+     */
+    public function getSameOriginEndpoint($scopeCode = null)
+    {
+        return $this->apiKey->getEndpoint($this->getSameOriginApiKey($scopeCode));
+    }
+
+    /**
      * Check if cookie keeper should be used
      *
      * @param string|null $scopeCode
@@ -201,6 +297,10 @@ class ConfigProvider
      */
     public function useCookieKeeper($scopeCode = null)
     {
+        if ($this->isSameOriginConfigured($scopeCode)) {
+            return false;
+        }
+
         if (strlen($this->getCustomLoader($scopeCode) ?? '') < 1) {
             return false;
         }

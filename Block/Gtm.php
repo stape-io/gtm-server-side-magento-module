@@ -61,7 +61,27 @@ class Gtm extends \Magento\Framework\View\Element\Template
      */
     public function getDomain()
     {
+        if ($this->configProvider->isSameOriginConfigured()) {
+            return $this->getSameOriginBaseUrl();
+        }
+
         return trim($this->configProvider->getCustomDomain() ?: 'https://www.googletagmanager.com', '/');
+    }
+
+    /**
+     * Retrieve effective GTM container URL for same-origin mode (store base URL + proxy path)
+     *
+     * @return string
+     */
+    private function getSameOriginBaseUrl()
+    {
+        try {
+            $baseUrl = rtrim($this->_storeManager->getStore()->getBaseUrl(), '/');
+        } catch (\Exception $e) {
+            $baseUrl = '';
+        }
+
+        return rtrim($baseUrl . $this->configProvider->getSameOriginPath(), '/');
     }
 
     /**
@@ -71,6 +91,10 @@ class Gtm extends \Magento\Framework\View\Element\Template
      */
     public function getLoader()
     {
+        if ($this->configProvider->isSameOriginConfigured()) {
+            return $this->configProvider->getSameOriginIdentifier() ?: 'gtm';
+        }
+
         if (!$customLoader = $this->configProvider->getCustomLoader()) {
             return 'gtm';
         }

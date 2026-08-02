@@ -2,6 +2,17 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <preference type="Stape\Gtm\Model\Data\SessionDataProvider" for="Stape\Gtm\Model\Data\DataProviderInterface"/>
     <preference type="Stape\Gtm\Model\Datalayer\Modifier\Pool" for="Stape\Gtm\Model\Datalayer\Modifier\PoolInterface"/>
+    <type name="Magento\Framework\App\RouterList">
+        <arguments>
+            <argument name="routerList" xsi:type="array">
+                <item name="stape_gtm_same_origin_proxy" xsi:type="array">
+                    <item name="class" xsi:type="string">Stape\Gtm\Controller\Router\SameOriginProxy</item>
+                    <item name="disable" xsi:type="boolean">false</item>
+                    <item name="sortOrder" xsi:type="string">15</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
     <type name="Magento\Framework\App\Response\Http">
         <plugin name="stape_gtm_server_side_cookie" type="Stape\Gtm\Plugin\HttpPlugin" sortOrder="1"/>
     </type>

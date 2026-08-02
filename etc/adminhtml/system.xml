@@ -17,6 +17,33 @@
                     <label>Active</label>
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 </field>
+                <field id="same_origin_active" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="15" translate="label" type="select">
+                    <label>Same-origin proxy (Beta)</label>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                    <comment><![CDATA[Serve the GTM loader and all sGTM traffic from your own store domain. Requests to the first-party path below are transparently forwarded by Magento to your Stape sGTM container — no DNS, CDN or reverse-proxy setup required.]]></comment>
+                </field>
+                <field id="same_origin_path" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="16" translate="label">
+                    <label>Proxy path</label>
+                    <backend_model>Stape\Gtm\Model\Backend\SameOriginPath</backend_model>
+                    <depends>
+                        <field id="stape_gtm/general/same_origin_active">1</field>
+                    </depends>
+                    <comment><![CDATA[First-party path used for proxying, e.g. "/gtm/". Must start with "/".]]></comment>
+                </field>
+                <field id="same_origin_api_key" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="17" translate="label" type="text">
+                    <label>Container API key</label>
+                    <depends>
+                        <field id="stape_gtm/general/same_origin_active">1</field>
+                    </depends>
+                    <comment><![CDATA[Full Stape container <strong>API key</strong> (not the container identifier). You can find it in your <a href="https://app.stape.io/" target="blank">Stape account</a> container settings.]]></comment>
+                </field>
+                <field id="same_origin_test" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="18" translate="label" type="button">
+                    <label>Test connection</label>
+                    <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\SameOrigin\Button\Test</frontend_model>
+                    <depends>
+                        <field id="stape_gtm/general/same_origin_active">1</field>
+                    </depends>
+                </field>
                 <field id="container_id" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="20" translate="label">
                     <label>Web Container Id</label>
                     <depends>
@@ -27,6 +54,9 @@
                 </field>
                 <field id="custom_domain" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="30" translate="label">
                     <label>Custom Domain</label>
+                    <depends>
+                        <field id="stape_gtm/general/same_origin_active">0</field>
+                    </depends>
                     <comment><![CDATA[If you use <a href="https://stape.io/gtm-server-hosting" target="blank">stape.io sGTM hosting</a> you can find custom domain of your sGTM container URL following <a href="https://help.stape.io/hc/en-us/articles/6080905799453-Find-server-container-URL-for-sGTM-container" target="blank">this guide</a>. Otherwise you can find sGTM container URL in the <a href="https://developers.google.com/tag-platform/tag-manager/server-side/app-engine-setup#4_add_the_server_url_to_google_tag_manager" target="blank">container settings<a>. <a href="https://stape.io/blog/how-to-add-a-custom-domain-to-the-google-tag-manager-server-container" target="blank">Custom domain</a> is used to set first party cookies. Leave empty if you want to use googletagmanager.com domain.]]></comment>
                     <validate>validate-https-url</validate>
                 </field>
@@ -34,12 +64,18 @@
                     <label>Custom Loader</label>
                     <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\CustomLoader</frontend_model>
                     <backend_model>Stape\Gtm\Model\Backend\CustomLoader</backend_model>
+                    <depends>
+                        <field id="stape_gtm/general/same_origin_active">0</field>
+                    </depends>
                     <comment><![CDATA[Add stape container identifier. Follow <a href="https://help.stape.io/hc/en-us/articles/9697466601373-How-to-find-the-Stape-container-identifier" target="blank">this guide</a> to find stape container identifier.
 This feature is available only if you use <a href="https://stape.io/gtm-server-hosting" target="blank">stape.io sGTM hosting</a> and enabled <a href="https://help.stape.io/hc/en-us/articles/6080917962397-Set-up-custom-web-GTM-loader" target="blank">Custom Loader power up.</a> Custom loader allows you to increase the accuracy of tracking. ]]></comment>
                 </field>
                 <field id="cookie_keeper" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="60" translate="label" type="select">
                     <label>Cookie Keeper</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="stape_gtm/general/same_origin_active">0</field>
+                    </depends>
                     <comment><![CDATA[Cookie Keeper is used to <a href="https://stape.io/blog/increase-first-party-cookie-lifetime-set-by-a-third-party-ip" target="blank">prolong cookie lifetime</a> in Safari and other browsers with ITP. This option available only if you use <a href="https://stape.io/gtm-server-hosting" target="blank">stape.io sGTM hosting</a> and set up <a href="https://stape.io/blog/increase-first-party-cookie-lifetime-set-by-a-third-party-ip#how-cookie-keeper-works" target="blank">Cookie Keeper power up.</a>]]></comment>
                 </field>
             </group>

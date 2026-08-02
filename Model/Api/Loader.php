@@ -5,6 +5,7 @@ namespace Stape\Gtm\Model\Api;
 use Magento\Framework\DataObjectFactory;
 use Magento\Framework\Exception\NotFoundException;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Api\Request\RequestInterfaceFactory;
 use Psr\Log\LoggerInterface;
 use Stape\Gtm\Model\Api\Request\RequestInterface;
@@ -54,6 +55,11 @@ class Loader
     private $dataObjectFactory;
 
     /**
+     * @var StoreManagerInterface $storeManager
+     */
+    private $storeManager;
+
+    /**
      * Define class dependencies
      *
      * @param Client $client
@@ -61,6 +67,7 @@ class Loader
      * @param RequestInterfaceFactory $requestFactory
      * @param Json $json
      * @param DataObjectFactory $dataObjectFactory
+     * @param StoreManagerInterface $storeManager
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -69,6 +76,7 @@ class Loader
         RequestInterfaceFactory $requestFactory,
         Json $json,
         DataObjectFactory $dataObjectFactory,
+        StoreManagerInterface $storeManager,
         LoggerInterface $logger
     ) {
         $this->client = $client;
@@ -77,6 +85,7 @@ class Loader
         $this->json = $json;
         $this->logger = $logger;
         $this->dataObjectFactory = $dataObjectFactory;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -93,15 +102,15 @@ class Loader
     /**
      * Create request object
      *
-     * @param string|null $scope
+     * @param string $identifier
      * @param string $baseUrl
      * @return RequestInterface
      */
-    private function createRequest($scope = null, $baseUrl = self::BASE_URL)
+    private function createRequest($identifier, $baseUrl = self::BASE_URL)
     {
         return $this->requestFactory->create()->setUrl(
             $this->getUrl(
-                sprintf('container/%s/custom-loader', $this->configProvider->getCustomLoader($scope)),
+                sprintf('container/%s/custom-loader', $identifier),
                 $baseUrl
             )
         );
@@ -123,17 +132,54 @@ class Loader
     }
 
     /**
-     * Generate GTM code snippet
+     * Resolve store for the given config scope
      *
-     * @param string|int $scope
+     * @param mixed $scope store, website or null (default scope)
+     * @return \Magento\Store\Api\Data\StoreInterface
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    private function resolveStore($scope)
+    {
+        if ($scope instanceof \Magento\Store\Api\Data\StoreInterface) {
+            return $scope;
+        }
+
+        if ($scope instanceof \Magento\Store\Model\Website) {
+            return $scope->getDefaultStore();
+        }
+
+        return $this->storeManager->getDefaultStoreView();
+    }
+
+    /**
+     * Retrieve host of the store base URL for the given scope
+     *
+     * The custom-loader API rejects hosts with a port, so only the bare host is returned.
+     *
+     * @param mixed $scope
      * @return string|null
      */
-    public function generateLoader($scope = null)
+    private function getStoreHost($scope)
     {
-        if (empty($this->configProvider->getCustomLoader($scope))) {
+        try {
+            $baseUrl = $this->resolveStore($scope)->getBaseUrl();
+        } catch (\Exception $e) {
             return null;
         }
 
+        $parts = parse_url($baseUrl);
+
+        return $parts['host'] ?? null;
+    }
+
+    /**
+     * Build request data for the default (custom domain) mode
+     *
+     * @param string|int $scope
+     * @return array
+     */
+    private function buildDefaultRequestData($scope)
+    {
         $requestData = [
             'webGtmId' => $this->configProvider->getContainerId($scope),
             'source' => 'magento',
@@ -155,14 +201,65 @@ class Loader
             $requestData['userIdentifierValue'] = '_sbp';
         }
 
+        return $requestData;
+    }
+
+    /**
+     * Build request data for the same-origin proxy mode
+     *
+     * Cookie Keeper identifiers are intentionally never sent in this mode.
+     *
+     * @param string|int $scope
+     * @return array
+     */
+    private function buildSameOriginRequestData($scope)
+    {
+        $path = rtrim((string) $this->configProvider->getSameOriginPath($scope), '/');
+
+        $requestData = [
+            'webGtmId' => $this->configProvider->getContainerId($scope),
+            'source' => 'magento',
+            'dataLayerObjectName' => 'dataLayer',
+            'sameOriginPath' => $path,
+        ];
+
+        if ($host = $this->getStoreHost($scope)) {
+            $requestData['domain'] = $host;
+        }
+
+        return $requestData;
+    }
+
+    /**
+     * Generate GTM code snippet
+     *
+     * @param string|int $scope
+     * @return string|null
+     */
+    public function generateLoader($scope = null)
+    {
+        $sameOrigin = $this->configProvider->isSameOriginConfigured($scope);
+
+        if ($sameOrigin) {
+            $identifier = $this->configProvider->getSameOriginIdentifier($scope);
+            $requestData = $this->buildSameOriginRequestData($scope);
+        } else {
+            $identifier = $this->configProvider->getCustomLoader($scope);
+            $requestData = $this->buildDefaultRequestData($scope);
+        }
+
+        if (empty($identifier)) {
+            return null;
+        }
+
         try {
 
-            $result = $this->client->post($this->createRequest($scope)->setData($requestData));
+            $result = $this->client->post($this->createRequest($identifier)->setData($requestData));
 
             // EU containers 404 on the global endpoint; retry against the EU endpoint before falling back.
             if ($result->getStatus() === 404) {
                 $result = $this->client->post(
-                    $this->createRequest($scope, self::EU_BASE_URL)->setData($requestData)
+                    $this->createRequest($identifier, self::EU_BASE_URL)->setData($requestData)
                 );
             }
 
@@ -175,7 +272,13 @@ class Loader
                 throw new NotFoundException(__($response->getData('error/error')) ?? __('Could not generate GTM snippet'));
             }
 
-            return $response->getData('body/jsCode');
+            $jsCode = $response->getData('body/jsCode');
+
+            if ($sameOrigin && is_string($jsCode)) {
+                $jsCode = preg_replace('/\.js(?=(\?|"|\'))/', '.load', $jsCode);
+            }
+
+            return $jsCode;
         } catch (\Exception $e) {
             $this->logger->debug(sprintf('[STAPE] Could not generate GTM snippet. Error: %s', $e->getMessage()));
         }

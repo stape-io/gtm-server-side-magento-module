@@ -5,10 +5,11 @@
     "license": [
         "GPL-3.0-only"
     ],
-    "version": "1.0.43",
+    "version": "1.0.44",
     "require": {
         "php": ">=7.4.0",
-        "jeremykendall/php-domain-parser": "^6.0"
+        "jeremykendall/php-domain-parser": "^6.0",
+        "guzzlehttp/guzzle": "^7.0"
     },
     "autoload": {
         "files": [
