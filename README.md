@@ -26,7 +26,8 @@ sGTM container — no DNS, CDN or reverse-proxy setup required.
 Enable it under **Stores → Configuration → Stape → Stape Conversion Tracking → General →
 Same-origin proxy (Beta)** and set:
 
-- **Proxy path** — must start with `/` (e.g. `/gtm/`); a trailing slash is allowed and preserved.
+- **Proxy path** — must start with `/` (e.g. `/gtm`). Any query string or fragment is dropped, duplicate slashes are collapsed and a trailing slash is removed, so `/gtm/` is stored as `/gtm`.
+
 - **Container API key** — the full Stape container API key (not the container identifier).
 
 After saving, use the **Test connection** button to verify the path is not shadowed by an
@@ -53,7 +54,7 @@ Notes:
   ```
 
   On a CDN, create an equivalent bypass rule for the same path prefix. Replace `/gtm/` with the configured proxy path in both cases.
-  
+
 - While the same-origin proxy is fully configured, Cookie Keeper is superseded by
   first-party delivery and treated as disabled.
 

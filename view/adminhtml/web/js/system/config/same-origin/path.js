@@ -1,16 +1,19 @@
 define(['jquery', 'mage/translate'], function ($, $t) {
     'use strict';
 
+    var uidCounter = 0;
+
     /**
-     * Generate a one-time random uid for the connection probe.
+     * Build a one-time token for the connection probe. The token is not a
+     * secret: it is echoed back by the proxy so the browser can tell a real
+     * proxy response apart from a cached page or an unrelated route.
      *
      * @returns {String}
      */
     function generateUid() {
-        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
-            return window.crypto.randomUUID();
-        }
-        return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+        uidCounter += 1;
+
+        return Date.now().toString(36) + '-' + uidCounter.toString(36);
     }
 
     /**
