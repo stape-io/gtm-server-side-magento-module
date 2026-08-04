@@ -2,7 +2,7 @@
 
 v1.0.44
 - replaced base prices with display prices;
-- fixed currency discrepencies;
+- fixed currency discrepancies;
 - fixed item price without tax;
 
 v1.0.43
