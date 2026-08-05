@@ -8,6 +8,8 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Price\FormatsPrice;
 use Stape\Gtm\Model\Product\CategoryResolver;
+use Stape\Gtm\Model\Price\CatalogPrice;
+use Stape\Gtm\Model\Price\CurrencyResolver;
 
 class EventItemsMapper
 {
@@ -34,23 +36,39 @@ class EventItemsMapper
     protected $context;
 
     /**
+     * @var CurrencyResolver $currencyResolver
+     */
+    private $currencyResolver;
+
+    /**
+     * @var CatalogPrice $catalogPrice
+     */
+    protected $catalogPrice;
+
+    /**
      * Define class dependencies
      *
      * @param PriceCurrencyInterface $priceCurrency
      * @param StoreManagerInterface $storeManager
      * @param CategoryResolver $categoryResolver
      * @param Context $context
+     * @param CurrencyResolver $currencyResolver
+     * @param CatalogPrice $catalogPrice
      */
     public function __construct(
         PriceCurrencyInterface $priceCurrency,
         StoreManagerInterface $storeManager,
         CategoryResolver $categoryResolver,
-        Context $context
+        Context $context,
+        CurrencyResolver $currencyResolver,
+        CatalogPrice $catalogPrice
     ) {
         $this->priceCurrency = $priceCurrency;
         $this->storeManager = $storeManager;
         $this->categoryResolver = $categoryResolver;
         $this->context = $context;
+        $this->currencyResolver = $currencyResolver;
+        $this->catalogPrice = $catalogPrice;
     }
 
     /**
@@ -73,7 +91,7 @@ class EventItemsMapper
                 'item_name' => $product->getName(),
                 'item_id' => $product->getId(),
                 'item_sku' => $product->getSku(),
-                'price' => $this->formatPrice($product->getFinalPrice()),
+                'price' => $this->formatPrice($this->catalogPrice->forProduct($product)),
                 'index' => $index++,
                 'quantity' => '1',
                 'variant_name' => $product->getName(),

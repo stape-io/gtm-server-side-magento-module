@@ -10,6 +10,7 @@ use Magento\Framework\DataObjectFactory;
 use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Stape\Gtm\Model\Product\Mapper\EventItemsMapper;
 use Stape\Gtm\ViewModel\DatalayerInterface;
+use Stape\Gtm\Model\Price\CurrencyResolver;
 
 class LinkedProducts implements ArgumentInterface, DatalayerInterface
 {
@@ -54,6 +55,11 @@ class LinkedProducts implements ArgumentInterface, DatalayerInterface
     private $dataObjectFactory;
 
     /**
+     * @var CurrencyResolver $currencyResolver
+     */
+    private $currencyResolver;
+
+    /**
      * Define class dependencies
      *
      * @param Layout $layout
@@ -63,6 +69,7 @@ class LinkedProducts implements ArgumentInterface, DatalayerInterface
      * @param Json $json
      * @param DataObjectFactory $dataObjectFactory
      * @return void
+     * @param CurrencyResolver $currencyResolver
      */
     public function __construct(
         Layout                  $layout,
@@ -70,7 +77,8 @@ class LinkedProducts implements ArgumentInterface, DatalayerInterface
         StoreManagerInterface   $storeManager,
         EventManagerInterface   $eventManager,
         Json                    $json,
-        DataObjectFactory       $dataObjectFactory
+        DataObjectFactory       $dataObjectFactory,
+        CurrencyResolver        $currencyResolver
     ) {
         $this->layout = $layout;
         $this->mapper = $mapper;
@@ -78,6 +86,7 @@ class LinkedProducts implements ArgumentInterface, DatalayerInterface
         $this->eventManager = $eventManager;
         $this->json = $json;
         $this->dataObjectFactory = $dataObjectFactory;
+        $this->currencyResolver = $currencyResolver;
     }
 
     /**
@@ -91,7 +100,7 @@ class LinkedProducts implements ArgumentInterface, DatalayerInterface
     {
 
         $result = [
-            'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+            'currency' => $this->currencyResolver->codeForStore(),
         ];
 
         $transport = $this->dataObjectFactory->create(['data' => ['block_types' => $this->blockTypes]]);

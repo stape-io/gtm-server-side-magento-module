@@ -9,6 +9,8 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
+use Stape\Gtm\Model\Price\CatalogPrice;
+use Stape\Gtm\Model\Price\CurrencyResolver;
 use Stape\Gtm\Model\Product\CategoryResolver;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 
@@ -30,6 +32,11 @@ class Product extends DatalayerAbstract implements ArgumentInterface
     private $categoryResolver;
 
     /**
+     * @var CatalogPrice $catalogPrice
+     */
+    private $catalogPrice;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -39,6 +46,8 @@ class Product extends DatalayerAbstract implements ArgumentInterface
      * @param CategoryResolver $categoryResolver
      * @param PriceCurrencyInterface $priceCurrency
      * @param EventFormatter $eventFormatter
+     * @param CurrencyResolver $currencyResolver
+     * @param CatalogPrice $catalogPrice
      */
     public function __construct(
         Json $json,
@@ -47,12 +56,15 @@ class Product extends DatalayerAbstract implements ArgumentInterface
         Data $catalogHelper,
         CategoryResolver $categoryResolver,
         PriceCurrencyInterface $priceCurrency,
-        EventFormatter $eventFormatter
+        EventFormatter $eventFormatter,
+        CurrencyResolver $currencyResolver,
+        CatalogPrice $catalogPrice
     ) {
-        parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency);
+        parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency, $currencyResolver);
         $this->registry = $registry;
         $this->catalogHelper = $catalogHelper;
         $this->categoryResolver = $categoryResolver;
+        $this->catalogPrice = $catalogPrice;
     }
 
     /**
@@ -116,7 +128,7 @@ class Product extends DatalayerAbstract implements ArgumentInterface
             'item_id' => $product->getId(),
             'item_sku' => $product->getSku(),
             'item_category' => $this->getCategoryName($product),
-            'price' => $this->formatPrice($product->getFinalPrice()),
+            'price' => $this->formatPrice($this->catalogPrice->forProduct($product)),
         ];
     }
 
@@ -129,13 +141,13 @@ class Product extends DatalayerAbstract implements ArgumentInterface
      */
     public function getEventData()
     {
-        $value = $this->formatPrice($this->getProduct()->getFinalPrice());
+        $value = $this->formatPrice($this->catalogPrice->forProduct($this->getProduct()));
         return [
             'event' => $this->eventFormatter->formatName('view_item'),
             'ecomm_pagetype' => 'product',
             'ecommerce' => [
                 'value' => $value,
-                'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+                'currency' => $this->currencyResolver->codeForStore(),
                 'items' => array_filter([
                     $this->getProductData()
                 ])

@@ -14,6 +14,8 @@ use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Datalayer\Modifier\CartState;
 use Stape\Gtm\Model\Price\FormatsPrice;
 use Stape\Gtm\Model\Product\CategoryResolver;
+use Stape\Gtm\Model\Price\CurrencyResolver;
+use Stape\Gtm\Model\Price\ItemPrice;
 
 class DeletePlugin
 {
@@ -60,6 +62,16 @@ class DeletePlugin
     protected $itemVariantFactory;
 
     /**
+     * @var ItemPrice $itemPrice
+     */
+    protected $itemPrice;
+
+    /**
+     * @var CurrencyResolver $currencyResolver
+     */
+    protected $currencyResolver;
+
+    /**
      * Define class dependencies
      *
      * @param CheckoutSession $checkoutSession
@@ -70,6 +82,8 @@ class DeletePlugin
      * @param LoggerInterface $logger
      * @param CartState $cartStateModifier
      * @param ItemVariantFactory $itemVariantFactory
+     * @param ItemPrice $itemPrice
+     * @param CurrencyResolver $currencyResolver
      */
     public function __construct(
         CheckoutSession $checkoutSession,
@@ -79,7 +93,9 @@ class DeletePlugin
         CategoryResolver $categoryResolver,
         LoggerInterface $logger,
         CartState $cartStateModifier,
-        ItemVariantFactory $itemVariantFactory
+        ItemVariantFactory $itemVariantFactory,
+        ItemPrice $itemPrice,
+        CurrencyResolver $currencyResolver
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->configProvider = $configProvider;
@@ -89,6 +105,8 @@ class DeletePlugin
         $this->logger = $logger;
         $this->cartStateModifier = $cartStateModifier;
         $this->itemVariantFactory = $itemVariantFactory;
+        $this->itemPrice = $itemPrice;
+        $this->currencyResolver = $currencyResolver;
     }
 
     /**
@@ -115,22 +133,31 @@ class DeletePlugin
             return $proceed();
         }
 
+        // Resolved before the item is removed, while its product data is still loaded.
+        $category = null;
+        $unitPrice = null;
         try {
-            $product = $item->getProduct();
-            $category = $this->categoryResolver->resolve($product);
-            $result = $proceed();
+            $category = $this->categoryResolver->resolve($item->getProduct());
+            $unitPrice = $this->itemPrice->forQuoteItem($item);
+        } catch (\Exception $e) {
+            $this->logger->notice(sprintf('Could not track remove_from_cart_stape event. Error: %s', $e->getMessage()));
+        }
 
-            if ($item->isDeleted()) {
+        $result = $proceed();
+
+        try {
+            if ($unitPrice !== null && $item->isDeleted()) {
                 $itemVariant = $this->itemVariantFactory->createFromQuoteItem($item);
                 $eventData = $this->cartStateModifier->modifyEventData([
-                    'value' => $this->formatPrice($item->getPrice()),
+                    'currency' => $this->currencyResolver->codeForQuote($quote),
+                    'value' => $this->formatPrice($unitPrice * $item->getQty()),
                     'items' => [
                         [
                             'item_name' => $item->getName(),
                             'item_id' => $item->getProduct()->getId(),
                             'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                             'item_category' => $category ? $category->getName() : null,
-                            'price' => $this->formatPrice($item->getPrice()),
+                            'price' => $this->formatPrice($unitPrice),
                             'quantity' => $item->getQty(),
                             'variation_id' => $itemVariant->getVariationId(),
                             'item_variant' => $itemVariant->getSku(),

@@ -7,6 +7,9 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
 use Stape\Gtm\Model\Price\FormatsPrice;
+use Stape\Gtm\Model\Price\CurrencyResolver;
+use Stape\Gtm\Model\Price\ItemPrice;
+use Stape\Gtm\Model\Price\Totals;
 use Stape\Gtm\Model\Product\CategoryResolver;
 
 class Converter
@@ -34,23 +37,47 @@ class Converter
     private $itemVariantFactory;
 
     /**
+     * @var ItemPrice $itemPrice
+     */
+    private $itemPrice;
+
+    /**
+     * @var Totals $totals
+     */
+    private $totals;
+
+    /**
+     * @var CurrencyResolver $currencyResolver
+     */
+    private $currencyResolver;
+
+    /**
      * Define class dependencies
      *
      * @param CategoryResolver $categoryResolver
      * @param PriceCurrencyInterface $priceCurrency
      * @param \Stape\Gtm\Model\Data\Order $orderData
      * @param ItemVariantFactory $itemVariantFactory
+     * @param ItemPrice $itemPrice
+     * @param Totals $totals
+     * @param CurrencyResolver $currencyResolver
      */
     public function __construct(
         CategoryResolver $categoryResolver,
         PriceCurrencyInterface $priceCurrency,
         \Stape\Gtm\Model\Data\Order $orderData,
-        ItemVariantFactory $itemVariantFactory
+        ItemVariantFactory $itemVariantFactory,
+        ItemPrice $itemPrice,
+        Totals $totals,
+        CurrencyResolver $currencyResolver
     ) {
         $this->categoryResolver = $categoryResolver;
         $this->priceCurrency = $priceCurrency;
         $this->orderData = $orderData;
         $this->itemVariantFactory = $itemVariantFactory;
+        $this->itemPrice = $itemPrice;
+        $this->totals = $totals;
+        $this->currencyResolver = $currencyResolver;
     }
 
     /**
@@ -72,7 +99,7 @@ class Converter
                 'item_name' => $item->getName(),
                 'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'item_category' => $category ? $category->getName() : '',
-                'price' => $this->formatPrice($item->getPrice()),
+                'price' => $this->formatPrice($this->itemPrice->forSalesItem($item, $item->getStoreId())),
                 'quantity' => $item->getQtyOrdered(),
                 'item_variant' => $itemVariant->getSku(),
                 'variation_id' => $itemVariant->getVariationId(),
@@ -105,7 +132,7 @@ class Converter
                 'item_name' => $item->getName(),
                 'item_sku' => $orderItem->getProduct()->getData(ProductInterface::SKU),
                 'item_category' => $category ? $category->getName() : '',
-                'price' => $this->formatPrice($item->getPrice()),
+                'price' => $this->formatPrice($this->itemPrice->forSalesItem($item, $orderItem->getStoreId())),
                 'quantity' => $item->getQty(),
                 'item_variant' => $itemVariant->getSku(),
                 'variation_id' => $itemVariant->getVariationId(),
@@ -148,16 +175,22 @@ class Converter
      */
     public function orderToEcomData(Order $order)
     {
+        $storeId = $order->getStoreId();
+
         return [
             'transaction_id' => $order->getIncrementId(),
             'quote_id' => $order->getQuoteId(),
             'affiliation' => $order->getStoreName(),
-            'value' => $this->formatPrice($order->getGrandTotal()),
-            'tax' => $this->formatPrice($order->getTaxAmount()),
-            'shipping' => $this->formatPrice($order->getShippingAmount()),
+            'value' => $this->formatPrice($this->totals->forEntity($order, Totals::FIELD_GRAND_TOTAL, $storeId)),
+            'tax' => $this->formatPrice($this->totals->forEntity($order, Totals::FIELD_TAX_AMOUNT, $storeId)),
+            'shipping' => $this->formatPrice(
+                $this->totals->forEntity($order, Totals::FIELD_SHIPPING_AMOUNT, $storeId)
+            ),
             'coupon' => $order->getCouponCode(),
-            'discount_amount' => $this->formatPrice($order->getDiscountAmount()),
-            'currency' => $order->getOrderCurrencyCode(),
+            'discount_amount' => $this->formatPrice(
+                $this->totals->forEntity($order, Totals::FIELD_DISCOUNT_AMOUNT, $storeId)
+            ),
+            'currency' => $this->currencyResolver->codeForOrder($order, $storeId),
             'items' => $this->prepareOrderItems($order)
         ];
     }
@@ -170,15 +203,24 @@ class Converter
      */
     public function creditMemoToEcom(Creditmemo $creditMemo)
     {
+        $order = $creditMemo->getOrder();
+        $storeId = $order->getStoreId();
+
         return [
-            'transaction_id' => $creditMemo->getOrder()->getIncrementId(),
-            'affiliation' => $creditMemo->getOrder()->getStoreName(),
-            'value' => $this->formatPrice($creditMemo->getGrandTotal()),
-            'tax' => $this->formatPrice($creditMemo->getTaxAmount()),
-            'shipping' => $this->formatPrice($creditMemo->getShippingAmount()),
-            'coupon' => $creditMemo->getOrder()->getCouponCode(),
-            'discount_amount' => $this->formatPrice($creditMemo->getDiscountAmount()),
-            'currency' => $creditMemo->getOrder()->getOrderCurrencyCode(),
+            'transaction_id' => $order->getIncrementId(),
+            'affiliation' => $order->getStoreName(),
+            'value' => $this->formatPrice(
+                $this->totals->forEntity($creditMemo, Totals::FIELD_GRAND_TOTAL, $storeId)
+            ),
+            'tax' => $this->formatPrice($this->totals->forEntity($creditMemo, Totals::FIELD_TAX_AMOUNT, $storeId)),
+            'shipping' => $this->formatPrice(
+                $this->totals->forEntity($creditMemo, Totals::FIELD_SHIPPING_AMOUNT, $storeId)
+            ),
+            'coupon' => $order->getCouponCode(),
+            'discount_amount' => $this->formatPrice(
+                $this->totals->forEntity($creditMemo, Totals::FIELD_DISCOUNT_AMOUNT, $storeId)
+            ),
+            'currency' => $this->currencyResolver->codeForOrder($order, $storeId),
             'items' => $this->prepareCreditMemoItems($creditMemo)
         ];
     }

@@ -2,8 +2,15 @@
 
 v1.0.44
 - replaced base prices with display prices;
-- fixed currency discrepencies;
+- fixed currency discrepancies;
 - fixed item price without tax;
+- added "Exclude Tax from Item price" option, item prices and line totals include tax by default;
+- fixed quote item prices being pushed in base currency instead of quote currency;
+- fixed add_to_cart and remove_from_cart value not accounting for quantity and not matching item price;
+- added missing currency to the remove_from_cart event;
+- added "Use Display Currency for Amounts" option, amounts and currency codes use the base currency by default;
+- fixed catalog prices being pushed in base currency while labelled with the display currency code;
+- fixed add_payment_info item prices being pushed in base currency while labelled with the quote currency code;
 
 v1.0.43
 - fixed CSP compatibility for config-stored GTM snippet by whitelisting its inline scripts via content hash (full page cache safe);

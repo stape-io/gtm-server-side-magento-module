@@ -8,6 +8,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Product\Mapper\EventItemsMapper;
 use Stape\Gtm\ViewModel\Category;
 use Stape\Gtm\ViewModel\DatalayerInterface;
+use Stape\Gtm\Model\Price\CurrencyResolver;
 
 class ExtraData implements ArgumentInterface, DatalayerInterface
 {
@@ -32,23 +33,31 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
     protected $storeManager;
 
     /**
+     * @var CurrencyResolver $currencyResolver
+     */
+    private $currencyResolver;
+
+    /**
      * Define class dependencies
      *
      * @param Category $categoryViewModel
      * @param EventItemsMapper $mapper
      * @param StoreManagerInterface $storeManager
      * @param Json $json
+     * @param CurrencyResolver $currencyResolver
      */
     public function __construct(
         Category                $categoryViewModel,
         EventItemsMapper        $mapper,
         StoreManagerInterface   $storeManager,
-        Json                    $json
+        Json                    $json,
+        CurrencyResolver        $currencyResolver
     ) {
         $this->categoryViewModel = $categoryViewModel;
         $this->mapper = $mapper;
         $this->storeManager = $storeManager;
         $this->json = $json;
+        $this->currencyResolver = $currencyResolver;
     }
 
     /**
@@ -72,7 +81,7 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
     {
         $collection = $this->categoryViewModel->getProductCollection();
         return [
-            'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+            'currency' => $this->currencyResolver->codeForStore(),
             'lists' => [
                 [
                     'item_list_name' => $this->getListName(),

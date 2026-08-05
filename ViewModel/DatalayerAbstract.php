@@ -7,6 +7,7 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
 use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
+use Stape\Gtm\Model\Price\CurrencyResolver;
 use Stape\Gtm\Model\Price\FormatsPrice;
 
 abstract class DatalayerAbstract implements DatalayerInterface
@@ -34,6 +35,11 @@ abstract class DatalayerAbstract implements DatalayerInterface
     protected $storeManager;
 
     /**
+     * @var CurrencyResolver $currencyResolver
+     */
+    protected $currencyResolver;
+
+    /**
      * @var PoolInterface|null $modifierPool
      */
     protected $modifierPool;
@@ -43,6 +49,7 @@ abstract class DatalayerAbstract implements DatalayerInterface
      * @param EventFormatter $eventFormatter
      * @param StoreManagerInterface $storeManager
      * @param PriceCurrencyInterface $priceCurrency
+     * @param CurrencyResolver $currencyResolver
      * @param PoolInterface|null $modifierPool
      */
     public function __construct(
@@ -50,12 +57,14 @@ abstract class DatalayerAbstract implements DatalayerInterface
         EventFormatter $eventFormatter,
         StoreManagerInterface $storeManager,
         PriceCurrencyInterface $priceCurrency,
+        CurrencyResolver $currencyResolver,
         ?PoolInterface $modifierPool = null
     ) {
         $this->eventFormatter = $eventFormatter;
         $this->json = $json;
         $this->priceCurrency = $priceCurrency;
         $this->storeManager = $storeManager;
+        $this->currencyResolver = $currencyResolver;
         $this->modifierPool = $modifierPool;
     }
 

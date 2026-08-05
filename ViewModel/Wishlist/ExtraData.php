@@ -9,6 +9,7 @@ use Magento\Framework\View\Layout;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Product\Mapper\EventItemsMapper;
 use Stape\Gtm\ViewModel\DatalayerInterface;
+use Stape\Gtm\Model\Price\CurrencyResolver;
 
 class ExtraData implements ArgumentInterface, DatalayerInterface
 {
@@ -39,6 +40,11 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
     protected $wishlistHelper;
 
     /**
+     * @var CurrencyResolver $currencyResolver
+     */
+    private $currencyResolver;
+
+    /**
      * Define class dependencies
      *
      * @param Layout $layout
@@ -46,19 +52,22 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
      * @param EventItemsMapper $mapper
      * @param Json $json
      * @param Context $context
+     * @param CurrencyResolver $currencyResolver
      */
     public function __construct(
         Layout $layout,
         StoreManagerInterface $storeManager,
         EventItemsMapper $mapper,
         Json $json,
-        Context $context
+        Context $context,
+        CurrencyResolver $currencyResolver
     ) {
         $this->layout = $layout;
         $this->storeManager = $storeManager;
         $this->mapper = $mapper;
         $this->json = $json;
         $this->wishlistHelper = $context->getWishlistHelper();
+        $this->currencyResolver = $currencyResolver;
     }
 
     /**
@@ -75,7 +84,7 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
             return $item->getProduct();
         }, $wishlist->getItemCollection()->getItems());
         return [
-            'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+            'currency' => $this->currencyResolver->codeForStore(),
             'lists' => [
                 [
                     'item_list_name' => 'products',

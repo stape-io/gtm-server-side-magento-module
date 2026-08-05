@@ -7,6 +7,9 @@ use Magento\Checkout\Model\Session;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Price\FormatsPrice;
+use Stape\Gtm\Model\Price\CurrencyResolver;
+use Stape\Gtm\Model\Price\ItemPrice;
+use Stape\Gtm\Model\Price\Totals;
 
 class CartState implements ModifierInterface
 {
@@ -28,20 +31,44 @@ class CartState implements ModifierInterface
     protected $itemVariantFactory;
 
     /**
+     * @var ItemPrice $itemPrice
+     */
+    protected $itemPrice;
+
+    /**
+     * @var Totals $totals
+     */
+    protected $totals;
+
+    /**
+     * @var CurrencyResolver $currencyResolver
+     */
+    protected $currencyResolver;
+
+    /**
      * Define class dependencies
      *
      * @param Session $checkoutSession
      * @param PriceCurrencyInterface $priceCurrency
      * @param ItemVariantFactory $itemVariantFactory
+     * @param ItemPrice $itemPrice
+     * @param Totals $totals
+     * @param CurrencyResolver $currencyResolver
      */
     public function __construct(
         Session $checkoutSession,
         PriceCurrencyInterface $priceCurrency,
-        ItemVariantFactory $itemVariantFactory
+        ItemVariantFactory $itemVariantFactory,
+        ItemPrice $itemPrice,
+        Totals $totals,
+        CurrencyResolver $currencyResolver
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->priceCurrency = $priceCurrency;
         $this->itemVariantFactory = $itemVariantFactory;
+        $this->itemPrice = $itemPrice;
+        $this->totals = $totals;
+        $this->currencyResolver = $currencyResolver;
     }
 
     /**
@@ -77,8 +104,8 @@ class CartState implements ModifierInterface
                 'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'item_name' => $item->getName(),
                 'quantity' => $item->getQty(),
-                'line_total_price' => $this->formatPrice($item->getRowTotalInclTax()),
-                'price' => $this->formatPrice($item->getPrice()),
+                'line_total_price' => $this->formatPrice($this->itemPrice->rowTotalForQuoteItem($item)),
+                'price' => $this->formatPrice($this->itemPrice->forQuoteItem($item)),
             ];
         }
         return $items;
@@ -95,8 +122,8 @@ class CartState implements ModifierInterface
         return [
             'cart_id' => $this->checkoutSession->getData('stape_cart_id'),
             'cart_quantity' => (int) $quote->getItemsQty(),
-            'cart_value' => $this->formatPrice($quote->getGrandTotal()),
-            'currency' => $quote->getQuoteCurrencyCode(),
+            'cart_value' => $this->formatPrice($this->totals->forEntity($quote, Totals::FIELD_GRAND_TOTAL)),
+            'currency' => $this->currencyResolver->codeForQuote($quote),
             'lines' => $this->prepareItems($quote)
         ];
     }
