@@ -136,6 +136,16 @@ class Gtm extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Check if display currency has to be used for amounts
+     *
+     * @return bool
+     */
+    public function useDisplayCurrency()
+    {
+        return $this->configProvider->isDisplayCurrencyUsed();
+    }
+
+    /**
      * Retrieve id param name
      *
      * @return string

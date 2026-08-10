@@ -24,6 +24,42 @@ define([
         return Number(v).toFixed(2);
     }
 
+    /**
+     * Unit price of a cart item, resolved server side so the tax and currency
+     * settings are honoured. Falls back to the display-currency value Magento
+     * ships while a previously cached cart section has not been refreshed yet.
+     *
+     * @param {Object} item
+     * @returns {Number|undefined}
+     */
+    function itemPrice(item) {
+        return item?.stape_price ?? item?.product_price_value;
+    }
+
+    /**
+     * Line total of a cart item, see itemPrice for the fallback rationale.
+     *
+     * @param {Object} item
+     * @returns {Number|undefined}
+     */
+    function itemLineTotal(item) {
+        return item?.stape_line_total ?? (item?.product_price_value * item?.qty);
+    }
+
+    /**
+     * Cart value and currency, resolved server side.
+     *
+     * @param {Object} data
+     * @returns {Number|String|undefined}
+     */
+    function cartValue(data) {
+        return data?.stape_cart_value ?? data?.subtotalAmount;
+    }
+
+    function cartCurrency(data, config) {
+        return data?.stape_currency || config?.data?.ecommerce?.currency;
+    }
+
     window.dataLayerConfig = {
         userDataEnabled: false
     };
@@ -81,6 +117,7 @@ define([
         const lastAddedProduct = ko.observable(null);
         window.dataLayerConfig.userDataEnabled = config.isUserDataEnabled || false;
         window.dataLayerConfig.stapeEventSuffix = config?.suffix;
+        window.dataLayerConfig.useDisplayCurrency = config?.useDisplayCurrency || false;
         window.dataLayer = window.dataLayer || [];
 
         if (config.isUserDataEnabled && isLoggedIn()) {
@@ -118,8 +155,8 @@ define([
                         cart_state: {
                             cart_id: data?.stape_cart_id,
                             cart_quantity: data.summary_count,
-                            currency: config?.data?.ecommerce?.currency,
-                            cart_value: toMoney(data.subtotalAmount),
+                            currency: cartCurrency(data, config),
+                            cart_value: toMoney(cartValue(data)),
                             lines: data.items.map(item => {
                                 const lineBaseSku = item.product_sku;
                                 const lineItemSku = item.item_sku || item.product_sku;
@@ -130,20 +167,20 @@ define([
                                     item_name: item.product_name,
                                     item_sku: lineBaseSku,
                                     quantity: item.qty,
-                                    line_total_price: toMoney(item?.product_price_value * item?.qty),
-                                    price: toMoney(item.product_price_value),
+                                    line_total_price: toMoney(itemLineTotal(item)),
+                                    price: toMoney(itemPrice(item)),
                                 }}
                             )
                         },
-                        value: toMoney(itemDetails?.product_price_value),
-                        currency: config?.data?.ecommerce?.currency,
+                        value: toMoney(itemPrice(itemDetails) * itemDetails?.qty),
+                        currency: cartCurrency(data, config),
                         items: [
                             {
                                 'item_name': itemDetails.product_name,
                                 'item_id': itemDetails.product_id,
                                 'item_sku': baseSku,
                                 'item_category': itemDetails.category,
-                                'price': toMoney(itemDetails.product_price_value),
+                                'price': toMoney(itemPrice(itemDetails)),
                                 'quantity': itemDetails.qty,
                                 'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
                                 'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : itemVariantSku
@@ -162,7 +199,8 @@ define([
                     ecommerce: {
                         cart_state: data?.stape_gtm_events[eventName]?.cart_state || undefined,
                         value: toMoney(data?.stape_gtm_events[eventName]?.value),
-                        currency: config?.data?.ecommerce?.currency,
+                        currency: data?.stape_gtm_events[eventName]?.currency
+                            || cartCurrency(data, config),
                         items: data?.stape_gtm_events[eventName]?.items,
                     }
                 })
@@ -227,15 +265,15 @@ define([
                     event: 'remove_from_cart' + config?.suffix,
                     ecomm_pagetype: 'product',
                     ecommerce: {
-                        value: toMoney(itemDetails?.product_price_value),
-                        currency: config?.data?.ecommerce?.currency,
+                        value: toMoney(itemPrice(itemDetails) * itemDetails?.qty),
+                        currency: cartCurrency(cartData(), config),
                         items: [
                             {
                                 'item_name': itemDetails.product_name,
                                 'item_id': itemDetails.product_id,
                                 'item_sku': baseSku,
                                 'item_category': itemDetails.category,
-                                'price': toMoney(itemDetails.product_price_value),
+                                'price': toMoney(itemPrice(itemDetails)),
                                 'quantity': itemDetails.qty,
                                 'variation_id': itemDetails.child_product_id ? itemDetails.child_product_id : undefined,
                                 'item_variant': itemDetails.child_product_sku ? itemDetails.child_product_sku : itemVariantSku

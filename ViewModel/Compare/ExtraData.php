@@ -10,6 +10,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Wishlist\Block\Customer\Wishlist;
 use Stape\Gtm\Model\Product\Mapper\EventItemsMapper;
 use Stape\Gtm\ViewModel\DatalayerInterface;
+use Stape\Gtm\Model\Price\CurrencyResolver;
 
 class ExtraData implements ArgumentInterface, DatalayerInterface
 {
@@ -35,23 +36,31 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
     protected $json;
 
     /**
+     * @var CurrencyResolver $currencyResolver
+     */
+    private $currencyResolver;
+
+    /**
      * Define class dependencies
      *
      * @param Layout $layout
      * @param StoreManagerInterface $storeManager
      * @param EventItemsMapper $mapper
      * @param Json $json
+     * @param CurrencyResolver $currencyResolver
      */
     public function __construct(
         Layout $layout,
         StoreManagerInterface $storeManager,
         EventItemsMapper $mapper,
-        Json $json
+        Json $json,
+        CurrencyResolver $currencyResolver
     ) {
         $this->layout = $layout;
         $this->storeManager = $storeManager;
         $this->mapper = $mapper;
         $this->json = $json;
+        $this->currencyResolver = $currencyResolver;
     }
 
     /**
@@ -65,7 +74,7 @@ class ExtraData implements ArgumentInterface, DatalayerInterface
     {
         $compareList = $this->layout->createBlock(ListCompare::class);
         return [
-            'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+            'currency' => $this->currencyResolver->codeForStore(),
             'lists' => [
                 [
                     'item_list_name' => 'products',

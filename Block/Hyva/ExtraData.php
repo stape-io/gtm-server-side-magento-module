@@ -6,6 +6,7 @@ use Magento\Framework\Registry;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Template\Context;
 use Stape\Gtm\Model\Product\Mapper\EventItemsMapper;
+use Stape\Gtm\Model\Price\CurrencyResolver;
 
 class ExtraData extends \Magento\Framework\View\Element\Template
 {
@@ -26,12 +27,18 @@ class ExtraData extends \Magento\Framework\View\Element\Template
     private $mapper;
 
     /**
+     * @var CurrencyResolver $currencyResolver
+     */
+    private $currencyResolver;
+
+    /**
      * Define class dependencies
      *
      * @param Context $context
      * @param Registry $coreRegistry
      * @param Json $json
      * @param EventItemsMapper $mapper
+     * @param CurrencyResolver $currencyResolver
      * @param array $data
      */
     public function __construct(
@@ -39,6 +46,7 @@ class ExtraData extends \Magento\Framework\View\Element\Template
         Registry $coreRegistry,
         Json $json,
         EventItemsMapper $mapper,
+        CurrencyResolver $currencyResolver,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -46,6 +54,7 @@ class ExtraData extends \Magento\Framework\View\Element\Template
         $this->coreRegistry = $coreRegistry;
         $this->json = $json;
         $this->mapper = $mapper;
+        $this->currencyResolver = $currencyResolver;
     }
 
     /**
@@ -67,7 +76,7 @@ class ExtraData extends \Magento\Framework\View\Element\Template
      */
     public function getCurrencyCode()
     {
-        return $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
+        return $this->currencyResolver->codeForStore();
     }
 
     /**
