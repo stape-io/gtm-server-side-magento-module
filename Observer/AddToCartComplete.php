@@ -13,6 +13,8 @@ use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Datalayer\Modifier\CartState;
 use Stape\Gtm\Model\Price\FormatsPrice;
 use Stape\Gtm\Model\Product\CategoryResolver;
+use Stape\Gtm\Model\Price\CurrencyResolver;
+use Stape\Gtm\Model\Price\ItemPrice;
 
 class AddToCartComplete implements ObserverInterface
 {
@@ -54,6 +56,16 @@ class AddToCartComplete implements ObserverInterface
     private $itemVariantFactory;
 
     /**
+     * @var ItemPrice $itemPrice
+     */
+    private $itemPrice;
+
+    /**
+     * @var CurrencyResolver $currencyResolver
+     */
+    private $currencyResolver;
+
+    /**
      * Define class dependencies
      *
      * @param CategoryResolver $categoryResolver
@@ -63,6 +75,8 @@ class AddToCartComplete implements ObserverInterface
      * @param PriceCurrencyInterface $priceCurrency
      * @param CartState $cartStateModifier
      * @param ItemVariantFactory $itemVariantFactory
+     * @param ItemPrice $itemPrice
+     * @param CurrencyResolver $currencyResolver
      */
     public function __construct(
         CategoryResolver $categoryResolver,
@@ -71,7 +85,9 @@ class AddToCartComplete implements ObserverInterface
         DataProviderInterface $dataProvider,
         PriceCurrencyInterface $priceCurrency,
         CartState $cartStateModifier,
-        ItemVariantFactory $itemVariantFactory
+        ItemVariantFactory $itemVariantFactory,
+        ItemPrice $itemPrice,
+        CurrencyResolver $currencyResolver
     ) {
         $this->categoryResolver = $categoryResolver;
         $this->checkoutSession = $checkoutSession;
@@ -80,6 +96,8 @@ class AddToCartComplete implements ObserverInterface
         $this->priceCurrency = $priceCurrency;
         $this->cartStateModifier = $cartStateModifier;
         $this->itemVariantFactory = $itemVariantFactory;
+        $this->itemPrice = $itemPrice;
+        $this->currencyResolver = $currencyResolver;
     }
 
     /**
@@ -109,20 +127,20 @@ class AddToCartComplete implements ObserverInterface
             $qty = 1;
         }
         $category = $this->categoryResolver->resolve($product);
-        $childItem = $quoteItem->getHasChildren() ? current($quoteItem->getChildren()) : null;
 
         $itemVariant = $this->itemVariantFactory->createFromQuoteItem($quoteItem);
+        $unitPrice = $this->itemPrice->forQuoteItem($quoteItem);
 
         $eventData = $this->cartStateModifier->modifyEventData([
-            'currency' => $this->checkoutSession->getQuote()->getBaseCurrencyCode(),
-            'value' => $this->formatPrice($quoteItem->getBasePriceInclTax()),
+            'currency' => $this->currencyResolver->codeForQuote($this->checkoutSession->getQuote()),
+            'value' => $this->formatPrice($unitPrice * $qty),
             'items' => [
                 [
                     'item_name' => $product->getName(),
                     'item_id' => $product->getId(),
                     'item_sku' => $product->getData(ProductInterface::SKU),
                     'item_category' => $category ? $category->getName() : null,
-                    'price' => $this->formatPrice($quoteItem->getBasePriceInclTax()),
+                    'price' => $this->formatPrice($unitPrice),
                     'quantity' => $qty,
                     'variation_id' => $itemVariant->getVariationId(),
                     'item_variant' => $itemVariant->getSku(),

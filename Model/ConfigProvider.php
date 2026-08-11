@@ -75,6 +75,16 @@ class ConfigProvider
     public const XPATH_DATALAYER_STAPE_SUFFIX_ACTIVE = 'stape_gtm/datalayer/stape_suffix_active';
 
     /*
+     * XPATH for flag to check if tax has to be excluded from item prices
+     */
+    public const XPATH_DATALAYER_EXCLUDE_ITEM_PRICE_TAX = 'stape_gtm/datalayer/exclude_item_price_tax';
+
+    /*
+     * XPATH for flag to check if display currency has to be used for amounts
+     */
+    public const XPATH_DATALAYER_USE_DISPLAY_CURRENCY = 'stape_gtm/datalayer/use_display_currency';
+
+    /*
      * XPATH for collection size on category page to be pushed to datalayer
      */
     public const XPATH_COLLECTION_SIZE = 'stape_gtm/datalayer/collection_size';
@@ -431,6 +441,36 @@ class ConfigProvider
     {
         return $this->scopeConfig->isSetFlag(
             self::XPATH_DATALAYER_STAPE_SUFFIX_ACTIVE,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
+    }
+
+    /**
+     * Check if tax has to be excluded from item prices pushed to datalayer
+     *
+     * @param string|int|null $scopeCode
+     * @return bool
+     */
+    public function isItemPriceTaxExcluded($scopeCode = null)
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XPATH_DATALAYER_EXCLUDE_ITEM_PRICE_TAX,
+            ScopeInterface::SCOPE_STORE,
+            $scopeCode
+        );
+    }
+
+    /**
+     * Check if display currency has to be used for amounts pushed to datalayer
+     *
+     * @param string|int|null $scopeCode
+     * @return bool
+     */
+    public function isDisplayCurrencyUsed($scopeCode = null)
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XPATH_DATALAYER_USE_DISPLAY_CURRENCY,
             ScopeInterface::SCOPE_STORE,
             $scopeCode
         );

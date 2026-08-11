@@ -12,6 +12,9 @@ use Stape\Gtm\Model\Data\ItemVariantFactory;
 use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 use Stape\Gtm\Model\Product\CategoryResolver;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
+use Stape\Gtm\Model\Price\CurrencyResolver;
+use Stape\Gtm\Model\Price\ItemPrice;
+use Stape\Gtm\Model\Price\Totals;
 
 class Checkout extends DatalayerAbstract implements ArgumentInterface
 {
@@ -31,6 +34,16 @@ class Checkout extends DatalayerAbstract implements ArgumentInterface
     protected $itemVariantFactory;
 
     /**
+     * @var ItemPrice $itemPrice
+     */
+    protected $itemPrice;
+
+    /**
+     * @var Totals $totals
+     */
+    protected $totals;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -41,6 +54,9 @@ class Checkout extends DatalayerAbstract implements ArgumentInterface
      * @param EventFormatter $eventFormatter
      * @param PoolInterface $modifierPool
      * @param ItemVariantFactory $itemVariantFactory
+     * @param ItemPrice $itemPrice
+     * @param Totals $totals
+     * @param CurrencyResolver $currencyResolver
      */
     public function __construct(
         Json $json,
@@ -50,12 +66,17 @@ class Checkout extends DatalayerAbstract implements ArgumentInterface
         CategoryResolver $categoryResolver,
         EventFormatter $eventFormatter,
         PoolInterface $modifierPool,
-        ItemVariantFactory $itemVariantFactory
+        ItemVariantFactory $itemVariantFactory,
+        ItemPrice $itemPrice,
+        Totals $totals,
+        CurrencyResolver $currencyResolver
     ) {
-        parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency, $modifierPool);
+        parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency, $currencyResolver, $modifierPool);
         $this->checkoutSession = $checkoutSession;
         $this->categoryResolver = $categoryResolver;
         $this->itemVariantFactory = $itemVariantFactory;
+        $this->itemPrice = $itemPrice;
+        $this->totals = $totals;
     }
 
     /**
@@ -76,7 +97,7 @@ class Checkout extends DatalayerAbstract implements ArgumentInterface
                 'item_id' => $item->getProductId(),
                 'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
                 'item_category' => $category ? $category->getName() : null,
-                'price' => $this->formatPrice($item->getBasePriceInclTax()),
+                'price' => $this->formatPrice($this->itemPrice->forQuoteItem($item)),
                 'quantity' => (int) $item->getQty(),
                 'variation_id' => $itemVariant->getVariationId(),
                 'item_variant' => $itemVariant->getSku(),
@@ -99,14 +120,16 @@ class Checkout extends DatalayerAbstract implements ArgumentInterface
             return [];
         }
 
+        $grandTotal = $this->totals->forEntity($quote, Totals::FIELD_GRAND_TOTAL);
+
         return [
             'event' => $this->eventFormatter->formatName('begin_checkout'),
             'ecomm_pagetype' => 'basket',
             'cart_quantity' => (int) $quote->getItemsQty(),
-            'cart_total' => $this->formatPrice($quote->getBaseGrandTotal()),
+            'cart_total' => $this->formatPrice($grandTotal),
             'ecommerce' => [
-                'value' => $this->formatPrice($quote->getBaseGrandTotal()),
-                'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+                'value' => $this->formatPrice($grandTotal),
+                'currency' => $this->currencyResolver->codeForQuote($quote),
                 'items' => $this->prepareItems($quote),
             ],
         ];

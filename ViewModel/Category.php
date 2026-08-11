@@ -12,6 +12,8 @@ use Magento\Framework\View\Layout;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
+use Stape\Gtm\Model\Price\CatalogPrice;
+use Stape\Gtm\Model\Price\CurrencyResolver;
 use Stape\Gtm\Model\Datalayer\Modifier\PoolInterface;
 
 class Category extends DatalayerAbstract implements ArgumentInterface
@@ -35,6 +37,11 @@ class Category extends DatalayerAbstract implements ArgumentInterface
     private $eventManager;
 
     /**
+     * @var CatalogPrice $catalogPrice
+     */
+    private $catalogPrice;
+
+    /**
      * Define class dependencies
      *
      * @param Json $json
@@ -45,6 +52,8 @@ class Category extends DatalayerAbstract implements ArgumentInterface
      * @param ConfigProvider $configProvider
      * @param ManagerInterface $eventManager
      * @param EventFormatter $eventFormatter
+     * @param CurrencyResolver $currencyResolver
+     * @param CatalogPrice $catalogPrice
      */
     public function __construct(
         Json $json,
@@ -54,13 +63,16 @@ class Category extends DatalayerAbstract implements ArgumentInterface
         Layout $layout,
         ConfigProvider $configProvider,
         ManagerInterface $eventManager,
-        EventFormatter $eventFormatter
+        EventFormatter $eventFormatter,
+        CurrencyResolver $currencyResolver,
+        CatalogPrice $catalogPrice
     ) {
-        parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency);
+        parent::__construct($json, $eventFormatter, $storeManager, $priceCurrency, $currencyResolver);
         $this->layer = $layerResolver->get();
         $this->layout = $layout;
         $this->configProvider = $configProvider;
         $this->eventManager = $eventManager;
+        $this->catalogPrice = $catalogPrice;
     }
 
     /**
@@ -139,7 +151,7 @@ class Category extends DatalayerAbstract implements ArgumentInterface
                 'item_name' => $product->getName(),
                 'item_id' => $product->getId(),
                 'item_sku' => $product->getSku(),
-                'item_price' => $this->formatPrice($product->getFinalPrice()),
+                'item_price' => $this->formatPrice($this->catalogPrice->forProduct($product)),
                 'index' => $index++
             ];
         }
@@ -155,7 +167,7 @@ class Category extends DatalayerAbstract implements ArgumentInterface
             'event' => $this->eventFormatter->formatName('view_collection'),
             'ecomm_pagetype' => 'category',
             'ecommerce' => [
-                'currency' => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+                'currency' => $this->currencyResolver->codeForStore(),
                 'item_list_name' => $this->getCategoryName(),
                 'items' => $this->prepareItems()
             ],

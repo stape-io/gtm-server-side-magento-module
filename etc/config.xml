@@ -12,6 +12,8 @@
             <datalayer>
                 <collection_size>30</collection_size>
                 <stape_suffix_active>1</stape_suffix_active>
+                <exclude_item_price_tax>0</exclude_item_price_tax>
+                <use_display_currency>0</use_display_currency>
             </datalayer>
         </stape_gtm>
     </default>
