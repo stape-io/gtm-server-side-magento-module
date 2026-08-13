@@ -11,6 +11,7 @@ v1.0.44
 - added "Use Display Currency for Amounts" option, amounts and currency codes use the base currency by default;
 - fixed catalog prices being pushed in base currency while labelled with the display currency code;
 - fixed add_payment_info item prices being pushed in base currency while labelled with the quote currency code;
+- grouped the transition options into a dedicated "Transition Settings" section in admin;
 
 v1.0.43
 - fixed CSP compatibility for config-stored GTM snippet by whitelisting its inline scripts via content hash (full page cache safe);
