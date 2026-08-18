@@ -1,0 +1,75 @@
+/**
+ * Stape Conversion Tracking - admin configuration styles.
+ *
+ * Every rule is scoped to the "Transition Settings" fieldset, which carries the
+ * stape-transition-settings class through the <fieldset_css> node in system.xml.
+ */
+
+.section-config.stape-transition-settings {
+    background: #fffdf8;
+    border: 1px solid #c9a94f;
+    border-radius: 3px;
+    margin-bottom: 3rem;
+    overflow: hidden;
+    padding: 0;
+}
+
+.section-config.stape-transition-settings > .entry-edit-head {
+    align-items: center;
+    background: #fdf7ea;
+    border-bottom: 1px solid #c9a94f;
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    padding: .8rem 2rem;
+}
+
+.section-config.stape-transition-settings > .entry-edit-head > a {
+    color: #8a6a1c;
+    padding: 1rem 0 1rem 2.8rem;
+}
+
+.section-config.stape-transition-settings > .entry-edit-head > a:hover,
+.section-config.stape-transition-settings > .entry-edit-head > a:focus,
+.section-config.stape-transition-settings > .entry-edit-head > a:visited {
+    color: #8a6a1c;
+}
+
+/* The theme puts the collapse arrow on the right, where the badge now sits. */
+.section-config.stape-transition-settings > .entry-edit-head > a:before {
+    left: 0;
+    margin-top: -.9rem;
+    right: auto;
+    top: 50%;
+}
+
+.stape-config-badge {
+    background: #a07c1e;
+    border-radius: 2px;
+    color: #fff;
+    display: inline-block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    line-height: 1.4;
+    padding: .6rem 1.4rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.section-config.stape-transition-settings > fieldset.config {
+    border: 0;
+    padding: 2rem 2rem 1rem;
+}
+
+.section-config.stape-transition-settings > fieldset.config > .comment {
+    color: #41362f;
+    font-size: 1.4rem;
+    line-height: 1.6;
+    margin: 0 0 2.5rem;
+    padding: 0;
+}
+
+.section-config.stape-transition-settings .admin__control-select {
+    max-width: 55rem;
+}
