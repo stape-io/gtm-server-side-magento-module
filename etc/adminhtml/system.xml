@@ -88,22 +88,33 @@ This feature is available only if you use <a href="https://stape.io/gtm-server-h
                     <label>Stape Suffix Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 </field>
-                <field id="exclude_item_price_tax" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="16" translate="label comment" type="select" canRestore="1">
-                    <label>Exclude Tax from Item price</label>
-                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
-                    <comment><![CDATA[When enabled, item prices (and line totals) pushed to the data layer exclude tax. Disabled by default - item prices include tax.]]></comment>
-                </field>
-                <field id="use_display_currency" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="17" translate="label comment" type="select" canRestore="1">
-                    <label>Use Display Currency for Amounts</label>
-                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
-                    <comment><![CDATA[When enabled, every amount and currency code pushed to the data layer uses the storefront display currency. Disabled by default - amounts and currency codes use the website base currency. Applies to all events, including the server-side purchase and refund webhooks.]]></comment>
-                </field>
                 <field id="collection_size" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="20" translate="label">
                     <label>Product Collection Limit</label>
                     <validate>validate-integer</validate>
                 </field>
             </group>
-            <group id="webhooks" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+            <group id="transition" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="15" translate="label comment">
+                <label>Transition Settings</label>
+                <fieldset_css>stape-transition-settings</fieldset_css>
+                <frontend_model>Stape\Gtm\Block\Adminhtml\System\Config\Fieldset\Transition</frontend_model>
+                <attribute type="expanded">1</attribute>
+                <comment><![CDATA[These settings maintain the exact data that is being sent as of today.<br />
+Enabling them applies the changes that we will push in the near future,<br />
+and it will be the default approach in future releases.]]></comment>
+                <field id="exclude_item_price_tax" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label comment" type="select" canRestore="1">
+                    <label>Exclude Tax from Item Price</label>
+                    <config_path>stape_gtm/datalayer/exclude_item_price_tax</config_path>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                    <comment><![CDATA[When enabled, item prices (and line totals) pushed to the data layer exclude tax. Disabled by default - item prices include tax.]]></comment>
+                </field>
+                <field id="use_display_currency" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="20" translate="label comment" type="select" canRestore="1">
+                    <label>Use Display Currency for Amounts</label>
+                    <config_path>stape_gtm/datalayer/use_display_currency</config_path>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                    <comment><![CDATA[When enabled, every amount and currency code pushed to the data layer uses the storefront display currency. Disabled by default - amounts and currency codes use the website base currency. Applies to all events, including the server-side purchase and refund webhooks.]]></comment>
+                </field>
+            </group>
+            <group id="webhooks" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="20" translate="label">
                 <label>Webhooks</label>
                 <field id="active" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="select">
                     <label>Enable Webhooks</label>
