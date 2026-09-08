@@ -6,7 +6,10 @@ use Magento\Csp\Model\Collector\DynamicCollector;
 use Magento\Csp\Model\Policy\FetchPolicyFactory;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\ConfigProvider;
+use Stape\Gtm\Model\SameOrigin\ProxyContext;
+use Stape\Gtm\Model\SnippetProvider;
 
 class CspObserverPlugin
 {
@@ -26,45 +29,83 @@ class CspObserverPlugin
     private $dynamicCollector;
 
     /**
+     * @var StoreManagerInterface $storeManager
+     */
+    private $storeManager;
+
+    /**
+     * @var SnippetProvider $snippetProvider
+     */
+    private $snippetProvider;
+
+    /**
+     * @var ProxyContext $proxyContext
+     */
+    private $proxyContext;
+
+    /**
      * Define class dependencies
      *
      * @param ConfigProvider $configProvider
      * @param FetchPolicyFactory $fetchPolicyFactory
      * @param DynamicCollector $dynamicCollector
+     * @param StoreManagerInterface $storeManager
+     * @param SnippetProvider $snippetProvider
+     * @param ProxyContext $proxyContext
      */
     public function __construct(
         ConfigProvider $configProvider,
         FetchPolicyFactory $fetchPolicyFactory,
-        DynamicCollector $dynamicCollector
+        DynamicCollector $dynamicCollector,
+        StoreManagerInterface $storeManager,
+        SnippetProvider $snippetProvider,
+        ProxyContext $proxyContext
     ) {
         $this->configProvider = $configProvider;
         $this->fetchPolicyFactory = $fetchPolicyFactory;
         $this->dynamicCollector = $dynamicCollector;
+        $this->storeManager = $storeManager;
+        $this->snippetProvider = $snippetProvider;
+        $this->proxyContext = $proxyContext;
     }
 
     /**
      * Whitelist the configured GTM snippet and custom domain in the CSP policy.
      *
-     * Runs on the csp_render observer (controller_front_send_response_before),
+     * Runs around the csp_render observer (controller_front_send_response_before),
      * which fires on every request including full page cache hits. Inline
      * scripts are whitelisted by content hash rather than nonce so the policy
      * stays consistent with the cached page body.
      *
      * @param ObserverInterface $subject
+     * @param callable $proceed
      * @param Observer $observer
-     * @return array
+     * @return mixed
      */
-    public function beforeExecute(ObserverInterface $subject, $observer)
+    public function aroundExecute(ObserverInterface $subject, callable $proceed, $observer)
     {
-        if (!$this->configProvider->isActive()) {
-            return [$observer];
+        if ($this->proxyContext->isActive()) {
+            return;
         }
 
-        $this->addSnippetScriptHashes();
+        if ($this->configProvider->isActive()) {
+            $this->addSnippetScriptHashes();
+            $this->addCustomDomainPolicies();
+        }
 
+        return $proceed($observer);
+    }
+
+    /**
+     * Whitelist the configured custom domain for images, scripts and XHR/fetch requests
+     *
+     * @return void
+     */
+    private function addCustomDomainPolicies()
+    {
         $customDomain = $this->configProvider->getCustomDomain();
         if (empty($customDomain)) {
-            return [$observer];
+            return;
         }
 
         $imgPolicy = $this->fetchPolicyFactory->create([
@@ -88,7 +129,6 @@ class CspObserverPlugin
         $this->dynamicCollector->add($imgPolicy);
         $this->dynamicCollector->add($scriptPolicy);
         $this->dynamicCollector->add($connectPolicy);
-        return [$observer];
     }
 
     /**
@@ -103,7 +143,7 @@ class CspObserverPlugin
      */
     private function addSnippetScriptHashes()
     {
-        $snippet = (string) $this->configProvider->getGtmSnippet();
+        $snippet = (string) $this->snippetProvider->getHtml($this->getCurrentStore());
         if ($snippet === '') {
             return;
         }
@@ -130,5 +170,19 @@ class CspObserverPlugin
             'hashValues' => $hashes,
             'noneAllowed' => false,
         ]));
+    }
+
+    /**
+     * Retrieve the current store, or null when it cannot be resolved
+     *
+     * @return \Magento\Store\Api\Data\StoreInterface|null
+     */
+    private function getCurrentStore()
+    {
+        try {
+            return $this->storeManager->getStore();
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }

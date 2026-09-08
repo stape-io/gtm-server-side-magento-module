@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference type="Stape\Gtm\Model\Data\ItemVariant" for="Stape\Gtm\Model\Data\ItemVariantInterface"/>
     <preference type="Stape\Gtm\Model\Api\Request\Request" for="Stape\Gtm\Model\Api\Request\RequestInterface"/>
+    <preference type="Stape\Gtm\Model\Http\UriFactory" for="Psr\Http\Message\UriFactoryInterface"/>
 </config>
