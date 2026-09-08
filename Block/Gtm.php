@@ -3,8 +3,11 @@
 namespace Stape\Gtm\Block;
 
 use Magento\Framework\View\Element\Template;
+use Psr\Http\Message\UriFactoryInterface;
 use Stape\Gtm\Model\ConfigProvider;
 use Stape\Gtm\Model\Datalayer\Formatter\Event as EventFormatter;
+use Stape\Gtm\Model\SameOrigin\BasePath;
+use Stape\Gtm\Model\SnippetProvider;
 
 class Gtm extends \Magento\Framework\View\Element\Template
 {
@@ -21,22 +24,46 @@ class Gtm extends \Magento\Framework\View\Element\Template
     protected $eventFormatter;
 
     /**
+     * @var BasePath $basePath
+     */
+    private $basePath;
+
+    /**
+     * @var SnippetProvider $snippetProvider
+     */
+    private $snippetProvider;
+
+    /**
+     * @var UriFactoryInterface $uriFactory
+     */
+    private $uriFactory;
+
+    /**
      * Define class dependencies
      *
      * @param Template\Context $context
      * @param ConfigProvider $configProvider
      * @param EventFormatter $eventFormatter
+     * @param BasePath $basePath
+     * @param SnippetProvider $snippetProvider
+     * @param UriFactoryInterface $uriFactory
      * @param array $data
      */
     public function __construct(
         Template\Context $context,
         ConfigProvider $configProvider,
         EventFormatter $eventFormatter,
+        BasePath $basePath,
+        SnippetProvider $snippetProvider,
+        UriFactoryInterface $uriFactory,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->configProvider = $configProvider;
         $this->eventFormatter = $eventFormatter;
+        $this->basePath = $basePath;
+        $this->snippetProvider = $snippetProvider;
+        $this->uriFactory = $uriFactory;
     }
 
     /**
@@ -69,19 +96,48 @@ class Gtm extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Retrieve effective GTM container URL for same-origin mode (store base URL + proxy path)
+     * Retrieve effective GTM container URL for same-origin mode (store base URL origin + proxy path)
+     *
+     * Built from the store base URL's origin rather than the full base URL, so it always agrees
+     * with the base path the API-generated loader was built against.
      *
      * @return string
      */
     private function getSameOriginBaseUrl()
     {
-        try {
-            $baseUrl = rtrim($this->_storeManager->getStore()->getBaseUrl(), '/');
-        } catch (\Exception $e) {
-            $baseUrl = '';
+        $store = $this->getCurrentStore();
+
+        if ($store === null) {
+            // root-relative is valid here: the proxy is same-origin by definition
+            return $this->basePath->get($store);
         }
 
-        return rtrim($baseUrl . $this->configProvider->getSameOriginPath(), '/');
+        try {
+            $origin = $this->uriFactory
+                ->createUri((string) $store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB))
+                ->withPath('')
+                ->withQuery('')
+                ->withFragment('');
+
+            return rtrim((string) $origin, '/') . $this->basePath->get($store);
+        } catch (\Exception $e) {
+            // root-relative is valid here: the proxy is same-origin by definition
+            return $this->basePath->get($store);
+        }
+    }
+
+    /**
+     * Retrieve the current store, or null when it cannot be resolved
+     *
+     * @return \Magento\Store\Api\Data\StoreInterface|null
+     */
+    private function getCurrentStore()
+    {
+        try {
+            return $this->_storeManager->getStore();
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
@@ -127,6 +183,20 @@ class Gtm extends \Magento\Framework\View\Element\Template
             $this->getDomain(),
             $this->getLoader()
         ]);
+    }
+
+    /**
+     * Retrieve the file extension the loader is requested with
+     *
+     * Same-origin requests use ".load" because a web server configured to serve ".js" from
+     * disk answers it before PHP is reached; Controller\SameOrigin\Proxy maps it back to
+     * ".js" upstream and returns a JavaScript content type.
+     *
+     * @return string
+     */
+    public function getLoaderExtension()
+    {
+        return $this->configProvider->isSameOriginConfigured() ? 'load' : 'js';
     }
 
     /**
@@ -196,7 +266,7 @@ class Gtm extends \Magento\Framework\View\Element\Template
      */
     public function getGtmSnippetHtml()
     {
-        $snippet = $this->configProvider->getGtmSnippet();
+        $snippet = $this->snippetProvider->getHtml($this->getCurrentStore());
         if (!empty($snippet)) {
             return $snippet;
         }

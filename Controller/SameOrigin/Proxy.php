@@ -17,6 +17,10 @@ use Psr\Http\Message\UriFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Stape\Gtm\Controller\Router\SameOriginProxy;
 use Stape\Gtm\Model\ConfigProvider;
+use Stape\Gtm\Model\SameOrigin\BasePath;
+use Stape\Gtm\Model\SameOrigin\ClientIp;
+use Stape\Gtm\Model\SameOrigin\ProxyContext;
+use Stape\Gtm\Model\SameOrigin\ServiceWorkerPatch;
 
 /**
  * Same-origin proxy endpoint: transparently forwards first-party requests
@@ -51,12 +55,23 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
     ];
 
     /*
+     * Client-address request headers never forwarded upstream as received (lowercase). A
+     * browser can set any of these itself, and the site's own upstream proxies write chains
+     * that mean nothing to the container, so they are never trustworthy as received; ClientIp
+     * resolves them into a single value instead, which is (re-)added in buildUpstreamHeaders().
+     * "forwarded" is stripped here but deliberately never read by ClientIp.
+     */
+    private const CLIENT_IP_REQUEST_HEADERS = [
+        'x-forwarded-for', 'x-real-ip', 'forwarded', 'true-client-ip', 'cf-connecting-ip',
+    ];
+
+    /*
      * Response headers never forwarded back to the client (lowercase):
      * hop-by-hop headers plus the encoding/length of the decoded body
      */
     private const STRIP_RESPONSE_HEADERS = [
         'connection', 'keep-alive', 'transfer-encoding', 'content-encoding',
-        'content-length', 'te', 'trailer', 'upgrade',
+        'content-length', 'te', 'trailer', 'upgrade', 'x-frame-options',
     ];
 
     /*
@@ -123,6 +138,26 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
     private $logger;
 
     /**
+     * @var ServiceWorkerPatch $serviceWorkerPatch
+     */
+    private $serviceWorkerPatch;
+
+    /**
+     * @var BasePath $basePath
+     */
+    private $basePath;
+
+    /**
+     * @var ProxyContext $proxyContext
+     */
+    private $proxyContext;
+
+    /**
+     * @var ClientIp $clientIp
+     */
+    private $clientIp;
+
+    /**
      * Define class dependencies
      *
      * @param HttpRequest $request
@@ -134,6 +169,10 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
      * @param SessionConfig $sessionConfig
      * @param UriFactoryInterface $uriFactory
      * @param LoggerInterface $logger
+     * @param ServiceWorkerPatch $serviceWorkerPatch
+     * @param BasePath $basePath
+     * @param ProxyContext $proxyContext
+     * @param ClientIp $clientIp
      */
     public function __construct(
         HttpRequest $request,
@@ -144,7 +183,11 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
         Escaper $escaper,
         SessionConfig $sessionConfig,
         UriFactoryInterface $uriFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ServiceWorkerPatch $serviceWorkerPatch,
+        BasePath $basePath,
+        ProxyContext $proxyContext,
+        ClientIp $clientIp
     ) {
         $this->request = $request;
         $this->rawFactory = $rawFactory;
@@ -155,6 +198,10 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
         $this->sessionConfig = $sessionConfig;
         $this->uriFactory = $uriFactory;
         $this->logger = $logger;
+        $this->serviceWorkerPatch = $serviceWorkerPatch;
+        $this->basePath = $basePath;
+        $this->proxyContext = $proxyContext;
+        $this->clientIp = $clientIp;
     }
 
     /**
@@ -180,6 +227,8 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
      */
     public function execute()
     {
+        $this->proxyContext->markActive();
+
         // test probe short-circuit: never forwarded upstream
         $testUid = $this->request->getParam('test-uid');
         if (is_string($testUid) && $testUid !== '') {
@@ -209,6 +258,11 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
     private function proxy($endpoint)
     {
         $subPath = (string) $this->request->getParam(SameOriginProxy::PARAM_SUB_PATH);
+
+        $injectServiceWorkerPatch = (bool) preg_match(
+            '#/_/service_worker/[^/]+/sw_iframe\.html$#i',
+            $subPath
+        );
 
         // web servers often serve/404 ".js"-like paths as static files, so the loader
         // uses the ".load" extension; map it back to ".js" for the upstream request
@@ -250,6 +304,15 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
         $result = $this->createResult($status);
         $hasCacheControl = false;
 
+        $body = (string) $response->getBody();
+
+        if ($injectServiceWorkerPatch && stripos((string) $response->getHeaderLine('Content-Type'), 'html') !== false) {
+            $body = $this->serviceWorkerPatch->injectIntoDocument(
+                $body,
+                $this->resolveRequestBasePath()
+            );
+        }
+
         foreach ($response->getHeaders() as $name => $values) {
             $lowerName = strtolower($name);
 
@@ -289,7 +352,7 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
             $this->applyNoCacheHeaders($result);
         }
 
-        $result->setContents((string) $response->getBody());
+        $result->setContents($body);
 
         return $result;
     }
@@ -367,7 +430,9 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
      *
      * All client headers except the strip list, a cookie header without store
      * cookies, a referer reduced to its origin, plus x-stape-host with the
-     * first-party store host.
+     * first-party store host and a resolved client IP. Every header is keyed by its
+     * lower-cased name so a differently-cased inbound copy of a header this method also
+     * sets cannot end up emitted twice.
      *
      * @return array
      */
@@ -376,23 +441,34 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
         $headers = [];
 
         foreach ($this->request->getHeaders() as $header) {
-            $name = $header->getFieldName();
-            if (in_array(strtolower($name), self::STRIP_REQUEST_HEADERS, true)) {
+            $name = strtolower($header->getFieldName());
+            if (in_array($name, self::STRIP_REQUEST_HEADERS, true)
+                || in_array($name, self::CLIENT_IP_REQUEST_HEADERS, true)
+            ) {
                 continue;
             }
             $headers[$name][] = $header->getFieldValue();
         }
 
         if ($cookie = $this->filterCookieHeader((string) $this->request->getHeader('Cookie'))) {
-            $headers['Cookie'] = [$cookie];
+            $headers['cookie'] = [$cookie];
         }
 
         if ($referer = $this->reduceRefererToOrigin((string) $this->request->getHeader('Referer'))) {
-            $headers['Referer'] = [$referer];
+            $headers['referer'] = [$referer];
         }
 
         if ($host = $this->getStoreHost()) {
             $headers['x-stape-host'] = [$host];
+        }
+
+        $headers['x-from-cdn'] = ['cft-stape'];
+
+        $clientIp = $this->clientIp->resolve();
+        if ($clientIp !== '') {
+            $headers['x-forwarded-for'] = [$clientIp];
+            $headers['x-real-ip'] = [$clientIp];
+            $headers['true-client-ip'] = [$clientIp];
         }
 
         return array_map(
@@ -504,5 +580,21 @@ class Proxy implements ActionInterface, CsrfAwareActionInterface
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * Retrieve the browser-visible proxy base path for the current store
+     *
+     * @return string
+     */
+    private function resolveRequestBasePath()
+    {
+        try {
+            $store = $this->storeManager->getStore();
+        } catch (\Exception $e) {
+            $store = null;
+        }
+
+        return $this->basePath->get($store);
     }
 }

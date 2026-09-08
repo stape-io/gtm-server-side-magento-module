@@ -58,6 +58,15 @@ Notes:
 - While the same-origin proxy is fully configured, Cookie Keeper is superseded by
   first-party delivery and treated as disabled.
 
+- The container registers its service worker from a proxied document using a relative
+  URL, which the module rewrites to the `.load` extension so it resolves through the proxy
+  like the loader does. No extra configuration is needed if you already route the proxy
+  path to Magento explicitly (see the nginx snippet above).
+
+- If CSP restrict mode is enabled (**Stores → Configuration → Security → Content Security
+  Policy**), it is not applied to same-origin proxy responses, since proxied documents come
+  from the container, not Magento, and the storefront policy could only break them.
+
 ## Useful links:
  
 - https://stape.io/blog/server-side-gtm-extension-for-magento-2

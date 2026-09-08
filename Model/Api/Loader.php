@@ -12,6 +12,7 @@ use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Stape\Gtm\Model\Api\Request\RequestInterface;
 use Stape\Gtm\Model\ConfigProvider;
+use Stape\Gtm\Model\SameOrigin\BasePath;
 
 class Loader
 {
@@ -66,6 +67,11 @@ class Loader
     private $uriFactory;
 
     /**
+     * @var BasePath $basePath
+     */
+    private $basePath;
+
+    /**
      * Define class dependencies
      *
      * @param Client $client
@@ -76,6 +82,7 @@ class Loader
      * @param StoreManagerInterface $storeManager
      * @param UriFactoryInterface $uriFactory
      * @param LoggerInterface $logger
+     * @param BasePath $basePath
      */
     public function __construct(
         Client $client,
@@ -85,7 +92,8 @@ class Loader
         DataObjectFactory $dataObjectFactory,
         StoreManagerInterface $storeManager,
         UriFactoryInterface $uriFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        BasePath $basePath
     ) {
         $this->client = $client;
         $this->configProvider = $configProvider;
@@ -95,6 +103,7 @@ class Loader
         $this->dataObjectFactory = $dataObjectFactory;
         $this->storeManager = $storeManager;
         $this->uriFactory = $uriFactory;
+        $this->basePath = $basePath;
     }
 
     /**
@@ -224,13 +233,11 @@ class Loader
      */
     private function buildSameOriginRequestData($scope)
     {
-        $path = rtrim((string) $this->configProvider->getSameOriginPath($scope), '/');
-
         $requestData = [
             'webGtmId' => $this->configProvider->getContainerId($scope),
             'source' => 'magento',
             'dataLayerObjectName' => 'dataLayer',
-            'sameOriginPath' => $path,
+            'sameOriginPath' => $this->basePath->get($scope),
         ];
 
         if ($host = $this->getStoreHost($scope)) {
@@ -256,13 +263,11 @@ class Loader
      */
     private function rewriteLoaderExtension($jsCode, $scope)
     {
-        $path = rtrim((string) $this->configProvider->getSameOriginPath($scope), '/');
+        $path = $this->basePath->get($scope);
 
         if ($path === '') {
             return $jsCode;
         }
-
-        $path = '/' . ltrim($path, '/');
 
         $pattern = '#((?:https?:)?//[^/"\'\s?]+'
             . preg_quote($path, '#')

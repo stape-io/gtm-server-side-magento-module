@@ -6,26 +6,10 @@ define([
     return function (config, element) {
         var $switch = $(element),
             $select = $(config.selectSelector),
-            $inherit = $(config.inheritSelector),
-            $groupRows = $((config.groupRows || []).join(', '));
+            $inherit = $(config.inheritSelector);
 
         if (!$select.length) {
             return;
-        }
-
-        /**
-         * Highlight the same-origin rows as a single group
-         */
-        function syncGroup() {
-            var $visible = $groupRows.filter(':visible'),
-                $first = $visible.first();
-
-            $('.stape-so-group_before').removeClass('stape-so-group_before');
-            $groupRows.addClass('stape-so-group')
-                .removeClass('stape-so-group_first stape-so-group_last');
-            $first.addClass('stape-so-group_first');
-            $visible.last().addClass('stape-so-group_last');
-            $first.prevAll('tr:visible').first().addClass('stape-so-group_before');
         }
 
         /**
@@ -46,7 +30,6 @@ define([
 
         syncSwitch();
         syncDisabled();
-        syncGroup();
 
         $switch.on('change', function () {
             $select.val(this.checked ? '1' : '0');
@@ -55,14 +38,9 @@ define([
             $select.get(0).dispatchEvent(new Event('change', {
                 bubbles: true
             }));
-
-            syncGroup();
         });
 
-        $select.on('change', function () {
-            syncSwitch();
-            syncGroup();
-        });
+        $select.on('change', syncSwitch);
         $inherit.on('change', syncDisabled);
     };
 });

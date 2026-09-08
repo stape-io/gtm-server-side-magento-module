@@ -12,7 +12,7 @@
         <span class="stape-so-spinner" aria-hidden="true"></span>
         <?= $escaper->escapeHtml(__('Checking proxy status…')); ?>
     </p>
-    <div class="stape-so-panel__state" id="stape-so-panel-success" hidden>
+    <div class="stape-so-panel__state message message-success" id="stape-so-panel-success" hidden>
         <p class="stape-so-panel__line">
             <span class="stape-so-panel__url" id="stape-so-panel-url"><?= $escaper->escapeHtml($proxyUrl); ?></span>
             <span class="stape-so-copy-wrap">
@@ -43,7 +43,7 @@
             ); ?>
         </p>
     </div>
-    <div class="stape-so-panel__state stape-so-panel__state_error" id="stape-so-panel-error" hidden>
+    <div class="stape-so-panel__state message message-error" id="stape-so-panel-error" hidden>
         <p class="stape-so-panel__line" id="stape-so-panel-error-text"></p>
     </div>
 </div>

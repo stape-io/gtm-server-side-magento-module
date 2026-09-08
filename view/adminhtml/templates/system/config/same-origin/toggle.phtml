@@ -25,12 +25,7 @@
         "#<?= $escaper->escapeHtmlAttr($switchId); ?>": {
             "Stape_Gtm/js/system/config/same-origin/toggle": {
                 "selectSelector": "#<?= $escaper->escapeHtmlAttr($element->getHtmlId()); ?>",
-                "inheritSelector": "#<?= $escaper->escapeHtmlAttr($element->getHtmlId()); ?>_inherit",
-                "groupRows": [
-                    "#row_<?= $escaper->escapeHtmlAttr($element->getHtmlId()); ?>",
-                    "#row_stape_gtm_general_same_origin_path",
-                    "#row_stape_gtm_general_same_origin_api_key"
-                ]
+                "inheritSelector": "#<?= $escaper->escapeHtmlAttr($element->getHtmlId()); ?>_inherit"
             }
         }
     }
