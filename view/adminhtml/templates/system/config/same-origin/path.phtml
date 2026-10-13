@@ -1,0 +1,11 @@
+<?php
+/**
+ * @var \Stape\Gtm\Block\Adminhtml\System\Config\SameOrigin\Path $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<?php $button = $block->getButton(); ?>
+<div class="stape-so-control">
+    <?= $block->getElement()->getElementHtml(); ?>
+    <?= $button->toHtml(); ?>
+</div>

@@ -5,13 +5,13 @@
     <policies>
         <policy id="img-src">
             <values>
-                <value id="stapge_gtm_google" type="host">www.google.com</value>
-                <value id="stapge_gtm_google_ua" type="host">www.google.com.ua</value>
+                <value id="stape_gtm_google" type="host">www.google.com</value>
+                <value id="stape_gtm_google_ua" type="host">www.google.com.ua</value>
             </values>
         </policy>
         <policy id="script-src">
             <values>
-                <value id="stapge_gtm_datalayer_init" type="hash" algorithm="sha256">fQDY1VJmJDOJByE8ZaEPaf2bMpz48L+hmhkGBEjAefg=</value>
+                <value id="stape_gtm_datalayer_init" type="hash" algorithm="sha256">fQDY1VJmJDOJByE8ZaEPaf2bMpz48L+hmhkGBEjAefg=</value>
             </values>
         </policy>
     </policies>

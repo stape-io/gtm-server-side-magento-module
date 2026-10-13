@@ -1,0 +1,70 @@
+<?php
+/**
+ * @var \Stape\Gtm\Block\Adminhtml\System\Config\SameOrigin\Path $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<?php $proxyUrl = $block->getProxyUrl(); ?>
+<?php $checkStatus = $proxyUrl !== '' && $block->isSameOriginReady(); ?>
+<div class="stape-so-message" id="stape-so-message"></div>
+<div class="stape-so-panel" id="stape-so-panel"<?= $checkStatus ? '' : ' style="display:none"'; ?>>
+    <p class="stape-so-panel__line stape-so-panel__checking" id="stape-so-panel-checking">
+        <span class="stape-so-spinner" aria-hidden="true"></span>
+        <?= $escaper->escapeHtml(__('Checking proxy status…')); ?>
+    </p>
+    <div class="stape-so-panel__state message message-success" id="stape-so-panel-success" hidden>
+        <p class="stape-so-panel__line">
+            <span class="stape-so-panel__url" id="stape-so-panel-url"><?= $escaper->escapeHtml($proxyUrl); ?></span>
+            <span class="stape-so-copy-wrap">
+                <button type="button"
+                        class="stape-so-copy"
+                        id="stape-so-copy"
+                        title="<?= $escaper->escapeHtmlAttr(__('Copy to clipboard')); ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Copy to clipboard')); ?>">
+                    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <path fill="currentColor"
+                              d="M10 1H2a1 1 0 0 0-1 1v9h1.5V2.5H10V1zm2.5 2.5h-7a1 1 0 0 0-1 1V14a1 1 0 0 0 1
+                                 1h7a1 1 0 0 0 1-1V4.5a1 1 0 0 0-1-1zm-.5 10H6V5h6v8.5z"/>
+                    </svg>
+                </button>
+                <span class="stape-so-copy__feedback"
+                      id="stape-so-copy-feedback"
+                      role="status"
+                      hidden><?= $escaper->escapeHtml(__('Copied!')); ?></span>
+            </span>
+            <span class="stape-so-panel__text">
+                <?= $escaper->escapeHtml(__('is now configured as reverse proxy for your Stape container.')); ?>
+            </span>
+        </p>
+        <p class="stape-so-panel__line">
+            <?= $escaper->escapeHtml(
+                __('You can now use it as %1 in your web GTM.', '<code>server_container_url</code>'),
+                ['code']
+            ); ?>
+        </p>
+    </div>
+    <div class="stape-so-panel__state message message-error" id="stape-so-panel-error" hidden>
+        <p class="stape-so-panel__line" id="stape-so-panel-error-text"></p>
+    </div>
+</div>
+<script type="text/x-magento-init">
+    {
+        "#<?= $escaper->escapeHtmlAttr($block::BUTTON_ID); ?>": {
+            "Stape_Gtm/js/system/config/same-origin/path": {
+                "savedPath": "<?= $escaper->escapeJs($block->getSavedPath()); ?>",
+                "checkStatus": <?= $checkStatus ? 'true' : 'false'; ?>,
+                "baseUrl": "<?= $escaper->escapeJs($block->getStoreBaseUrl()); ?>",
+                "pathFieldSelector": "#stape_gtm_general_same_origin_path",
+                "messageContainer": "#stape-so-message",
+                "panelContainer": "#stape-so-panel",
+                "checkingContainer": "#stape-so-panel-checking",
+                "successContainer": "#stape-so-panel-success",
+                "errorContainer": "#stape-so-panel-error",
+                "errorTextContainer": "#stape-so-panel-error-text",
+                "copyButton": "#stape-so-copy",
+                "copyFeedback": "#stape-so-copy-feedback",
+                "urlContainer": "#stape-so-panel-url"
+            }
+        }
+    }
+</script>

@@ -1,5 +1,8 @@
 # Changelog
 
+v1.0.45
+- added same-origin proxy (Beta): serve the GTM loader and all sGTM traffic from the store's own domain via a configurable first-party path, with container API key parsing, custom-loader integration, admin Test connection button and save-time path conflict detection;
+
 v1.0.44
 - replaced base prices with display prices;
 - fixed currency discrepancies;
