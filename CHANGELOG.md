@@ -1,5 +1,9 @@
 # Changelog
 
+v1.0.46
+- fixed storefront crash when the domain list URL is empty, the cookie domain now falls back to the store host;
+- fixed the cookie plugin running when the module or Cookie Keeper is disabled;
+
 v1.0.45
 - added same-origin proxy (Beta): serve the GTM loader and all sGTM traffic from the store's own domain via a configurable first-party path, with container API key parsing, custom-loader integration, admin Test connection button and save-time path conflict detection;
 

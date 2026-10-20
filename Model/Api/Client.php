@@ -13,7 +13,7 @@ class Client
     /*
      * Module version
      */
-    public const MODULE_VERSION = '1.0.45';
+    public const MODULE_VERSION = '1.0.46';
 
     /**
      * @var ClientFactory
