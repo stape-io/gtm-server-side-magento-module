@@ -7,7 +7,6 @@ use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Pdp\CannotProcessHost;
 use Stape\Gtm\Model\ConfigProvider;
 use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\App\RequestInterface as HttpRequest;
@@ -130,7 +129,6 @@ class HttpPlugin
      * Retrieve cookie domain
      *
      * @return string
-     * @throws CannotProcessHost
      */
     private function getCookieDomain()
     {
@@ -140,13 +138,18 @@ class HttpPlugin
                 return $cacheValue;
             }
 
-            $publicSuffixList = Rules::fromPath($this->config->getDomainListUrl());
+            $domainListUrl = (string) $this->config->getDomainListUrl();
+            if ($domainListUrl === '') {
+                return $this->request->getHttpHost();
+            }
+
+            $publicSuffixList = Rules::fromPath($domainListUrl);
             $domain = Domain::fromIDNA2008($this->request->getHttpHost());
             $result = $publicSuffixList->resolve($domain);
             $cacheValue = $result->registrableDomain()->toString();
             $this->cache->save($cacheValue, $this->getCacheKey());
             return $cacheValue;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return $this->request->getHttpHost();
         }
     }
@@ -162,6 +165,11 @@ class HttpPlugin
      */
     public function beforeSendResponse(HttpResponse $subject)
     {
+        $isEnabled = $this->config->isActive() && $this->config->useCookieKeeper();
+        if (!$isEnabled && $this->cookieManager->getCookie(self::COOKIE_NAME) === null) {
+            return;
+        }
+
         $metadata = $this->cookieMetaDataFactory->createPublicCookieMetadata()
             ->setHttpOnly(false)
             ->setSecure(true)
@@ -169,7 +177,7 @@ class HttpPlugin
             ->setPath('/')
             ->setDomain('.' . $this->getCookieDomain());
 
-        if (!$this->config->isActive() || !$this->config->useCookieKeeper()) {
+        if (!$isEnabled) {
             $this->cookieManager->deleteCookie(self::COOKIE_NAME, $metadata);
             return;
         }
