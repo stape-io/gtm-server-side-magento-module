@@ -1,0 +1,3 @@
+# verify skill: ownership record, evidence, driver dependencies
+/.verify/
+/.claude/skills/verify/bin/node_modules/
