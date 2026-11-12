@@ -15,8 +15,4 @@ Read before any task:
 - [docs/agents/domain.md](docs/agents/domain.md): glossary and ADRs
 - [docs/agents/verification.md](docs/agents/verification.md): when a ticket counts as done
 
-Read when the trigger comes up:
-
-- [docs/agents/jira-flow.md](docs/agents/jira-flow.md): before writing a spec, a map or a set of tickets
-- [docs/agents/review.md](docs/agents/review.md): before reviewing a diff
-- [docs/agents/improvement.md](docs/agents/improvement.md): when a skill or doc misled you, or before a retro
+The plugin's `jira-flow`, `review` and `improvement` sections only steer its own `/stape-dev:` skills, so they are not copied here.
