@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+# Owns one verification store per checkout: a Magento 2.4.8 container with
+# sample data (MySQL and Elasticsearch inside) running the Stape_Gtm module
+# from this checkout, plus a webhook sink standing in for the merchant's server
+# container. Names and ports derive from the checkout path, so worktrees never
+# collide.
+#
+#   verify-env up                   start a fresh store, install the module, set the baseline
+#   verify-env doctor               read-only: is this instance worth driving? (exit 1 if not)
+#   verify-env refresh              after editing module code: flush caches, generated code, static files
+#   verify-env magento <args>       bin/magento inside the store, e.g. config:show stape_gtm
+#   verify-env sql '<query>'        MySQL inside the store (database magento)
+#   verify-env sink [query]         what the webhook sink recorded, e.g. 'label=purchase'
+#   verify-env logs                 the store's Magento exception and system log tails
+#   verify-env evidence <label>     make and print a fresh evidence directory
+#   verify-env down                 destroy the store and the sink (data included); evidence stays
+#
+# The ownership record is .verify/env.json (gitignored), evidence goes under
+# .verify/runs/. Override derived names with VERIFY_PROJECT, VERIFY_PORT, VERIFY_SINK_PORT.
+set -euo pipefail
+
+ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)"
+cd "$ROOT"
+
+IMAGE="${VERIFY_IMAGE:-michielgerritsen/magento-project-community-edition:php83-fpm-magento2.4.8-p5-sample-data}"
+OWNER=".verify/env.json"
+EVIDENCE_ROOT=".verify/runs"
+BIN=".claude/skills/verify/bin"
+LABEL="io.stape.verify.root"
+
+SUM="$(printf '%s' "$ROOT" | shasum | cut -c1-8)"
+PROJECT="${VERIFY_PROJECT:-stape-verify-${SUM:0:6}}"
+PORT="${VERIFY_PORT:-$((8300 + (16#$SUM % 300) * 2))}"
+SINK_PORT="${VERIFY_SINK_PORT:-$((PORT + 1))}"
+
+die() { echo "verify-env: $*" >&2; exit 1; }
+
+owner_field() {
+  node -e 'console.log(require(process.argv[1])[process.argv[2]] ?? "")' "$ROOT/$OWNER" "$1"
+}
+
+# Every later command talks to what `up` recorded, not to freshly derived names.
+load_owner() {
+  [[ -f "$OWNER" ]] || die "no store started by verify-env in $ROOT (run: verify-env up)"
+  PROJECT="$(owner_field project)"
+  PORT="$(owner_field port)"
+  SINK_PORT="$(owner_field sinkPort)"
+}
+
+MAGE() { echo "$PROJECT-magento"; }
+SINK() { echo "$PROJECT-sink"; }
+
+mexec() { docker exec -i "$(MAGE)" "$@"; }
+magento() { mexec php bin/magento "$@"; }
+
+container_ours() {
+  [[ "$(docker inspect -f "{{ index .Config.Labels \"$LABEL\" }}" "$1" 2>/dev/null)" == "$ROOT" ]]
+}
+
+wait_for() { # <seconds> <description> <command...>
+  local limit="$1" what="$2"; shift 2
+  local start=$SECONDS
+  until "$@" >/dev/null 2>&1; do
+    (( SECONDS - start < limit )) || die "timed out after ${limit}s waiting for: $what"
+    docker inspect -f '{{.State.Running}}' "$(MAGE)" 2>/dev/null | grep -q true \
+      || { docker logs --tail 30 "$(MAGE)" >&2 || true; die "the store container exited while waiting for: $what"; }
+    sleep 3
+  done
+}
+
+baseline() {
+  # The baseline store: module on with a fake web GTM ID, ecommerce and user
+  # data events on, webhooks off. Journeys change settings through the admin
+  # page; `magento config:set` is setup only.
+  local kv
+  for kv in \
+    "stape_gtm/general/active 1" \
+    "stape_gtm/general/container_id GTM-VERIFY1" \
+    "stape_gtm/datalayer/ecom 1" \
+    "stape_gtm/datalayer/userdata 1" \
+    "stape_gtm/webhooks/active 0" \
+    "stape_gtm/webhooks/gtm_container_url http://sink:8080/hook/default" \
+    "admin/security/use_form_key 0"; do
+    # shellcheck disable=SC2086
+    magento config:set $kv >/dev/null
+  done
+}
+
+up() {
+  [[ ! -f "$OWNER" ]] || die "$OWNER exists: a store ($(owner_field project)) is already up. Run 'verify-env doctor', or 'verify-env down' first."
+  ! docker inspect "$(MAGE)" "$(SINK)" >/dev/null 2>&1 || die "containers named $PROJECT-* already exist; remove them or set VERIFY_PROJECT"
+  if lsof -nP -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1 || lsof -nP -iTCP:"$SINK_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    die "port $PORT or $SINK_PORT is taken; set VERIFY_PORT/VERIFY_SINK_PORT"
+  fi
+  docker image inspect "$IMAGE" >/dev/null 2>&1 || docker pull --platform linux/amd64 "$IMAGE"
+
+  local password="Verify-$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 12)1"
+  mkdir -p "$(dirname "$OWNER")" "$EVIDENCE_ROOT"
+  node -e '
+    const [file, project, port, sinkPort, image, password] = process.argv.slice(1);
+    require("fs").writeFileSync(file, JSON.stringify({
+      project, port: Number(port), sinkPort: Number(sinkPort), image,
+      storefront: `http://localhost:${port}/`, admin: `http://localhost:${port}/admin/`,
+      adminUser: "verify", adminPassword: password,
+      sink: `http://localhost:${sinkPort}`, sinkFromMagento: "http://sink:8080/hook/<label>",
+      startedAt: new Date().toISOString(),
+    }, null, 2) + "\n");
+  ' "$OWNER" "$PROJECT" "$PORT" "$SINK_PORT" "$IMAGE" "$password"
+
+  echo "verify-env: starting $PROJECT (storefront http://localhost:$PORT/, sink http://localhost:$SINK_PORT)"
+  docker network create --label "$LABEL=$ROOT" "$PROJECT" >/dev/null
+  docker run -d --name "$(SINK)" --label "$LABEL=$ROOT" --network "$PROJECT" --network-alias sink \
+    -p "$SINK_PORT:8080" -v "$ROOT/$BIN:/sink:ro" node:22-alpine node /sink/sink.mjs >/dev/null
+  # The checkout is mounted read-only and installed through a Composer path
+  # repository (symlinked), so the store always runs the working tree.
+  docker run -d --platform linux/amd64 --name "$(MAGE)" --label "$LABEL=$ROOT" --network "$PROJECT" \
+    -e URL="http://localhost:$PORT/" -e DISABLE_2FA=true \
+    -p "$PORT:80" -v "$ROOT:/data/extensions/stape-gtm:ro" "$IMAGE" >/dev/null
+
+  wait_for 300 "the image's entrypoint (MySQL, Elasticsearch, base URL)" \
+    sh -c "docker logs $(MAGE) 2>&1 | grep -q 'Flushed cache types'"
+  echo "verify-env: installing the module from the checkout"
+  mexec composer config repositories.stape-gtm '{"type":"path","url":"/data/extensions/stape-gtm","options":{"symlink":true}}'
+  mexec composer require 'stape/gtm-server-side-magento-module:*' --no-interaction --no-plugins >/dev/null 2>&1 \
+    || die "composer require failed; run it by hand: docker exec $(MAGE) composer require 'stape/gtm-server-side-magento-module:*'"
+  magento setup:upgrade --keep-generated >/dev/null
+  baseline
+  magento admin:user:create --admin-user=verify --admin-password="$password" \
+    --admin-email=verify@example.test --admin-firstname=Verify --admin-lastname=Agent >/dev/null
+  magento cache:flush >/dev/null
+  # The first page view compiles DI and static files on the fly (developer mode).
+  curl -fsS -o /dev/null --max-time 300 "http://localhost:$PORT/" || true
+  doctor
+}
+
+doctor() {
+  load_owner
+  local ok=1 home version
+  check() { if eval "$2" >/dev/null 2>&1; then echo "ok    $1"; else echo "FAIL  $1"; ok=0; fi; }
+  echo "project $PROJECT | storefront http://localhost:$PORT/ | admin http://localhost:$PORT/admin/ (user verify, password in $OWNER) | sink http://localhost:$SINK_PORT"
+  check "store container running and started from this checkout" "container_ours $(MAGE) && docker inspect -f '{{.State.Running}}' $(MAGE) | grep -q true"
+  check "port $PORT belongs to this store" "docker port $(MAGE) 80 | grep -q ':$PORT\$'"
+  check "checkout mounted at /data/extensions/stape-gtm" "docker inspect -f '{{range .Mounts}}{{.Source}}={{.Destination}} {{end}}' $(MAGE) | grep -q '$ROOT=/data/extensions/stape-gtm'"
+  check "webhook sink up (http://sink:8080 from Magento)" "container_ours $(SINK) && curl -fsS http://localhost:$SINK_PORT/_sink/health && mexec curl -fsS http://sink:8080/_sink/health"
+  check "Stape_Gtm enabled, symlinked to the checkout" "magento module:status Stape_Gtm | grep -q 'Module is enabled' && mexec readlink vendor/stape/gtm-server-side-magento-module | grep -q /data/extensions/stape-gtm"
+  home="$(curl -fsS --max-time 120 "http://localhost:$PORT/" 2>/dev/null || true)"
+  check "storefront renders the module (Stape_Gtm/js/datalayer)" "[[ \"\$home\" == *Stape_Gtm/js/datalayer* ]]"
+  check "admin user verify exists and is active" "mexec mysql -uroot magento -N -e \"select is_active from admin_user where username='verify'\" | grep -q 1"
+  version="$(node -p 'require("./composer.json").version')"
+  echo "      module version in composer.json: $version (store: Magento $(magento --version | awk '{print $NF}'))"
+  [[ $ok == 1 ]] || exit 1
+}
+
+refresh() {
+  load_owner
+  # Developer mode: PHP is read live from the mount, but DI, layout, templates
+  # and static JS are cached or materialised.
+  mexec sh -c 'rm -rf generated/code/Stape generated/metadata var/view_preprocessed pub/static/frontend/*/*/*/Stape_Gtm pub/static/adminhtml/*/*/*/Stape_Gtm'
+  magento cache:flush >/dev/null
+  echo "verify-env: caches, generated code and Stape_Gtm static files cleared (etc/db_schema or composer.json changes need: verify-env down && verify-env up)"
+}
+
+down() {
+  load_owner
+  local c
+  for c in "$(MAGE)" "$(SINK)"; do
+    if docker inspect "$c" >/dev/null 2>&1; then
+      container_ours "$c" || die "$c was not started from $ROOT; not touching it"
+      docker rm -f -v "$c" >/dev/null
+    fi
+  done
+  docker network rm "$PROJECT" >/dev/null 2>&1 || true
+  rm -f "$OWNER"
+  echo "verify-env: $PROJECT destroyed; evidence kept in $ROOT/$EVIDENCE_ROOT"
+}
+
+case "${1:-}" in
+  up) up ;;
+  doctor) doctor ;;
+  refresh) refresh ;;
+  magento) shift; load_owner; magento "$@" ;;
+  sql) load_owner; mexec mysql -uroot magento -e "${2:?usage: verify-env sql '<query>'}" ;;
+  sink) load_owner; curl -fsS "http://localhost:$SINK_PORT/_sink/requests?${2:-}" ;;
+  logs) load_owner; mexec sh -c 'for f in var/log/exception.log var/log/system.log; do echo "== $f"; tail -n 40 $f 2>/dev/null; done' ;;
+  evidence)
+    [[ -n "${2:-}" ]] || die "usage: verify-env evidence <label>"
+    dir="$ROOT/$EVIDENCE_ROOT/$(date +%Y%m%d-%H%M%S)-${2//[^A-Za-z0-9_.-]/-}"
+    mkdir -p "$dir" && echo "$dir" ;;
+  down) down ;;
+  *) sed -n '2,19p' "$0" >&2; exit 2 ;;
+esac
