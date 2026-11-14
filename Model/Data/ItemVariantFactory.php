@@ -47,7 +47,12 @@ class ItemVariantFactory
      */
     protected function resolveVariantSku($item)
     {
-        $baseSku = $item->getProduct()->getData('sku');
+        $product = $item->getProduct();
+        if (!$product) {
+            return null;
+        }
+
+        $baseSku = $product->getData('sku');
         return ($item->getSku() !== $baseSku && strpos($item->getSku(), $baseSku) === 0)
             ? ltrim(substr($item->getSku(), strlen($baseSku)), '- ')
             : null;

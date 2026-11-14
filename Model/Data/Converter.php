@@ -97,7 +97,7 @@ class Converter
             $items[] = [
                 'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
-                'item_sku' => $item->getProduct()->getData(ProductInterface::SKU),
+                'item_sku' => $product ? $product->getData(ProductInterface::SKU) : $item->getSku(),
                 'item_category' => $category ? $category->getName() : '',
                 'price' => $this->formatPrice($this->itemPrice->forSalesItem($item, $item->getStoreId())),
                 'quantity' => $item->getQtyOrdered(),
@@ -124,13 +124,14 @@ class Converter
                 continue;
             }
 
-            $category = $this->categoryResolver->resolve($orderItem->getProduct());
+            $product = $orderItem->getProduct();
+            $category = $product ? $this->categoryResolver->resolve($product) : null;
             $itemVariant = $this->itemVariantFactory->createFromOrderItem($item->getOrderItem());
 
             $items[] = [
                 'item_id' => $item->getProductId(),
                 'item_name' => $item->getName(),
-                'item_sku' => $orderItem->getProduct()->getData(ProductInterface::SKU),
+                'item_sku' => $product ? $product->getData(ProductInterface::SKU) : $orderItem->getSku(),
                 'item_category' => $category ? $category->getName() : '',
                 'price' => $this->formatPrice($this->itemPrice->forSalesItem($item, $orderItem->getStoreId())),
                 'quantity' => $item->getQty(),
