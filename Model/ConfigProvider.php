@@ -171,33 +171,36 @@ class ConfigProvider
      * Retrieve GTM container id
      *
      * @param string $scopeCode
+     * @param string $scopeType
      * @return string
      */
-    public function getContainerId($scopeCode = null)
+    public function getContainerId($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORE)
     {
-        return $this->scopeConfig->getValue(self::XPATH_GTM_CONTAINER_ID, ScopeInterface::SCOPE_STORE, $scopeCode);
+        return $this->scopeConfig->getValue(self::XPATH_GTM_CONTAINER_ID, $scopeType, $scopeCode);
     }
 
     /**
      * Retrieve custom domain
      *
      * @param string $scopeCode
+     * @param string $scopeType
      * @return string|null
      */
-    public function getCustomDomain($scopeCode = null)
+    public function getCustomDomain($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORE)
     {
-        return $this->scopeConfig->getValue(self::XPATH_GTM_DOMAIN, ScopeInterface::SCOPE_STORE, $scopeCode);
+        return $this->scopeConfig->getValue(self::XPATH_GTM_DOMAIN, $scopeType, $scopeCode);
     }
 
     /**
      * Retrieve custom loader
      *
      * @param string $scopeCode
+     * @param string $scopeType
      * @return string|null
      */
-    public function getCustomLoader($scopeCode = null)
+    public function getCustomLoader($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORE)
     {
-        return $this->scopeConfig->getValue(self::XPATH_GTM_LOADER, ScopeInterface::SCOPE_STORE, $scopeCode);
+        return $this->scopeConfig->getValue(self::XPATH_GTM_LOADER, $scopeType, $scopeCode);
     }
 
     /**
@@ -231,35 +234,38 @@ class ConfigProvider
      * Check if same-origin proxy is enabled
      *
      * @param string|null $scopeCode
+     * @param string $scopeType
      * @return bool
      */
-    public function isSameOriginActive($scopeCode = null)
+    public function isSameOriginActive($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORE)
     {
-        return $this->scopeConfig->isSetFlag(self::XPATH_SAME_ORIGIN_ACTIVE, ScopeInterface::SCOPE_STORE, $scopeCode);
+        return $this->scopeConfig->isSetFlag(self::XPATH_SAME_ORIGIN_ACTIVE, $scopeType, $scopeCode);
     }
 
     /**
      * Retrieve same-origin proxy path
      *
      * @param string|null $scopeCode
+     * @param string $scopeType
      * @return string|null
      */
-    public function getSameOriginPath($scopeCode = null)
+    public function getSameOriginPath($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORE)
     {
-        return $this->scopeConfig->getValue(self::XPATH_SAME_ORIGIN_PATH, ScopeInterface::SCOPE_STORE, $scopeCode);
+        return $this->scopeConfig->getValue(self::XPATH_SAME_ORIGIN_PATH, $scopeType, $scopeCode);
     }
 
     /**
      * Retrieve same-origin container API key
      *
      * @param string|null $scopeCode
+     * @param string $scopeType
      * @return string|null
      */
-    public function getSameOriginApiKey($scopeCode = null)
+    public function getSameOriginApiKey($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORE)
     {
         return $this->scopeConfig->getValue(
             self::XPATH_SAME_ORIGIN_API_KEY,
-            ScopeInterface::SCOPE_STORE,
+            $scopeType,
             $scopeCode
         ) ?: null;
     }
@@ -268,24 +274,26 @@ class ConfigProvider
      * Check if same-origin proxy is fully configured (toggle + path + API key)
      *
      * @param string|null $scopeCode
+     * @param string $scopeType
      * @return bool
      */
-    public function isSameOriginConfigured($scopeCode = null)
+    public function isSameOriginConfigured($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORE)
     {
-        return $this->isSameOriginActive($scopeCode)
-            && strlen($this->getSameOriginPath($scopeCode) ?? '') > 0
-            && strlen($this->getSameOriginApiKey($scopeCode) ?? '') > 0;
+        return $this->isSameOriginActive($scopeCode, $scopeType)
+            && strlen($this->getSameOriginPath($scopeCode, $scopeType) ?? '') > 0
+            && strlen($this->getSameOriginApiKey($scopeCode, $scopeType) ?? '') > 0;
     }
 
     /**
      * Retrieve container identifier parsed from the same-origin API key
      *
      * @param string|null $scopeCode
+     * @param string $scopeType
      * @return string|null
      */
-    public function getSameOriginIdentifier($scopeCode = null)
+    public function getSameOriginIdentifier($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORE)
     {
-        return $this->apiKey->getIdentifier($this->getSameOriginApiKey($scopeCode));
+        return $this->apiKey->getIdentifier($this->getSameOriginApiKey($scopeCode, $scopeType));
     }
 
     /**
@@ -303,18 +311,19 @@ class ConfigProvider
      * Check if cookie keeper should be used
      *
      * @param string|null $scopeCode
+     * @param string $scopeType
      * @return bool
      */
-    public function useCookieKeeper($scopeCode = null)
+    public function useCookieKeeper($scopeCode = null, $scopeType = ScopeInterface::SCOPE_STORE)
     {
-        if ($this->isSameOriginConfigured($scopeCode)) {
+        if ($this->isSameOriginConfigured($scopeCode, $scopeType)) {
             return false;
         }
 
-        if (strlen($this->getCustomLoader($scopeCode) ?? '') < 1) {
+        if (strlen($this->getCustomLoader($scopeCode, $scopeType) ?? '') < 1) {
             return false;
         }
-        return $this->scopeConfig->isSetFlag(self::XPATH_GTM_KEEP_COOKIE, ScopeInterface::SCOPE_STORE, $scopeCode);
+        return $this->scopeConfig->isSetFlag(self::XPATH_GTM_KEEP_COOKIE, $scopeType, $scopeCode);
     }
 
     /**

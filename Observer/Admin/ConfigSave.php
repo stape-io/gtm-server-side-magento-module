@@ -106,7 +106,8 @@ class ConfigSave implements ObserverInterface
 
         try {
             $snippet = $this->loaderApi->generateLoader(
-                $this->resolveScope($config->getScope(), $config->getScopeId())
+                $this->resolveScope($config->getScope(), $config->getScopeId()),
+                $config->getScope()
             );
 
             $config->setSection('stape_gtm');
