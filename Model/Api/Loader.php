@@ -5,6 +5,7 @@ namespace Stape\Gtm\Model\Api;
 use Magento\Framework\DataObjectFactory;
 use Magento\Framework\Exception\NotFoundException;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Stape\Gtm\Model\Api\Request\RequestInterfaceFactory;
 use Psr\Http\Message\UriFactoryInterface;
@@ -181,10 +182,16 @@ class Loader
     private function getStoreHost($scope)
     {
         try {
-            $baseUrl = $this->resolveStore($scope)->getBaseUrl();
+            $store = $this->resolveStore($scope);
         } catch (\Exception $e) {
             return null;
         }
+
+        if (!$store) {
+            return null;
+        }
+
+        $baseUrl = $store->getBaseUrl();
 
         $uri = $this->createUri($baseUrl);
 
@@ -195,17 +202,18 @@ class Loader
      * Build request data for the default (custom domain) mode
      *
      * @param string|int $scope
+     * @param string $scopeType
      * @return array
      */
-    private function buildDefaultRequestData($scope)
+    private function buildDefaultRequestData($scope, $scopeType = ScopeInterface::SCOPE_STORE)
     {
         $requestData = [
-            'webGtmId' => $this->configProvider->getContainerId($scope),
+            'webGtmId' => $this->configProvider->getContainerId($scope, $scopeType),
             'source' => 'magento',
             'dataLayerObjectName' => 'dataLayer',
         ];
 
-        $uri = $this->createUri($this->configProvider->getCustomDomain($scope) ?? '');
+        $uri = $this->createUri($this->configProvider->getCustomDomain($scope, $scopeType) ?? '');
 
         if ($uri && $uri->getHost()) {
             $requestData['domain'] = $uri->getHost();
@@ -215,7 +223,7 @@ class Loader
             $requestData['sameOriginPath'] = $uri->getPath();
         }
 
-        if ($this->configProvider->useCookieKeeper($scope)) {
+        if ($this->configProvider->useCookieKeeper($scope, $scopeType)) {
             $requestData['userIdentifierType'] = 'cookie';
             $requestData['userIdentifierValue'] = '_sbp';
         }
@@ -229,15 +237,16 @@ class Loader
      * Cookie Keeper identifiers are intentionally never sent in this mode.
      *
      * @param string|int $scope
+     * @param string $scopeType
      * @return array
      */
-    private function buildSameOriginRequestData($scope)
+    private function buildSameOriginRequestData($scope, $scopeType = ScopeInterface::SCOPE_STORE)
     {
         $requestData = [
-            'webGtmId' => $this->configProvider->getContainerId($scope),
+            'webGtmId' => $this->configProvider->getContainerId($scope, $scopeType),
             'source' => 'magento',
             'dataLayerObjectName' => 'dataLayer',
-            'sameOriginPath' => $this->basePath->get($scope),
+            'sameOriginPath' => $this->basePath->get($scope, $scopeType),
         ];
 
         if ($host = $this->getStoreHost($scope)) {
@@ -259,11 +268,12 @@ class Loader
      *
      * @param string $jsCode
      * @param string|int $scope
+     * @param string $scopeType
      * @return string
      */
-    private function rewriteLoaderExtension($jsCode, $scope)
+    private function rewriteLoaderExtension($jsCode, $scope, $scopeType = ScopeInterface::SCOPE_STORE)
     {
-        $path = $this->basePath->get($scope);
+        $path = $this->basePath->get($scope, $scopeType);
 
         if ($path === '') {
             return $jsCode;
@@ -280,18 +290,19 @@ class Loader
      * Generate GTM code snippet
      *
      * @param string|int $scope
+     * @param string $scopeType Scope type the configuration is read at
      * @return string|null
      */
-    public function generateLoader($scope = null)
+    public function generateLoader($scope = null, $scopeType = ScopeInterface::SCOPE_STORE)
     {
-        $sameOrigin = $this->configProvider->isSameOriginConfigured($scope);
+        $sameOrigin = $this->configProvider->isSameOriginConfigured($scope, $scopeType);
 
         if ($sameOrigin) {
-            $identifier = $this->configProvider->getSameOriginIdentifier($scope);
-            $requestData = $this->buildSameOriginRequestData($scope);
+            $identifier = $this->configProvider->getSameOriginIdentifier($scope, $scopeType);
+            $requestData = $this->buildSameOriginRequestData($scope, $scopeType);
         } else {
-            $identifier = $this->configProvider->getCustomLoader($scope);
-            $requestData = $this->buildDefaultRequestData($scope);
+            $identifier = $this->configProvider->getCustomLoader($scope, $scopeType);
+            $requestData = $this->buildDefaultRequestData($scope, $scopeType);
         }
 
         if (empty($identifier)) {
@@ -323,7 +334,7 @@ class Loader
             $jsCode = $response->getData('body/jsCode');
 
             if ($sameOrigin && is_string($jsCode)) {
-                $jsCode = $this->rewriteLoaderExtension($jsCode, $scope);
+                $jsCode = $this->rewriteLoaderExtension($jsCode, $scope, $scopeType);
             }
 
             return $jsCode;

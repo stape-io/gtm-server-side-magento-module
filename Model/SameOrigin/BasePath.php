@@ -5,6 +5,7 @@ namespace Stape\Gtm\Model\SameOrigin;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Api\Data\WebsiteInterface;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Stape\Gtm\Model\ConfigProvider;
@@ -73,13 +74,18 @@ class BasePath
      * @param StoreInterface|WebsiteInterface|string|int|null $scope Store, website, store code/id,
      *     or null. Null resolves to the default store view, NOT the current store — frontend
      *     callers must pass the current store explicitly.
+     * @param string $scopeType Scope type the configured path is read at; the store used for the
+     *     base URL prefix is resolved from $scope regardless of it.
      * @return string
      */
-    public function get($scope = null)
+    public function get($scope = null, $scopeType = ScopeInterface::SCOPE_STORE)
     {
         $store = $this->resolveStore($scope);
 
-        $path = trim((string) $this->configProvider->getSameOriginPath($store), '/');
+        $path = trim((string) $this->configProvider->getSameOriginPath(
+            $scopeType === ScopeInterface::SCOPE_STORE ? $store : $scope,
+            $scopeType
+        ), '/');
 
         if ($path === '') {
             return '';
